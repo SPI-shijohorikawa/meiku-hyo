@@ -85,15 +85,15 @@ table.ln td.z{color:#c3c8c5}
   body{background:#fff;padding:0;font-size:9pt;color:#000}
   .app{display:none}
   .print{display:block}
-  .sheet{padding-right:2mm;height:125mm;overflow:hidden;break-inside:avoid;page-break-inside:avoid;display:flex;flex-direction:column;gap:2mm}
-  .sheet+.sheet{border-top:1px dashed #666;padding-top:3mm;margin-top:2mm}
+  .sheet{padding-right:2mm;min-height:120mm;break-inside:avoid;page-break-inside:avoid;display:flex;flex-direction:column;gap:2mm}
+  .sheet+.sheet{border-top:1px dashed #666;padding-top:4mm;margin-top:6mm}
   .hd{display:flex;align-items:baseline;gap:5mm;flex-wrap:nowrap;white-space:nowrap}
   .hd .t{font-size:15pt;font-weight:700;letter-spacing:.05em}
   .hd .d{font-size:12pt}
   .hd .lg{margin-left:auto;display:flex;gap:3mm;font-size:8pt;align-items:center;white-space:nowrap}
   .lg i{display:inline-block;width:6mm;height:4.5mm;border:.3mm solid #000;vertical-align:middle;margin-right:1mm;position:relative;
     -webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .lg i.g{background:#bdbdbd}
+  .lg i.g{background:#d6d6d6}
   .lg i svg{position:absolute;inset:0;margin:auto;width:3.6mm;height:3.6mm}
   .pfs{display:flex;justify-content:space-between}
   .pf .fl{font-size:10pt;font-weight:700;margin-bottom:.6mm;display:flex;align-items:baseline;justify-content:space-between;width:38mm}
@@ -111,12 +111,18 @@ table.ln td.z{color:#c3c8c5}
   .pc .y{font-size:6.3pt;line-height:1.1;white-space:nowrap}
   .pc .m{display:grid;place-items:center;height:100%}
   .pc .m svg{width:5mm;height:5mm}
-  .pc.out,.pc.sc{background:#bdbdbd}
+  .pc.out,.pc.sc{background:#d6d6d6}
   .pc.pev{background:repeating-linear-gradient(45deg,#fff 0 1.2mm,#ddd 1.2mm 1.6mm);display:flex}
   .pc.pev .n{font-size:9.5pt;color:#555;align-self:center}
   .ft{display:flex;gap:4mm;align-items:flex-start;margin-top:3mm}
   .tot{display:grid;grid-template-columns:auto auto;column-gap:3mm;row-gap:.4mm;font-size:9pt;border:.3mm solid #000;padding:1.2mm 2mm}
   .tot b{text-align:right;font-size:10.5pt}
+  .p2{break-before:page;page-break-before:always;display:flex;flex-direction:column;gap:4mm;padding-right:2mm}
+  .p2 .tot{font-size:11pt;padding:2mm 3mm;row-gap:1.5mm} .p2 .tot b{font-size:13pt}
+  .p2 table.pln{font-size:11pt} .p2 table.pln th{font-size:10pt} .p2 table.pln th,.p2 table.pln td{padding:1.4mm 2mm}
+  .p2 .tbls{gap:6mm}
+  .tbls{flex:1;display:flex;flex-direction:column;gap:2.5mm;min-width:0}
+  .tbls table{width:100%}
   table.pln{border-collapse:collapse;font-size:8.5pt;font-variant-numeric:tabular-nums}
   table.pln th,table.pln td{border:.3mm solid #000;padding:.5mm 1.6mm;text-align:center;white-space:nowrap}
   table.pln th{font-weight:600;font-size:7.8pt}
@@ -196,7 +202,7 @@ const LINEN={
   Q: {SS:4,DS:4,BT:4,FT:4,BM:1}
 };
 const ITEMS=[["SS","シーツS","Sheet S"],["SW","シーツW","Sheet W"],["DS","デュベS","Duvet S"],["DW","デュベW","Duvet W"],
-             ["BT","バスタオル","Bath Towel"],["FT","フェイスタオル","Face Towel"],["BM","バスマット","Bath Mat"]];
+             ["BT","バス","Bath Towel"],["FT","フェイス","Face Towel"],["BM","マット","Bath Mat"]];
 const FLOOR_ORDER=["1F","2F","3F","4F"];
 function linen(){ // {1F:{SS:..}, ..., sum:{..}}
   const r={sum:{}};for(const f of FLOOR_ORDER)r[f]={};
@@ -295,13 +301,28 @@ function ftcTable(){ // 画面用
   h+=`<tr class="sum"><td>合計</td>${TYPE_ORDER.map(t=>`<td>${r.sum[t]}</td>`).join("")}<td>${r.sum.all}</td></tr></tbody>`;
   return h;
 }
+function roomTable(lang){ // 印刷用：フロア別・タイプ別の清掃部屋数
+  const r=floorTypeCounts();
+  let h=`<table class="pln"><thead><tr><th>${lang==="ja"?"部屋":"Rooms"}</th>${TYPE_ORDER.map(t=>`<th>${TYPES[t][lang]}</th>`).join("")}</tr></thead><tbody>`;
+  for(const f of FLOOR_ORDER)h+=`<tr><td>${f}</td>${TYPE_ORDER.map(t=>`<td>${r[f][t]}</td>`).join("")}</tr>`;
+  h+=`<tr class="sum"><td>${lang==="ja"?"計":"Total"}</td>${TYPE_ORDER.map(t=>`<td>${r.sum[t]}</td>`).join("")}</tr></tbody></table>`;
+  return h;
+}
 function linenTable(lang,cls){
   const r=linen();const col=lang==="ja"?1:2;
   const cell=v=>`<td${v===0&&!cls?' class="z"':""}>${v}</td>`;
   let h=(cls?`<table class="${cls}">`:"")+`<thead><tr><th>${lang==="ja"?"階":"Floor"}</th>${ITEMS.map(i=>`<th>${i[col]}</th>`).join("")}</tr></thead><tbody>`;
   for(const f of FLOOR_ORDER)h+=`<tr><td>${f}</td>${ITEMS.map(i=>cell(r[f][i[0]])).join("")}</tr>`;
-  h+=`<tr class="sum"><td>${lang==="ja"?"合計":"Total"}</td>${ITEMS.map(i=>`<td>${r.sum[i[0]]}</td>`).join("")}</tr></tbody>`;
+  h+=`<tr class="sum"><td>${lang==="ja"?"計":"Total"}</td>${ITEMS.map(i=>`<td>${r.sum[i[0]]}</td>`).join("")}</tr></tbody>`;
   return h+(cls?"</table>":"");
+}
+function page2HTML(c){
+  const T=L.ja;
+  return `<div class="p2"><div class="hd"><span class="t">清掃・リネン集計</span><span class="d">${dateVal?T.date(dateVal):""}</span></div>
+    <div class="ft"><div class="tot">
+      <span>${T.tot[0]}</span><b>${c.out}</b><span>${T.tot[1]}</span><b>${c.sc}</b>
+      <span>${T.tot[2]}</span><b>${c[""]}</b><span>${T.tot[3]}</span><b>${c.vac}</b></div>
+    <div class="tbls">${linenTable("ja","pln")}${roomTable("ja")}</div></div></div>`;
 }
 function sheetHTML(lang,c,foot){ // foot: 集計表を付ける言語（なしなら null）
   const T=L[lang];
@@ -309,8 +330,7 @@ function sheetHTML(lang,c,foot){ // foot: 集計表を付ける言語（なし�
     <span class="lg"><span><i class="g"></i>${T.lg[0]}</span><span><i class="g">${O_SVG}</i>${T.lg[1]}</span><span><i></i>${T.lg[2]}</span><span><i>${X_SVG}</i>${T.lg[3]}</span></span></div>
     <div class="pfs">`;
   for(const fl of FLOORS){
-    {const fc=floorTypeCounts()[fl.f], ts=floorTypes(fl);
-    h+=`<div class="pf"><div class="fl"><span>${fl.f}</span><span class="fc">${ts.map(t=>`<i>${SHORT[lang][t]}<b>${fc[t]}</b></i>`).join("")}<i class="a">${lang==="ja"?"計":"All"}<b>${fc.all}</b></i></span></div><div class="pg">`;}
+    h+=`<div class="pf"><div class="fl">${fl.f}</div><div class="pg">`;
     for(const r of fl.rows)for(const cell of r){
       if(!cell){h+=`<div class="pc e"></div>`;continue;}
       if(cell==="EV"){h+=`<div class="pc pev"><span class="n">EV</span></div>`;continue;}
@@ -325,7 +345,7 @@ function sheetHTML(lang,c,foot){ // foot: 集計表を付ける言語（なし�
     h+=`<div class="ft"><div class="tot">
       <span>${F.tot[0]}</span><b>${c.out}</b><span>${F.tot[1]}</span><b>${c.sc}</b>
       <span>${F.tot[2]}</span><b>${c[""]}</b><span>${F.tot[3]}</span><b>${c.vac}</b></div>
-    ${linenTable(foot,"pln")}</div>`;}
+    <div class="tbls">${linenTable(foot,"pln")}${roomTable(foot)}</div></div>`;}
   h+=`</div>`;
   return h;
 }
@@ -341,7 +361,7 @@ function render(){
     `<tr><td><b>計</b></td><td><b>${c.out}</b></td><td><b>${c.sc}</b></td></tr></tbody>`;
   document.getElementById("ftc").innerHTML=ftcTable();
   document.getElementById("ln").innerHTML=linenTable("ja","");
-  document.getElementById("print").innerHTML=sheetHTML("ja",c,null)+sheetHTML("en",c,"ja"); // 集計は下の1つだけ・日本語
+  document.getElementById("print").innerHTML=sheetHTML("ja",c,null)+sheetHTML("en",c,null)+page2HTML(c); // 1ページ目=部屋表2枚、2ページ目=集計（日本語）
 }
 
 load();
