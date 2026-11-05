@@ -53,7 +53,8 @@ header.top h1{font-size:22px;margin:0;letter-spacing:.05em}
 .ev{background:#d6dadd;border:1px dashed #a7afb5;border-left:5px solid var(--ev);display:flex;flex-direction:column;justify-content:center;padding-left:9px}
 .ev b{font-size:18px} .ev span{font-size:11px;color:var(--sub)}
 
-aside{display:flex;flex-direction:column;gap:10px}
+aside{display:flex;flex-direction:column;gap:10px;grid-column:2;grid-row:2 / span 2;align-self:start}
+@media (max-width:820px){aside{grid-column:1;grid-row:auto}}
 .box{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
 .big{display:grid;grid-template-columns:1fr auto;row-gap:3px;align-items:baseline}
 .big span{font-size:14px;color:var(--sub)} .big b{font-size:24px;font-variant-numeric:tabular-nums;text-align:right}
@@ -66,6 +67,14 @@ table.bd thead th{color:var(--sub);font-weight:600;font-size:12px}
 .btns button{font:inherit;font-size:17px;padding:12px;border-radius:8px;border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer;transition:background .15s,color .15s}
 .btns .primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
 .btns .armed{background:var(--danger);border-color:var(--danger);color:#fff;font-weight:700}
+.linen{grid-column:1;min-width:0}
+.linen .scroll{overflow-x:auto}
+table.ln{width:100%;border-collapse:collapse;font-size:15px;font-variant-numeric:tabular-nums;min-width:560px}
+table.ln th,table.ln td{padding:6px 6px;border-bottom:1px solid #eceeed;text-align:right;white-space:nowrap}
+table.ln th:first-child,table.ln td:first-child{text-align:left}
+table.ln thead th{color:var(--sub);font-weight:600;font-size:13px}
+table.ln tr.sum td{font-weight:800;border-top:2px solid var(--line)}
+table.ln td.z{color:#c3c8c5}
 .hint{font-size:12px;color:var(--sub);line-height:1.6;margin:0}
 .warn{font-size:13px;line-height:1.6;margin:0;padding:10px 12px;border-radius:8px;background:#fdecea;color:#8a2a1f;border:1px solid #f1b5ab}
 
@@ -87,7 +96,11 @@ table.bd thead th{color:var(--sub);font-weight:600;font-size:12px}
   .lg i.g{background:#bdbdbd}
   .lg i svg{position:absolute;inset:0;margin:auto;width:3.6mm;height:3.6mm}
   .pfs{display:flex;justify-content:space-between}
-  .pf .fl{font-size:10pt;font-weight:700;margin-bottom:.6mm}
+  .pf .fl{font-size:10pt;font-weight:700;margin-bottom:.6mm;display:flex;align-items:baseline;justify-content:space-between;width:38mm}
+  .pf .fl .fc{font-size:7pt;font-weight:400;letter-spacing:-.01em;white-space:nowrap}
+  .pf .fl .fc b{font-weight:800;font-size:8pt;margin-left:.3mm}
+  .pf .fl .fc i{font-style:normal;margin-left:1.3mm}
+  .pf .fl .fc i.a{margin-left:2.2mm}
   .pg{display:grid;grid-template-columns:19mm 19mm;grid-auto-rows:9mm}
   .pc{border:.3mm solid #000;margin:0 -.3mm -.3mm 0;position:relative;padding:0 0 0 1.2mm;
     display:grid;grid-template-columns:1fr 6.5mm;align-items:center;
@@ -104,6 +117,15 @@ table.bd thead th{color:var(--sub);font-weight:600;font-size:12px}
   .ft{display:flex;gap:4mm;align-items:flex-start;margin-top:3mm}
   .tot{display:grid;grid-template-columns:auto auto;column-gap:3mm;row-gap:.4mm;font-size:9pt;border:.3mm solid #000;padding:1.2mm 2mm}
   .tot b{text-align:right;font-size:10.5pt}
+  table.pln{border-collapse:collapse;font-size:8.5pt;font-variant-numeric:tabular-nums}
+  table.pln th,table.pln td{border:.3mm solid #000;padding:.5mm 1.6mm;text-align:center;white-space:nowrap}
+  table.pln th{font-weight:600;font-size:7.8pt}
+  table.pln tr.sum td{font-weight:800}
+  table.pln td:first-child,table.pln th:first-child{text-align:left}
+  table.pft{border-collapse:collapse;font-size:7.5pt;margin-top:1mm;font-variant-numeric:tabular-nums}
+  table.pft th,table.pft td{border:.3mm solid #000;padding:.2mm 1.3mm;text-align:center;white-space:nowrap}
+  table.pft th{font-weight:600;font-size:6.8pt}
+  table.pft td.s,table.pft th.s{font-weight:800}
   table.pbd{border-collapse:collapse;font-size:8.5pt}
   table.pbd th,table.pbd td{border:.3mm solid #000;padding:.6mm 2mm;text-align:center}
   table.pbd th{font-weight:600}
@@ -127,14 +149,21 @@ table.bd thead th{color:var(--sub);font-weight:600;font-size:12px}
 
   <div class="floors" id="floors"></div>
 
+  <div class="box linen" hidden>
+    <h3>清掃する部屋数（フロア別・タイプ別／OUT清掃＋連泊清掃）</h3>
+    <div class="scroll"><table class="ln" id="ftc"></table></div>
+    <h3 style="margin-top:14px">リネン準備数（OUT清掃＋連泊清掃の部屋）</h3>
+    <div class="scroll"><table class="ln" id="ln"></table></div>
+  </div>
+
   <aside>
-    <div class="box big">
+    <div class="box big" hidden>
       <span>OUT清掃</span><b id="nOut">0</b>
       <span>連泊清掃</span><b id="nSc">0</b>
       <span>連泊</span><b id="nStay">42</b>
       <span>空室</span><b id="nVac">0</b>
     </div>
-    <div class="box">
+    <div class="box" hidden>
       <h3>清掃の内訳（タイプ別）</h3>
       <table class="bd" id="bd"></table>
     </div>
@@ -158,6 +187,24 @@ const TYPES={
   Q:{en:"4 Beds",ja:"4ベッド",c:"var(--q4)"}
 };
 const TYPE_ORDER=["D","W","TA","TB","Q"];
+// 1部屋あたりのリネン（OUT清掃・連泊清掃とも同じ）
+const LINEN={
+  D: {SW:1,DW:1,BT:2,FT:2,BM:1},
+  W: {SS:2,DS:2,BT:2,FT:2,BM:1},
+  TA:{SS:3,DS:3,BT:3,FT:3,BM:1},
+  TB:{SW:2,DW:2,SS:1,DS:1,BT:3,FT:3,BM:1},
+  Q: {SS:4,DS:4,BT:4,FT:4,BM:1}
+};
+const ITEMS=[["SS","シーツS","Sheet S"],["SW","シーツW","Sheet W"],["DS","デュベS","Duvet S"],["DW","デュベW","Duvet W"],
+             ["BT","バスタオル","Bath Towel"],["FT","フェイスタオル","Face Towel"],["BM","バスマット","Bath Mat"]];
+const FLOOR_ORDER=["1F","2F","3F","4F"];
+function linen(){ // {1F:{SS:..}, ..., sum:{..}}
+  const r={sum:{}};for(const f of FLOOR_ORDER)r[f]={};
+  for(const [k] of ITEMS){r.sum[k]=0;for(const f of FLOOR_ORDER)r[f][k]=0;}
+  for(const [no,t] of ROOMS){const s=state[no]||"";if(s!=="out"&&s!=="sc")continue;
+    const f=no[0]+"F";for(const k in LINEN[t]){r[f][k]+=LINEN[t][k];r.sum[k]+=LINEN[t][k];}}
+  return r;
+}
 // 各フロア：[左, 右] を上から。null=何もない、"EV"=エレベーター
 function stdFloor(f){ // 4F・3F 共通
   return [[f+"10:TA",null],[null,f+"11:TA"],[f+"08:TB",f+"09:D"],[f+"06:Q",f+"07:D"],
@@ -230,13 +277,40 @@ const L={
       bdh:["Type","Check-out","Stay-over"]}
 };
 
-function sheetHTML(lang,c){
+const SHORT={ja:{D:"ダ",W:"ツ",TA:"トA",TB:"トB",Q:"4B"},en:{D:"Dbl",W:"Twn",TA:"TrA",TB:"TrB",Q:"4B"}};
+function floorTypeCounts(){ // {1F:{D:n,...,all:n}, ..., sum:{...}}
+  const r={sum:{all:0}};for(const f of FLOOR_ORDER)r[f]={all:0};
+  for(const t of TYPE_ORDER){r.sum[t]=0;for(const f of FLOOR_ORDER)r[f][t]=0;}
+  for(const [no,t] of ROOMS){const s=state[no]||"";if(s!=="out"&&s!=="sc")continue;
+    const f=no[0]+"F";r[f][t]++;r[f].all++;r.sum[t]++;r.sum.all++;}
+  return r;
+}
+function floorTypes(fl){const set=new Set();for(const r of fl.rows)for(const c of r)if(c&&c!=="EV")set.add(c.split(":")[1]);
+  return TYPE_ORDER.filter(t=>set.has(t));}
+function ftcTable(){ // 画面用
+  const r=floorTypeCounts();
+  const cell=v=>`<td${v===0?' class="z"':""}>${v}</td>`;
+  let h=`<thead><tr><th>階</th>${TYPE_ORDER.map(t=>`<th>${TYPES[t].en}</th>`).join("")}<th>計</th></tr></thead><tbody>`;
+  for(const f of FLOOR_ORDER)h+=`<tr><td>${f}</td>${TYPE_ORDER.map(t=>cell(r[f][t])).join("")}<td><b>${r[f].all}</b></td></tr>`;
+  h+=`<tr class="sum"><td>合計</td>${TYPE_ORDER.map(t=>`<td>${r.sum[t]}</td>`).join("")}<td>${r.sum.all}</td></tr></tbody>`;
+  return h;
+}
+function linenTable(lang,cls){
+  const r=linen();const col=lang==="ja"?1:2;
+  const cell=v=>`<td${v===0&&!cls?' class="z"':""}>${v}</td>`;
+  let h=(cls?`<table class="${cls}">`:"")+`<thead><tr><th>${lang==="ja"?"階":"Floor"}</th>${ITEMS.map(i=>`<th>${i[col]}</th>`).join("")}</tr></thead><tbody>`;
+  for(const f of FLOOR_ORDER)h+=`<tr><td>${f}</td>${ITEMS.map(i=>cell(r[f][i[0]])).join("")}</tr>`;
+  h+=`<tr class="sum"><td>${lang==="ja"?"合計":"Total"}</td>${ITEMS.map(i=>`<td>${r.sum[i[0]]}</td>`).join("")}</tr></tbody>`;
+  return h+(cls?"</table>":"");
+}
+function sheetHTML(lang,c,foot){ // foot: 集計表を付ける言語（なしなら null）
   const T=L[lang];
   let h=`<div class="sheet" lang="${lang}"><div class="hd"><span class="t">${T.title}</span><span class="d">${dateVal?T.date(dateVal):""}</span>
     <span class="lg"><span><i class="g"></i>${T.lg[0]}</span><span><i class="g">${O_SVG}</i>${T.lg[1]}</span><span><i></i>${T.lg[2]}</span><span><i>${X_SVG}</i>${T.lg[3]}</span></span></div>
     <div class="pfs">`;
   for(const fl of FLOORS){
-    h+=`<div class="pf"><div class="fl">${fl.f}</div><div class="pg">`;
+    {const fc=floorTypeCounts()[fl.f], ts=floorTypes(fl);
+    h+=`<div class="pf"><div class="fl"><span>${fl.f}</span><span class="fc">${ts.map(t=>`<i>${SHORT[lang][t]}<b>${fc[t]}</b></i>`).join("")}<i class="a">${lang==="ja"?"計":"All"}<b>${fc.all}</b></i></span></div><div class="pg">`;}
     for(const r of fl.rows)for(const cell of r){
       if(!cell){h+=`<div class="pc e"></div>`;continue;}
       if(cell==="EV"){h+=`<div class="pc pev"><span class="n">EV</span></div>`;continue;}
@@ -246,13 +320,13 @@ function sheetHTML(lang,c){
     }
     h+=`</div></div>`;
   }
-  h+=`</div><div class="ft"><div class="tot">
-      <span>${T.tot[0]}</span><b>${c.out}</b><span>${T.tot[1]}</span><b>${c.sc}</b>
-      <span>${T.tot[2]}</span><b>${c[""]}</b><span>${T.tot[3]}</span><b>${c.vac}</b></div>
-    <table class="pbd"><tr><th>${T.bdh[0]}</th>${TYPE_ORDER.map(t=>`<th>${TYPES[t][lang]}</th>`).join("")}</tr>
-      <tr><td>${T.bdh[1]}</td>${TYPE_ORDER.map(t=>`<td>${c.by[t].out}</td>`).join("")}</tr>
-      <tr><td>${T.bdh[2]}</td>${TYPE_ORDER.map(t=>`<td>${c.by[t].sc}</td>`).join("")}</tr></table>
-  </div></div>`;
+  h+=`</div>`;
+  if(foot){const F=L[foot];
+    h+=`<div class="ft"><div class="tot">
+      <span>${F.tot[0]}</span><b>${c.out}</b><span>${F.tot[1]}</span><b>${c.sc}</b>
+      <span>${F.tot[2]}</span><b>${c[""]}</b><span>${F.tot[3]}</span><b>${c.vac}</b></div>
+    ${linenTable(foot,"pln")}</div>`;}
+  h+=`</div>`;
   return h;
 }
 
@@ -265,7 +339,9 @@ function render(){
   document.getElementById("bd").innerHTML=`<thead><tr><th></th><th>OUT</th><th>連泊清掃</th></tr></thead><tbody>`+
     TYPE_ORDER.map(t=>`<tr><td>${TYPES[t].en}</td><td>${c.by[t].out}</td><td>${c.by[t].sc}</td></tr>`).join("")+
     `<tr><td><b>計</b></td><td><b>${c.out}</b></td><td><b>${c.sc}</b></td></tr></tbody>`;
-  document.getElementById("print").innerHTML=sheetHTML("ja",c)+sheetHTML("en",c);
+  document.getElementById("ftc").innerHTML=ftcTable();
+  document.getElementById("ln").innerHTML=linenTable("ja","");
+  document.getElementById("print").innerHTML=sheetHTML("ja",c,null)+sheetHTML("en",c,"ja"); // 集計は下の1つだけ・日本語
 }
 
 load();
