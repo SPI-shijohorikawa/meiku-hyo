@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>メイク表 四条堀川</title>
+<style>
+/* 画面: 左に4フロア並び（各2列）、右に集計。印刷: A4縦 上=日本語 下=英語 */
+:root{
+  --bg:#f3f4f2; --paper:#ffffff; --ink:#1d2321; --sub:#5d6662; --line:#c9cfcb; --accent:#2f6f5e;
+  --out:#b9bcbb; --sc:#cfe3f3; --sc-ink:#1f5c8a; --vac:#f6f0dc; --vac-ink:#8a7a45;
+  --tA:#2f6fb0; --tB:#c4416e; --dbl:#b8741a; --twn:#23845f; --q4:#7a4bb0; --ev:#4b5560;
+  --danger:#c0392b;
+  --font:"Hiragino Sans","Yu Gothic UI","Yu Gothic","Noto Sans JP","Meiryo",system-ui,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation;
+  padding:12px max(16px,env(safe-area-inset-right,0px)) 24px max(16px,env(safe-area-inset-left,0px))}
+.app{display:grid;grid-template-columns:minmax(0,1fr) 240px;gap:16px;max-width:1280px;margin:0 auto}
+@media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
+header.top{grid-column:1/-1;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header.top h1{font-size:22px;margin:0;letter-spacing:.05em}
+.date{display:flex;align-items:center;gap:6px;font-size:16px}
+.date input{font:inherit;font-size:16px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--paper);color:var(--ink)}
+.legend{margin-left:auto;display:flex;gap:12px;align-items:center;font-size:13px;color:var(--sub);flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:4px}
+.sw{width:18px;height:14px;border:1px solid var(--line);display:inline-block;border-radius:3px;background:var(--paper)}
+.sw.out{background:var(--out)} .sw.sc{background:var(--sc)} .sw.vac{background:var(--vac)}
+
+.floors{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;min-width:0;align-items:start}
+@media (max-width:620px){.floors{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.floor{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:8px}
+.floor h2{margin:0 0 6px 2px;font-size:17px}
+.grid{display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:62px;gap:6px}
+.room,.ev,.blank{border-radius:8px;min-width:0}
+.room{appearance:none;border:1px solid var(--line);border-left:5px solid var(--tc);background:var(--paper);color:var(--ink);
+  padding:4px 4px 4px 8px;font:inherit;cursor:pointer;text-align:left;
+  display:flex;flex-direction:column;justify-content:center;gap:1px;user-select:none;-webkit-user-select:none;overflow:hidden}
+.room .no{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
+.room .ty{font-size:11.5px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.room .st{font-size:11.5px;font-weight:700;height:14px;line-height:14px;white-space:nowrap;color:var(--sub)}
+.room.out{background:var(--out);border-color:#8f9492;border-left-color:var(--tc)}
+.room.out .ty,.room.out .st{color:#222}
+.room.sc{background:var(--sc);border-color:#9cc0de;border-left-color:var(--tc)}
+.room.sc .st{color:var(--sc-ink)}
+.room.vac{background:var(--vac);border-color:#e0d3a6;border-left-color:var(--tc)}
+.room.vac .st{color:var(--vac-ink)}
+.room:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
+.ev{background:#d6dadd;border:1px dashed #a7afb5;border-left:5px solid var(--ev);display:flex;flex-direction:column;justify-content:center;padding-left:9px}
+.ev b{font-size:18px} .ev span{font-size:11px;color:var(--sub)}
+
+aside{display:flex;flex-direction:column;gap:10px}
+.box{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.big{display:grid;grid-template-columns:1fr auto;row-gap:3px;align-items:baseline}
+.big span{font-size:14px;color:var(--sub)} .big b{font-size:24px;font-variant-numeric:tabular-nums;text-align:right}
+.box h3{margin:0 0 6px;font-size:13px;color:var(--sub);font-weight:600}
+table.bd{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+table.bd th,table.bd td{padding:3px 2px;border-bottom:1px solid #eceeed;text-align:right}
+table.bd th:first-child,table.bd td:first-child{text-align:left}
+table.bd thead th{color:var(--sub);font-weight:600;font-size:12px}
+.btns{display:flex;flex-direction:column;gap:8px}
+.btns button{font:inherit;font-size:17px;padding:12px;border-radius:8px;border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer;transition:background .15s,color .15s}
+.btns .primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+.btns .armed{background:var(--danger);border-color:var(--danger);color:#fff;font-weight:700}
+.hint{font-size:12px;color:var(--sub);line-height:1.6;margin:0}
+
+/* ---------- 印刷用（白黒プリンター前提） ---------- */
+.print{display:none}
+@media print{
+  @page{size:A4 portrait;margin:7mm}
+  body{background:#fff;padding:0;font-size:9pt;color:#000}
+  .app{display:none}
+  .print{display:block}
+  .sheet{padding-right:2mm;height:139mm;overflow:hidden;break-inside:avoid;page-break-inside:avoid;display:flex;flex-direction:column;gap:2mm}
+  .sheet+.sheet{border-top:1px dashed #666;padding-top:3mm;margin-top:2mm}
+  .hd{display:flex;align-items:baseline;gap:5mm;flex-wrap:nowrap;white-space:nowrap}
+  .hd .t{font-size:15pt;font-weight:700;letter-spacing:.05em}
+  .hd .d{font-size:12pt}
+  .hd .lg{margin-left:auto;display:flex;gap:3mm;font-size:8pt;align-items:center;white-space:nowrap}
+  .lg i{display:inline-block;width:6mm;height:4.5mm;border:.3mm solid #000;vertical-align:middle;margin-right:1mm;position:relative;
+    -webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .lg i.g{background:#bdbdbd}
+  .lg i svg{position:absolute;inset:0;margin:auto;width:3.6mm;height:3.6mm}
+  .pfs{display:flex;justify-content:space-between}
+  .pf .fl{font-size:10pt;font-weight:700;margin-bottom:.6mm}
+  .pg{display:grid;grid-template-columns:20mm 20mm;grid-auto-rows:9.5mm}
+  .pc{border:.3mm solid #000;margin:0 -.3mm -.3mm 0;position:relative;padding:0 0 0 1.2mm;
+    display:grid;grid-template-columns:1fr 6.5mm;align-items:center;
+    -webkit-print-color-adjust:exact;print-color-adjust:exact;overflow:hidden}
+  .pc.e{border:none}
+  .pc .tx{display:flex;flex-direction:column;justify-content:center;min-width:0}
+  .pc .n{font-size:10.5pt;font-weight:700;line-height:1.05}
+  .pc .y{font-size:6.3pt;line-height:1.1;white-space:nowrap}
+  .pc .m{display:grid;place-items:center;height:100%}
+  .pc .m svg{width:5mm;height:5mm}
+  .pc.out,.pc.sc{background:#bdbdbd}
+  .pc.pev{background:repeating-linear-gradient(45deg,#fff 0 1.2mm,#ddd 1.2mm 1.6mm);display:flex}
+  .pc.pev .n{font-size:9.5pt;color:#555;align-self:center}
+  .ft{display:flex;gap:4mm;align-items:flex-start;margin-top:3mm}
+  .tot{display:grid;grid-template-columns:auto auto;column-gap:3mm;row-gap:.4mm;font-size:9pt;border:.3mm solid #000;padding:1.2mm 2mm}
+  .tot b{text-align:right;font-size:10.5pt}
+  table.pbd{border-collapse:collapse;font-size:8.5pt}
+  table.pbd th,table.pbd td{border:.3mm solid #000;padding:.6mm 2mm;text-align:center}
+  table.pbd th{font-weight:600}
+  table.pbd td:first-child,table.pbd th:first-child{text-align:left}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <h1>メイク表</h1>
+    <label class="date">日付 <input type="date" id="date"></label>
+    <div class="legend">
+      <span class="chip"><span class="sw"></span>連泊</span>
+      <span class="chip"><span class="sw out"></span>OUT清掃</span>
+      <span class="chip"><span class="sw sc"></span>連泊清掃</span>
+      <span class="chip"><span class="sw vac"></span>空室</span>
+      <span>タップ：連泊 → OUT清掃 → 連泊清掃 → 空室 → 連泊</span>
+    </div>
+  </header>
+
+  <div class="floors" id="floors"></div>
+
+  <aside>
+    <div class="box big">
+      <span>OUT清掃</span><b id="nOut">0</b>
+      <span>連泊清掃</span><b id="nSc">0</b>
+      <span>連泊</span><b id="nStay">42</b>
+      <span>空室</span><b id="nVac">0</b>
+    </div>
+    <div class="box">
+      <h3>清掃の内訳（タイプ別）</h3>
+      <table class="bd" id="bd"></table>
+    </div>
+    <div class="btns">
+      <button class="primary" id="btnPrint" type="button">印刷</button>
+      <button id="btnReset" type="button">リセット</button>
+    </div>
+    <p class="hint">何も押していない部屋は「連泊」です。リセットは1回押すと赤くなり、もう1回押すと全部消えます。入力はこの端末のブラウザに自動保存されます。</p>
+  </aside>
+</div>
+
+<div class="print" id="print"></div>
+
+<script>
+const TYPES={
+  TA:{en:"Triple A",ja:"トリプルA",c:"var(--tA)"},
+  TB:{en:"Triple B",ja:"トリプルB",c:"var(--tB)"},
+  D:{en:"Double",ja:"ダブル",c:"var(--dbl)"},
+  W:{en:"Twin",ja:"ツイン",c:"var(--twn)"},
+  Q:{en:"4 Beds",ja:"4ベッド",c:"var(--q4)"}
+};
+const TYPE_ORDER=["D","W","TA","TB","Q"];
+// 各フロア：[左, 右] を上から。null=何もない、"EV"=エレベーター
+function stdFloor(f){ // 4F・3F 共通
+  return [[f+"10:TA",null],[null,f+"11:TA"],[f+"08:TB",f+"09:D"],[f+"06:Q",f+"07:D"],
+          [null,f+"05:D"],[f+"04:TB",f+"03:D"],[null,f+"01:TA"],[f+"02:TA","EV"]];
+}
+const FLOORS=[
+  {f:"1F",rows:[["EV",null],[null,"102:TA"],["101:TA",null],["103:D","104:W"],["105:D","106:W"],["107:D","108:W"]]},
+  {f:"2F",rows:[["212:TA",null],[null,"211:TA"],["210:W","209:D"],["208:W","207:D"],
+                ["206:W","205:D"],["204:W","203:D"],[null,"201:TA"],["202:TA","EV"]]},
+  {f:"3F",rows:stdFloor("3")},
+  {f:"4F",rows:stdFloor("4")}
+];
+const ROOMS=[];
+for(const fl of FLOORS)for(const r of fl.rows)for(const c of r)if(c&&c!=="EV"){const [no,t]=c.split(":");ROOMS.push([no,t]);}
+const TOTAL=ROOMS.length; // 42
+
+// 状態："" = 連泊（初期値）, out = OUT清掃, sc = 連泊清掃, vac = 空室
+const NEXT={"":"out",out:"sc",sc:"vac",vac:""};
+const LABEL={"":"連泊",out:"OUT清掃",sc:"連泊清掃",vac:"空室"};
+const KEY="makehyo-shijohorikawa-v3";
+let state={}, dateVal="";
+
+function tomorrow(){const d=new Date();d.setDate(d.getDate()+1);
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+function load(){try{const s=JSON.parse(localStorage.getItem(KEY)||"null");if(s){state=s.state||{};dateVal=s.date||"";}}catch(e){}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify({state,date:dateVal}));}catch(e){}}
+
+function buildScreen(){
+  const wrap=document.getElementById("floors");wrap.innerHTML="";
+  for(const fl of FLOORS){
+    const sec=document.createElement("section");sec.className="floor";
+    sec.innerHTML=`<h2>${fl.f}</h2>`;
+    const g=document.createElement("div");g.className="grid";
+    for(const r of fl.rows)for(const c of r){
+      if(!c){const d=document.createElement("div");d.className="blank";g.appendChild(d);continue;}
+      if(c==="EV"){const d=document.createElement("div");d.className="ev";d.innerHTML="<b>EV</b><span>エレベーター</span>";g.appendChild(d);continue;}
+      const [no,t]=c.split(":");
+      const b=document.createElement("button");b.type="button";b.className="room";b.id="r"+no;
+      b.style.setProperty("--tc",TYPES[t].c);
+      b.innerHTML=`<span class="no">${no}</span><span class="ty">${TYPES[t].en}</span><span class="st"></span>`;
+      b.addEventListener("click",()=>{state[no]=NEXT[state[no]||""];save();render();});
+      g.appendChild(b);
+    }
+    sec.appendChild(g);wrap.appendChild(sec);
+  }
+}
+
+function counts(){
+  const c={"":0,out:0,sc:0,vac:0,by:{}};
+  for(const t of TYPE_ORDER)c.by[t]={out:0,sc:0};
+  for(const [no,t] of ROOMS){const s=state[no]||"";c[s]++;if(s==="out"||s==="sc")c.by[t][s]++;}
+  return c;
+}
+
+// 印刷用の記号（セル右側の空きスペースに入れる）
+const X_SVG='<svg viewBox="0 0 20 20"><path d="M3 3L17 17M17 3L3 17" stroke="#000" stroke-width="1.8" fill="none"/></svg>';
+const O_SVG='<svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="7.5" stroke="#000" stroke-width="1.8" fill="none"/></svg>';
+
+const L={
+  ja:{title:"メイク表",
+      date:v=>{const [y,m,d]=v.split("-").map(Number);return `${m}月${d}日（${"日月火水木金土"[new Date(y,m-1,d).getDay()]}）`;},
+      lg:["OUT清掃","連泊清掃","連泊（清掃なし）","空室"],
+      tot:["OUT清掃","連泊清掃","連泊","空室"],
+      bdh:["タイプ","OUT","連泊清掃"]},
+  en:{title:"Housekeeping List",
+      date:v=>{const [y,m,d]=v.split("-").map(Number);
+        return new Date(y,m-1,d).toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});},
+      lg:["Check-out","Stay-over clean","Stay (no clean)","Vacant"],
+      tot:["Check-out clean","Stay-over clean","Stay (no clean)","Vacant"],
+      bdh:["Type","Check-out","Stay-over"]}
+};
+
+function sheetHTML(lang,c){
+  const T=L[lang];
+  let h=`<div class="sheet" lang="${lang}"><div class="hd"><span class="t">${T.title}</span><span class="d">${dateVal?T.date(dateVal):""}</span>
+    <span class="lg"><span><i class="g"></i>${T.lg[0]}</span><span><i class="g">${O_SVG}</i>${T.lg[1]}</span><span><i></i>${T.lg[2]}</span><span><i>${X_SVG}</i>${T.lg[3]}</span></span></div>
+    <div class="pfs">`;
+  for(const fl of FLOORS){
+    h+=`<div class="pf"><div class="fl">${fl.f}</div><div class="pg">`;
+    for(const r of fl.rows)for(const cell of r){
+      if(!cell){h+=`<div class="pc e"></div>`;continue;}
+      if(cell==="EV"){h+=`<div class="pc pev"><span class="n">EV</span></div>`;continue;}
+      const [no,t]=cell.split(":");const s=state[no]||"";
+      const mark=s==="sc"?O_SVG:s==="vac"?X_SVG:"";
+      h+=`<div class="pc ${s}"><span class="tx"><span class="n">${no}</span><span class="y">${TYPES[t][lang]}</span></span><span class="m">${mark}</span></div>`;
+    }
+    h+=`</div></div>`;
+  }
+  h+=`</div><div class="ft"><div class="tot">
+      <span>${T.tot[0]}</span><b>${c.out}</b><span>${T.tot[1]}</span><b>${c.sc}</b>
+      <span>${T.tot[2]}</span><b>${c[""]}</b><span>${T.tot[3]}</span><b>${c.vac}</b></div>
+    <table class="pbd"><tr><th>${T.bdh[0]}</th>${TYPE_ORDER.map(t=>`<th>${TYPES[t][lang]}</th>`).join("")}</tr>
+      <tr><td>${T.bdh[1]}</td>${TYPE_ORDER.map(t=>`<td>${c.by[t].out}</td>`).join("")}</tr>
+      <tr><td>${T.bdh[2]}</td>${TYPE_ORDER.map(t=>`<td>${c.by[t].sc}</td>`).join("")}</tr></table>
+  </div></div>`;
+  return h;
+}
+
+function render(){
+  for(const [no] of ROOMS){const s=state[no]||"";const b=document.getElementById("r"+no);
+    b.className="room"+(s?" "+s:"");b.querySelector(".st").textContent=LABEL[s];
+    b.setAttribute("aria-label",`${no} ${LABEL[s]}`);}
+  const c=counts();
+  nOut.textContent=c.out;nSc.textContent=c.sc;nStay.textContent=c[""];nVac.textContent=c.vac;
+  document.getElementById("bd").innerHTML=`<thead><tr><th></th><th>OUT</th><th>連泊清掃</th></tr></thead><tbody>`+
+    TYPE_ORDER.map(t=>`<tr><td>${TYPES[t].en}</td><td>${c.by[t].out}</td><td>${c.by[t].sc}</td></tr>`).join("")+
+    `<tr><td><b>計</b></td><td><b>${c.out}</b></td><td><b>${c.sc}</b></td></tr></tbody>`;
+  document.getElementById("print").innerHTML=sheetHTML("ja",c)+sheetHTML("en",c);
+}
+
+load();
+const dEl=document.getElementById("date");
+if(!dateVal||dateVal<tomorrow())dateVal=tomorrow(); // 基本は「明日」
+dEl.value=dateVal;
+dEl.addEventListener("change",()=>{dateVal=dEl.value;save();render();});
+buildScreen();render();
+
+document.getElementById("btnPrint").addEventListener("click",()=>{render();window.print();});
+
+// リセット：1回目で赤くなる → 2回目で全消去。5秒何もしなければ元に戻る
+const rb=document.getElementById("btnReset");let armT=null;
+function disarm(){rb.classList.remove("armed");rb.textContent="リセット";clearTimeout(armT);armT=null;}
+rb.addEventListener("click",()=>{
+  if(!rb.classList.contains("armed")){rb.classList.add("armed");rb.textContent="もう一度押すと全部消えます";armT=setTimeout(disarm,5000);return;}
+  disarm();state={};dateVal=tomorrow();dEl.value=dateVal;save();render();
+});
+</script>
+</body>
+</html>
