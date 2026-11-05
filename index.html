@@ -67,15 +67,16 @@ table.bd thead th{color:var(--sub);font-weight:600;font-size:12px}
 .btns .primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
 .btns .armed{background:var(--danger);border-color:var(--danger);color:#fff;font-weight:700}
 .hint{font-size:12px;color:var(--sub);line-height:1.6;margin:0}
+.warn{font-size:13px;line-height:1.6;margin:0;padding:10px 12px;border-radius:8px;background:#fdecea;color:#8a2a1f;border:1px solid #f1b5ab}
 
 /* ---------- 印刷用（白黒プリンター前提） ---------- */
 .print{display:none}
 @media print{
-  @page{size:A4 portrait;margin:7mm}
+  @page{size:A4 portrait;margin:10mm}
   body{background:#fff;padding:0;font-size:9pt;color:#000}
   .app{display:none}
   .print{display:block}
-  .sheet{padding-right:2mm;height:139mm;overflow:hidden;break-inside:avoid;page-break-inside:avoid;display:flex;flex-direction:column;gap:2mm}
+  .sheet{padding-right:2mm;height:125mm;overflow:hidden;break-inside:avoid;page-break-inside:avoid;display:flex;flex-direction:column;gap:2mm}
   .sheet+.sheet{border-top:1px dashed #666;padding-top:3mm;margin-top:2mm}
   .hd{display:flex;align-items:baseline;gap:5mm;flex-wrap:nowrap;white-space:nowrap}
   .hd .t{font-size:15pt;font-weight:700;letter-spacing:.05em}
@@ -87,7 +88,7 @@ table.bd thead th{color:var(--sub);font-weight:600;font-size:12px}
   .lg i svg{position:absolute;inset:0;margin:auto;width:3.6mm;height:3.6mm}
   .pfs{display:flex;justify-content:space-between}
   .pf .fl{font-size:10pt;font-weight:700;margin-bottom:.6mm}
-  .pg{display:grid;grid-template-columns:20mm 20mm;grid-auto-rows:9.5mm}
+  .pg{display:grid;grid-template-columns:19mm 19mm;grid-auto-rows:9mm}
   .pc{border:.3mm solid #000;margin:0 -.3mm -.3mm 0;position:relative;padding:0 0 0 1.2mm;
     display:grid;grid-template-columns:1fr 6.5mm;align-items:center;
     -webkit-print-color-adjust:exact;print-color-adjust:exact;overflow:hidden}
@@ -141,6 +142,7 @@ table.bd thead th{color:var(--sub);font-weight:600;font-size:12px}
       <button class="primary" id="btnPrint" type="button">印刷</button>
       <button id="btnReset" type="button">リセット</button>
     </div>
+    <p class="warn" id="pwaWarn" hidden>ホーム画面から開いたアプリ表示では印刷できません。Safariでこのページを開いて印刷してください。</p>
     <p class="hint">何も押していない部屋は「連泊」です。リセットは1回押すと赤くなり、もう1回押すと全部消えます。入力はこの端末のブラウザに自動保存されます。</p>
   </aside>
 </div>
@@ -273,7 +275,12 @@ dEl.value=dateVal;
 dEl.addEventListener("change",()=>{dateVal=dEl.value;save();render();});
 buildScreen();render();
 
-document.getElementById("btnPrint").addEventListener("click",()=>{render();window.print();});
+// iPhone/iPad のホーム画面アプリ表示では window.print() が動かないので案内を出す
+const standalone=(window.navigator.standalone===true)||(window.matchMedia&&matchMedia("(display-mode: standalone)").matches);
+document.getElementById("btnPrint").addEventListener("click",()=>{
+  if(standalone){document.getElementById("pwaWarn").hidden=false;return;}
+  render();window.print();
+});
 
 // リセット：1回目で赤くなる → 2回目で全消去。5秒何もしなければ元に戻る
 const rb=document.getElementById("btnReset");let armT=null;
