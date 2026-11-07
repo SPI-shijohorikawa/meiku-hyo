@@ -31,12 +31,46 @@ header.top h1{font-size:22px;margin:0;letter-spacing:.05em}
 .sw{width:18px;height:14px;border:1px solid var(--line);display:inline-block;border-radius:3px;background:var(--paper)}
 .sw.out{background:var(--out)} .sw.sc{background:var(--sc)} .sw.vac{background:var(--vac)}
 
-.floors{display:flex;flex-direction:column;gap:10px;min-width:0}
-
-.floor{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:8px}
-.floor h2{margin:0 0 6px 2px;font-size:17px}
-.grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));grid-auto-rows:62px;gap:6px}
-.room,.ev,.blank{border-radius:8px;min-width:0}
+.floors{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:14px;min-width:0;grid-column:1}
+.floor{display:grid;grid-template-columns:56px minmax(0,1fr);gap:6px}
+.floor+.floor{border-top:1px solid var(--line);padding-top:14px}
+.ftot{font-size:14px;color:var(--sub);padding:0 2px}.ftot b{color:var(--ink)}
+.floor h2{margin:0;font-size:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#eef0ee;border-radius:6px;line-height:1.2}
+.floor h2 small{font-size:11px;font-weight:600;color:var(--sub);white-space:nowrap}
+.grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));grid-auto-rows:50px;gap:5px}
+.floors .room{padding:2px 4px 2px 7px}
+.floors .room .no{font-size:17px}
+.floors .room .ty,.floors .room .st{font-size:10.5px;height:auto;line-height:1.2}
+.room{position:relative}
+.room .bd{position:absolute;top:3px;right:3px;min-width:18px;height:18px;border-radius:9px;color:#fff;font-size:12px;font-weight:700;line-height:18px;text-align:center;padding:0 4px}
+.staffwrap{grid-column:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.staffhead{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.staffhead h3{margin:0;font-size:15px}
+.staffhead button{font:inherit;font-size:13px;padding:5px 12px;border-radius:16px;border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
+.staffhead #autoAs{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+.staffhead #clrAs.armed{background:var(--danger);border-color:var(--danger);color:#fff}
+.staffhead .un{font-size:13px;color:var(--sub)} .staffhead .un.bad{color:var(--danger);font-weight:700}
+.staffs{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+.stf{background:var(--paper);border:1px solid var(--line);border-top-width:4px;border-radius:10px;padding:6px}
+.stf .top{display:flex;gap:4px;align-items:center;margin-bottom:5px}
+.stf .kn{flex:none;width:20px;height:20px;border-radius:10px;color:#fff;font-size:12px;font-weight:700;display:grid;place-items:center}
+.stf input{font:inherit;font-size:14px;font-weight:700;border:1px solid var(--line);border-radius:6px;padding:3px 6px;flex:1;min-width:0;color:var(--ink);background:var(--paper)}
+.stf .del{flex:none;font:inherit;font-size:11px;padding:4px 6px;border-radius:6px;border:1px solid var(--line);background:var(--paper);color:var(--sub);cursor:pointer}
+.stf .del.armed{background:var(--danger);border-color:var(--danger);color:#fff}
+.mg{display:grid;grid-template-columns:24px repeat(6,minmax(0,1fr));grid-auto-rows:auto;gap:2px}
+.mg .mc{height:24px}
+.mg .fl{grid-row:span 2;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;background:#eef0ee;border-radius:4px;cursor:pointer;user-select:none;-webkit-user-select:none}
+.mg .gp{grid-column:1/-1;height:3px}
+.mc{appearance:none;font:inherit;font-size:11.5px;font-variant-numeric:tabular-nums;border:1px solid var(--line);border-radius:4px;background:var(--paper);color:var(--ink);padding:0;cursor:pointer;min-width:0;line-height:1}
+.mc small{font-size:8px;margin-left:1px}
+.mc.nc{border-style:dashed;color:#d3d7d5;background:transparent;pointer-events:none}
+.mc.oth{background:#eceeed;color:#b3b9b6;border-color:#e3e6e4;pointer-events:none}
+.mc.oth.au{pointer-events:auto;cursor:pointer}
+.mc.free{border-color:#7d8582;font-weight:700}
+.mc.me{color:#fff;font-weight:700;border-color:transparent}
+.stf .sum{font-size:12px;color:var(--sub);margin-top:5px;line-height:1.4}
+.stf .sum b{color:var(--ink)}
+.room,.blank{border-radius:8px;min-width:0}
 .room{appearance:none;border:1px solid var(--line);border-left:5px solid var(--tc);background:var(--paper);color:var(--ink);
   padding:4px 4px 4px 8px;font:inherit;cursor:pointer;text-align:left;
   display:flex;flex-direction:column;justify-content:center;gap:1px;user-select:none;-webkit-user-select:none;overflow:hidden}
@@ -117,7 +151,6 @@ table.ln td.z{color:#c3c8c5}
   .ft{display:flex;gap:4mm;align-items:flex-start;margin-top:3mm}
   .tot{display:grid;grid-template-columns:auto auto;column-gap:3mm;row-gap:.4mm;font-size:9pt;border:.3mm solid #000;padding:1.2mm 2mm}
   .tot b{text-align:right;font-size:10.5pt}
-  .opage{break-before:page;page-break-before:always;padding:9mm 0 0 7.8mm}
   table.ox{border-collapse:collapse;table-layout:fixed;width:408pt;font-family:"Yu Gothic","游ゴシック","YuGothic","Hiragino Sans","Noto Sans CJK JP",sans-serif;font-size:11pt;color:#000;
     -webkit-print-color-adjust:exact;print-color-adjust:exact}
   table.ox td{padding:0;text-align:left;vertical-align:middle;white-space:pre;overflow:hidden;line-height:1;height:18pt;border:0}
@@ -125,9 +158,33 @@ table.ln td.z{color:#c3c8c5}
   table.ox td.g{background:#d6d6d6}
   table.ox td.x{font-weight:700}
   table.ox td.r{text-align:right}
+  table.ox td.v,table.ox td.fl,table.ox td.who{overflow:visible}
+  table.ox td.fl small{font-size:8.5pt;margin-left:4pt}
+  table.ox td.who{font-size:15pt;font-weight:700}
+  table.ox .ci{display:inline-block;border:.8pt solid #000;border-radius:50%;padding:1pt 2.5pt;line-height:1.05;margin:-2pt 0 -2pt -2pt}
   table.ox td.tt{overflow:visible;font-size:24pt}
+  table.ox .rc{display:flex;justify-content:space-between;align-items:center;padding:0 2pt;white-space:nowrap}
+  table.ox .rc .mk{display:flex;align-items:center;justify-content:center;width:11pt;height:11pt}
+  table.ox .rc .mk svg{width:11pt;height:11pt}
+  .sc .sm{display:inline-flex;margin-left:1.5mm} .sc .sm svg{width:3.6mm;height:3.6mm}
   table.ox tr.h2{height:38.4pt} table.ox tr.h2 td{height:38.4pt}
   table.ox tr.h39{height:39pt} table.ox tr.h39 td{height:39pt}
+  .pg1{padding:9mm 0 0 7.8mm}
+  .p3{break-before:page;page-break-before:always}
+  .stg{display:grid;grid-template-columns:1fr 1fr;gap:3mm;padding-right:2mm}
+  .stc{border:.4mm solid #000;padding:1.6mm 2.2mm;break-inside:avoid;display:flex;flex-direction:column;gap:1.4mm;font-family:"Yu Gothic","游ゴシック","Hiragino Sans",sans-serif}
+  .stc .sh{display:flex;align-items:baseline;gap:3mm;white-space:nowrap}
+  .stc .sh b{font-size:13pt} .stc .sh span{font-size:9pt} .stc .sh .cnt{margin-left:auto;font-size:11pt;font-weight:700}
+  .sgr{display:grid;grid-template-columns:12mm repeat(6,minmax(0,1fr));grid-auto-rows:5.2mm}
+  .sfl{grid-row:span 2;display:flex;flex-direction:column;justify-content:center;font-size:10pt;line-height:1.15}
+  .sfl small{font-size:7pt}
+  .sgp{grid-column:1/-1;height:1.2mm}
+  .sc{border:.25mm dotted #aaa;margin:0 -.25mm -.25mm 0;display:flex;align-items:center;justify-content:center;font-size:10.5pt;font-weight:700;
+    -webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .sc.g{background:#d6d6d6;border:.3mm solid #000;position:relative;z-index:1}
+  .sc .ci{border:.8pt solid #000;border-radius:50%;padding:0 2pt;line-height:1.15}
+  .sl{font-size:8pt;line-height:1.3;min-height:1.3em}
+  .slg{font-size:7pt;color:#333}
   .p2{break-before:page;page-break-before:always;display:flex;flex-direction:column;gap:4mm;padding-right:2mm}
   .p2 .tot{font-size:11pt;padding:2mm 3mm;row-gap:1.5mm} .p2 .tot b{font-size:13pt}
   .p2 table.pln{font-size:11pt} .p2 table.pln th{font-size:10pt} .p2 table.pln th,.p2 table.pln td{padding:1.4mm 2mm}
@@ -148,15 +205,6 @@ table.ln td.z{color:#c3c8c5}
   table.pbd th{font-weight:600}
   table.pbd td:first-child,table.pbd th:first-child{text-align:left}
 }
-/* スマホ幅：6列でも収まるよう小さく、タイプ名は短い表記（トA・ダ・ツ…） */
-.room .ty .s{display:none}
-@media (max-width:620px){
-  .grid{gap:3px;grid-auto-rows:56px}
-  .room{padding:3px 2px 3px 5px;border-left-width:4px}
-  .room .no{font-size:16px}
-  .room .ty,.room .st{font-size:10px}
-  .room .ty .l{display:none} .room .ty .s{display:inline}
-}
 </style>
 </head>
 <body>
@@ -174,6 +222,10 @@ table.ln td.z{color:#c3c8c5}
   </header>
 
   <div class="floors" id="floors"></div>
+  <div class="staffwrap">
+    <div class="staffhead"><h3>メイクスタッフ用</h3><button type="button" id="addStaff">＋スタッフ追加</button><button type="button" id="autoAs">自動割当</button><button type="button" id="clrAs">割当クリア</button><span class="un" id="unas"></span></div>
+    <div class="staffs" id="staffs"></div>
+  </div>
 
   <div class="box linen" hidden>
     <h3>清掃する部屋数（フロア別・タイプ別／OUT清掃＋連泊清掃）</h3>
@@ -198,7 +250,7 @@ table.ln td.z{color:#c3c8c5}
       <button id="btnReset" type="button">リセット</button>
     </div>
     <p class="warn" id="pwaWarn" hidden>ホーム画面から開いたアプリ表示では印刷できません。Safariでこのページを開いて印刷してください。</p>
-    <p class="hint">何も押していない部屋は「連泊」です。リセットは1回押すと赤くなり、もう1回押すと全部消えます。入力はこの端末のブラウザに自動保存されます。</p>
+    <p class="hint">何も押していない部屋は「連泊」です。下の「メイクスタッフ用」の表で、清掃する部屋をタップするとその人に割り当てます（階の数字をタップするとその階の未割当をまとめて割当）。リセットは1回押すと赤くなり、もう1回押すと全部消えます。入力はこの端末のブラウザに自動保存されます。</p>
   </aside>
 </div>
 
@@ -251,31 +303,131 @@ const TOTAL=ROOMS.length; // 42
 const NEXT={"":"out",out:"sc",sc:"vac",vac:""};
 const LABEL={"":"連泊",out:"OUT清掃",sc:"連泊清掃",vac:"空室"};
 const KEY="makehyo-shijohorikawa-v3";
-let state={}, dateVal="";
+let state={}, dateVal="", assign={}, sheets=[], auto={}; // auto:{部屋:true} 自動割当で入った部屋 // assign:{部屋:スタッフ番号(1〜)} sheets:[{name}]
+const SHEETC=["#2f6fb0","#c4416e","#23845f","#b8741a","#7a4bb0","#0e8a9a"];
+const BEDS={D:1,W:2,TA:3,TB:3,Q:4};
 
 function tomorrow(){const d=new Date();d.setDate(d.getDate()+1);
   return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
-function load(){try{const s=JSON.parse(localStorage.getItem(KEY)||"null");if(s){state=s.state||{};dateVal=s.date||"";}}catch(e){}}
-function save(){try{localStorage.setItem(KEY,JSON.stringify({state,date:dateVal}));}catch(e){}}
+function load(){try{const s=JSON.parse(localStorage.getItem(KEY)||"null");if(s){state=s.state||{};dateVal=s.date||"";assign=s.assign||{};sheets=s.sheets||[];auto=s.auto||{};}}catch(e){}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify({state,date:dateVal,assign,sheets,auto}));}catch(e){}}
 
+const FLOOR_SCREEN=["4F","3F","2F","1F"];
+const isClean=no=>{const x=state[no]||"";return x==="out"||x==="sc";};
+function onRoom(no){state[no]=NEXT[state[no]||""];save();render();}
 function buildScreen(){
-  // 画面はExcel（メイク表）と同じ並び：4F→1Fを上から、各階は上段=奇数号室・下段=偶数号室（6列×2段）
-  const wrap=document.getElementById("floors");wrap.innerHTML="";
-  for(const f of ["4F","3F","2F","1F"]){
+  const wrap=document.getElementById("floors");wrap.innerHTML='<div class="ftot" id="ftot"></div>';
+  for(const f of FLOOR_SCREEN){
     const sec=document.createElement("section");sec.className="floor";
-    sec.innerHTML=`<h2>${f}</h2>`;
+    sec.innerHTML=`<h2>${f}<small class="fr"></small><small class="fb"></small></h2>`;sec.dataset.f=f;
     const g=document.createElement("div");g.className="grid";
     for(const e of OR[f]){
       if(!e){const d=document.createElement("div");d.className="blank";g.appendChild(d);continue;}
       const no=e[0],t=TYPE_OF[no];
       const b=document.createElement("button");b.type="button";b.className="room";b.id="r"+no;
       b.style.setProperty("--tc",TYPES[t].c);
-      b.innerHTML=`<span class="no">${no}</span><span class="ty"><span class="l">${TYPES[t].en}</span><span class="s">${SHORT.ja[t]}</span></span><span class="st"></span>`;
-      b.addEventListener("click",()=>{state[no]=NEXT[state[no]||""];save();render();});
+      b.innerHTML=`<span class="no">${no}</span><span class="ty">${TYPES[t].en}</span><span class="st"></span><span class="bd" hidden></span>`;
+      b.addEventListener("click",()=>onRoom(no));
       g.appendChild(b);
     }
     sec.appendChild(g);wrap.appendChild(sec);
   }
+}
+// ---- メイクスタッフ用の表（最大6人）
+const MAX_STAFF=6;
+function staffStat(k){
+  const r={rooms:0,beds:0,fb:{},ln:{}};
+  for(const f of FLOOR_ORDER)r.fb[f]=0;
+  for(const [i] of ITEMS)r.ln[i]=0;
+  for(const [no,t] of ROOMS){if(!isClean(no)||assign[no]!==k)continue;
+    r.rooms++;r.beds+=BEDS[t];r.fb[no[0]+"F"]+=BEDS[t];
+    for(const x in LINEN[t])r.ln[x]+=LINEN[t][x];}
+  return r;
+}
+function buildStaffs(){
+  const w=document.getElementById("staffs");w.innerHTML="";
+  sheets.forEach((sh,i)=>{const k=i+1;
+    const d=document.createElement("div");d.className="stf";d.style.borderTopColor=SHEETC[i];
+    d.innerHTML=`<div class="top"><span class="kn" style="background:${SHEETC[i]}">${k}</span><input maxlength="12" aria-label="名前"><button class="del" type="button">削除</button></div><div class="mg"></div><div class="sum"></div>`;
+    const inp=d.querySelector("input");inp.value=sh.name;
+    inp.addEventListener("input",()=>{sh.name=inp.value;save();renderPrint();});
+    const del=d.querySelector(".del");let t=null;
+    del.addEventListener("click",()=>{
+      if(!del.classList.contains("armed")){del.classList.add("armed");del.textContent="もう一度";t=setTimeout(()=>{del.classList.remove("armed");del.textContent="削除";},4000);return;}
+      clearTimeout(t);sheets.splice(i,1);
+      for(const n in assign){if(assign[n]===k)delete assign[n];else if(assign[n]>k)assign[n]--;}
+      save();buildStaffs();render();});
+    const mg=d.querySelector(".mg");
+    FLOOR_SCREEN.forEach((f,fi)=>{
+      if(fi)mg.insertAdjacentHTML("beforeend",'<div class="gp"></div>');
+      const lb=document.createElement("div");lb.className="fl";lb.textContent=f;lb.style.gridRow="span 2";
+      lb.addEventListener("click",()=>{ // その階の未割当をまとめて割当（全部自分のときは解除）
+        const rs=OR[f].filter(e=>e&&isClean(e[0])).map(e=>e[0]);
+        const free=rs.filter(n=>!assign[n]);
+        if(free.length)free.forEach(n=>{assign[n]=k;delete auto[n];});else rs.filter(n=>assign[n]===k).forEach(n=>{delete assign[n];delete auto[n];});
+        save();render();});
+      mg.appendChild(lb);
+      // ラベルが2行分を占めるので、1行目6マス→2行目6マス
+      OR[f].forEach(e=>{
+        if(!e){mg.insertAdjacentHTML("beforeend",'<div></div>');return;}
+        const b=document.createElement("button");b.type="button";b.className="mc";b.dataset.no=e[0];
+        b.addEventListener("click",()=>{const no=e[0];if(!isClean(no))return;
+          if(assign[no]===k){delete assign[no];delete auto[no];}else if(!assign[no]||auto[no]){assign[no]=k;delete auto[no];}else return;
+          save();render();});
+        mg.appendChild(b);});
+    });
+    w.appendChild(d);
+  });
+  document.getElementById("addStaff").hidden=sheets.length>=MAX_STAFF;
+}
+// ---- 自動割当：①部屋数を均等（差は最大1）②Bed数をなるべく均等 ③なるべく同じ・隣の階
+function autoAssign(){
+  const n=sheets.length; if(!n)return;
+  for(const no in auto){if(assign[no])delete assign[no];} auto={}; // 前回の自動割当はやり直す（手動の分は動かさない）
+  for(const no in assign){if(!isClean(no)||!sheets[assign[no]-1])delete assign[no];}
+  const ORDER=[];for(const f of FLOOR_SCREEN)for(const e of OR[f])if(e)ORDER.push(e[0]); // 4F→1F、表の並び順
+  const free=ORDER.filter(no=>isClean(no)&&!assign[no]);
+  if(!free.length)return;
+  const fixed=[];for(let k=1;k<=n;k++)fixed.push(ROOMS.filter(([no])=>isClean(no)&&assign[no]===k).map(([no])=>no));
+  // 各人の追加部屋数：少ない人から1部屋ずつ
+  const cnt=fixed.map(a=>a.length), add=new Array(n).fill(0);
+  for(let i=0;i<free.length;i++){let m=0;for(let k=1;k<n;k++)if(cnt[k]<cnt[m])m=k;cnt[m]++;add[m]++;}
+  const fNo=no=>+no[0];
+  const cost=g=>{ // [Bedのばらつき, 階のちらばり]
+    let bs=0,bm=0;const beds=g.map((a,k)=>fixed[k].concat(a).reduce((s,no)=>s+BEDS[TYPE_OF[no]],0));
+    bm=beds.reduce((a,b)=>a+b,0)/n;for(const b of beds)bs+=(b-bm)*(b-bm);
+    let fc=0;g.forEach((a,k)=>{const fs=fixed[k].concat(a).map(fNo);if(!fs.length)return;
+      fc+=new Set(fs).size*10+(Math.max(...fs)-Math.min(...fs));});
+    return [Math.round(bs*1000),fc];
+  };
+  const better=(a,b)=>a[0]<b[0]||(a[0]===b[0]&&a[1]<b[1]);
+  let best=null,bestC=null;
+  for(let r=0;r<n;r++){ // 開始の並びを少しずつ変えて何回か試す
+    const order=[...Array(n).keys()].map(i=>(i+r)%n);
+    const g=Array.from({length:n},()=>[]);let p=0;
+    for(const k of order){g[k]=free.slice(p,p+add[k]);p+=add[k];}
+    let c=cost(g),imp=true;
+    while(imp){imp=false;
+      for(let a=0;a<n;a++)for(let b=a+1;b<n;b++)for(let i=0;i<g[a].length;i++)for(let j=0;j<g[b].length;j++){
+        const x=g[a][i],y=g[b][j];g[a][i]=y;g[b][j]=x;
+        const c2=cost(g);if(better(c2,c)){c=c2;imp=true;}else{g[a][i]=x;g[b][j]=y;}
+      }}
+    if(!best||better(c,bestC)){best=g.map(a=>a.slice());bestC=c;}
+  }
+  best.forEach((a,k)=>a.forEach(no=>{assign[no]=k+1;auto[no]=true;}));
+}
+function renderStaffs(){
+  document.querySelectorAll(".stf").forEach((d,i)=>{const k=i+1;
+    d.querySelectorAll(".mc[data-no]").forEach(b=>{const no=b.dataset.no,cl=isClean(no),a=assign[no];
+      b.className="mc "+(!cl?"nc":a===k?"me":a?(auto[no]?"oth au":"oth"):"free");
+      b.style.background=(cl&&a===k)?SHEETC[i]:"";
+      b.innerHTML=no+(cl&&state[no]==="sc"?"<small>連</small>":"");});
+    const st=staffStat(k);
+    d.querySelector(".sum").innerHTML=`<b>${st.rooms}室・${st.beds} Bed</b>　`+FLOOR_SCREEN.filter(f=>st.fb[f]).map(f=>`${f} ${st.fb[f]}`).join("・");
+  });
+  const un=ROOMS.filter(([no])=>isClean(no)&&!(assign[no]&&sheets[assign[no]-1])).length;
+  const u=document.getElementById("unas");
+  u.textContent=sheets.length?`未割当 ${un}室`:"";u.className="un"+(un&&sheets.length?" bad":"");
 }
 
 function counts(){
@@ -349,62 +501,80 @@ const OR={
  "1F":[["101","101"+S3+S3+"トA"],["103","103"+S3+S3+"ダ"],["105","105"+S3+S3+"ダ"],["107","107"+S3+S3+"ダ"],null,null,
        ["102","102"+S3+S3+"トA"],["104","104 "+S3+"ツ"],["106","106"+S3+S3+"ツ"],["108","108"+S3+S3+"ツ"],null,null]
 };
-function origTable(c){
-  const cl={D:0,W:0,T:0,Q:0}; // 元のExcelと同じく、タイプ別は「清掃（グレー）」だけ
-  for(const [no,t] of ROOMS){const s=state[no]||"";if(s==="out"||s==="sc")cl[t==="TA"||t==="TB"?"T":t]++;}
+function origTable(c,o){ // o:{show:fn(no), who:string, main:bool}
+  const cl={D:0,W:0,T:0,Q:0}, beds={};
+  for(const f of FLOOR_ORDER)beds[f]=0;
+  let nClean=0;
+  for(const [no,t] of ROOMS){ if(!isClean(no)||!o.show(no))continue;
+    cl[t==="TA"||t==="TB"?"T":t]++; beds[no[0]+"F"]+=BEDS[t]; nClean++; }
   const date=dateVal?dateVal.split("-").map(Number).join("/"):"";
   const td=(t,cls)=>`<td class="${cls||""}">${t==null?"":t}</td>`;
-  // 1行=B..Iの8セル
-  const room=(f,i)=>{ // 部屋セル
-    const e=OR[f][i]; if(!e)return null;
+  const room=(f,i)=>{
+    const e=OR[f][i]; if(!e||!o.show(e[0]))return null;
     const st=state[e[0]]||"";
-    const k=(st==="out"||st==="sc")?"g":(st===""?"x":"");
-    return {t:e[1],c:"b "+k};
+    const k=(st==="out"||st==="sc")?"g":""; // グレー=清掃（OUT・連泊清掃）、連泊=そのまま
+    const mk=st==="sc"?O_SVG:st==="vac"?X_SVG:""; // 連泊清掃=○、空室=×（マスの真ん中の空白に）
+    return {t:`<div class="rc"><span>${e[0]}</span><span class="mk">${mk}</span><span>${e[1].slice(3).trim()}</span></div>`,c:"b "+k};
   };
   const rows=[];
-  const R=(h,cells)=>rows.push(`<tr class="${h||""}">${cells.map(x=>x===null?td("",""):(typeof x==="string"?td(x,""):td(x.t,x.c))).join("")}</tr>`);
+  const R=cells=>rows.push(`<tr>${cells.map(x=>x===null?td("",""):td(x.t,x.c)).join("")}</tr>`);
   const E=null;
-  const title=`<td class="tt">メイク表</td>`;
-  const H=[ {t:date,c:""} ];
-  rows.push(`<tr class="h2">${td(date,"r")}${td("")}${title}${td("")}${td("")}${td("")}${td("")}${td("")}</tr>`);
-  const lab=t=>({t,c:""}), box=(t)=>({t,c:"b"+(typeof t==="number"?" r":"")});
-  const fl=(f,lbl,side)=>{
-    // ラベル行
-    return lbl;
-  };
-  // row3
-  R("",[E,E,E,E,E,E,E,box("清掃")]);
-  // row4: 4F label, I4
-  R("",[lab("４F"),E,E,E,E,E,E,box(c.out+c.sc)]);
+  rows.push(`<tr class="h2">${td(date,"r")}${td("")}<td class="tt">メイク表</td>${td("")}${td("")}${td(o.who||"","who")}${td("")}${td("")}</tr>`);
+  const lab=(t,c)=>({t,c:c||""}), box=t=>({t,c:"b"+(typeof t==="number"?" r":"")});
+  const fl=(f,t)=>({t:t+(beds[f]?`<small>${beds[f]}ベッド</small>`:""),c:"fl"});
+  const M=o.main;
+  R([E,E,E,E,E,E,E,box("清掃")]);
+  R([fl("4F","４F"),E,E,E,E,E,E,box(nClean)]);
   const pair=(f,s1,s2)=>{
-    R("",[0,1,2,3,4,5].map(i=>room(f,i)).concat([E,s1]));
-    R("",[6,7,8,9,10,11].map(i=>room(f,i)).concat([E,s2]));
+    R([0,1,2,3,4,5].map(i=>room(f,i)).concat([E,s1]));
+    R([6,7,8,9,10,11].map(i=>room(f,i)).concat([E,s2]));
   };
-  pair("4F",box(""),box(c[""]));
-  // row7
-  R("",[E,E,E,E,E,E,E,box("空き室")]);
-  // row8: 3F label, I8
-  R("",[lab("3F"),E,lab(" "),E,E,E,E,box(c.vac)]);
+  pair("4F",M?box(""):E,M?box(c[""]):E);
+  R([E,E,E,E,E,E,E,M?box("空き室"):E]);
+  R([fl("3F","3F"),E,E,E,E,E,E,M?box(c.vac):E]);
   pair("3F",E,E);
-  // row11
-  R("",[E,E,E,E,E,E,lab(S3+"   ダ"),box(cl.D)]);
-  R("",[lab("2F"),E,E,E,E,E,lab(S3+"   ツ"),box(cl.W)]);
-  R("",[0,1,2,3,4,5].map(i=>room("2F",i)).concat([lab(S3+S3+"T"),box(cl.T)]));
-  R("",[6,7,8,9,10,11].map(i=>room("2F",i)).concat([lab("     4B"),box(cl.Q)]));
-  R("",[E,E,E,E,E,E,E,E]);
-  R("",[lab("1F"),E,E,E,E,E,E,E]);
-  R("",[0,1,2,3].map(i=>room("1F",i)).concat([E,lab("グレー"),lab("清掃"),E]));
-  R("",[6,7,8,9].map(i=>room("1F",i)).concat([E,lab("太字"),lab("連泊"),E]));
+  R([E,E,E,E,E,E,lab("　   ダ"),box(cl.D)]);
+  R([fl("2F","2F"),E,E,E,E,E,lab("　   ツ"),box(cl.W)]);
+  R([0,1,2,3,4,5].map(i=>room("2F",i)).concat([lab("　　T"),box(cl.T)]));
+  R([6,7,8,9,10,11].map(i=>room("2F",i)).concat([lab("     4B"),box(cl.Q)]));
+  R([E,E,E,E,E,E,E,E]);
+  if(M){
+    R([fl("1F","1F"),E,E,E,E,lab("グレー○","v"),lab("連泊清掃","v"),E]);
+    R([0,1,2,3].map(i=>room("1F",i)).concat([E,lab("グレー","v"),lab("OUT清掃","v"),E]));
+    R([6,7,8,9].map(i=>room("1F",i)).concat([E,lab("×","v"),lab("空室","v"),E]));
+  }else{
+    R([fl("1F","1F"),E,E,E,E,E,E,E]);
+    R([0,1,2,3].map(i=>room("1F",i)).concat([E,lab("グレー","v"),lab("OUT清掃","v"),E]));
+    R([6,7,8,9].map(i=>room("1F",i)).concat([E,lab("グレー○","v"),lab("連泊清掃","v"),E]));
+  }
   return rows.join("");
 }
-function origPage(c){
-  // 3F・2F・1F・4Fの並びは原本通り(4F→1F)。上下2枚同じ内容。
-  const body=origTable(c);
-  const title=rows=>rows;
-  const cg="<colgroup><col style='width:61.7pt'><col style='width:52.5pt'><col style='width:57.6pt'><col style='width:55.5pt'><col style='width:51.4pt'><col style='width:53.5pt'><col style='width:33pt'><col style='width:43pt'></colgroup>";
-  // 2枚目のタイトル行(39pt)は、1枚目の後ろの空行(39pt)＋タイトル行(39pt)に相当
-  const t2=body.replace('<tr class="h2">','<tr class="h39">');
-  return `<div class="opage"><table class="ox">${cg}${body}<tr class="h39">${"<td></td>".repeat(8)}</tr>${t2}</table></div>`;
+const CG="<colgroup><col style='width:61.7pt'><col style='width:52.5pt'><col style='width:57.6pt'><col style='width:55.5pt'><col style='width:51.4pt'><col style='width:53.5pt'><col style='width:33pt'><col style='width:43pt'></colgroup>";
+function staffCard(sh,k){
+  const st=staffStat(k);
+  let g="";
+  FLOOR_SCREEN.forEach((f,fi)=>{
+    if(fi)g+='<div class="sgp"></div>';
+    g+=`<div class="sfl"><b>${f}</b>${st.fb[f]?`<small>${st.fb[f]} Bed</small>`:""}</div>`;
+    for(const e of OR[f]){
+      if(!e){g+='<div class="sn"></div>';continue;}
+      const no=e[0];
+      if(isClean(no)&&assign[no]===k)g+=`<div class="sc g">${no}${state[no]==="sc"?`<span class="sm">${O_SVG}</span>`:""}</div>`;
+      else g+='<div class="sc"></div>';
+    }
+  });
+  const ln=ITEMS.filter(i=>st.ln[i[0]]).map(i=>`${i[1]} ${st.ln[i[0]]}`).join("・");
+  return `<div class="stc"><div class="sh"><b>${sh.name||("スタッフ"+k)}</b><span>${dateVal?L.ja.date(dateVal):""}</span><span class="cnt">${st.rooms}室・${st.beds} Bed</span></div>
+    <div class="sgr">${g}</div><div class="sl">${ln||"&nbsp;"}</div><div class="slg">グレー＝OUT清掃　○＝連泊清掃</div></div>`;
+}
+function page1(c){ // 1ページ目：原本どおり上下2枚
+  const x=origTable(c,{show:()=>true,main:true});
+  const blank=`<tr class="h39">${"<td></td>".repeat(8)}</tr>`;
+  return `<div class="pg1"><table class="ox">${CG}${x}${blank}${x.replace('<tr class="h2">','<tr class="h39">')}</table></div>`;
+}
+function page3(){ // 3ページ目：メイクスタッフ用（最大6枚、2列×3段）
+  const cards=sheets.map((sh,i)=>staffStat(i+1).rooms?staffCard(sh,i+1):"").filter(Boolean);
+  return cards.length?`<div class="p3"><div class="stg">${cards.join("")}</div></div>`:"";
 }
 function page2HTML(c){
   const T=L.ja;
@@ -414,44 +584,25 @@ function page2HTML(c){
       <span>${T.tot[2]}</span><b>${c[""]}</b><span>${T.tot[3]}</span><b>${c.vac}</b></div>
     <div class="tbls">${linenTable("ja","pln")}${roomTable("ja")}</div></div></div>`;
 }
-function sheetHTML(lang,c,foot){ // foot: 集計表を付ける言語（なしなら null）
-  const T=L[lang];
-  let h=`<div class="sheet" lang="${lang}"><div class="hd"><span class="t">${T.title}</span><span class="d">${dateVal?T.date(dateVal):""}</span>
-    <span class="lg"><span><i class="g"></i>${T.lg[0]}</span><span><i class="g">${O_SVG}</i>${T.lg[1]}</span><span><i></i>${T.lg[2]}</span><span><i>${X_SVG}</i>${T.lg[3]}</span></span></div>
-    <div class="pfs">`;
-  for(const fl of FLOORS){
-    h+=`<div class="pf"><div class="fl">${fl.f}</div><div class="pg">`;
-    for(const r of fl.rows)for(const cell of r){
-      if(!cell){h+=`<div class="pc e"></div>`;continue;}
-      if(cell==="EV"){h+=`<div class="pc pev"><span class="n">EV</span></div>`;continue;}
-      const [no,t]=cell.split(":");const s=state[no]||"";
-      const mark=s==="sc"?O_SVG:s==="vac"?X_SVG:"";
-      h+=`<div class="pc ${s}"><span class="tx"><span class="n">${no}</span><span class="y">${TYPES[t][lang]}</span></span><span class="m">${mark}</span></div>`;
-    }
-    h+=`</div></div>`;
-  }
-  h+=`</div>`;
-  if(foot){const F=L[foot];
-    h+=`<div class="ft"><div class="tot">
-      <span>${F.tot[0]}</span><b>${c.out}</b><span>${F.tot[1]}</span><b>${c.sc}</b>
-      <span>${F.tot[2]}</span><b>${c[""]}</b><span>${F.tot[3]}</span><b>${c.vac}</b></div>
-    <div class="tbls">${linenTable(foot,"pln")}${roomTable(foot)}</div></div>`;}
-  h+=`</div>`;
-  return h;
+function renderPrint(){
+  const c=counts();
+  document.getElementById("print").innerHTML=page1(c)+page2HTML(c)+page3();
 }
-
 function render(){
   for(const [no] of ROOMS){const s=state[no]||"";const b=document.getElementById("r"+no);
-    b.className="room"+(s?" "+s:"");b.querySelector(".st").textContent=LABEL[s];
+    const cl=isClean(no),a=assign[no];
+    b.className="room"+(s?" "+s:"");
+    b.querySelector(".st").textContent=LABEL[s];
+    const bd=b.querySelector(".bd");
+    if(cl&&a&&sheets[a-1]){bd.hidden=false;bd.textContent=a;bd.style.background=SHEETC[a-1];}else bd.hidden=true;
     b.setAttribute("aria-label",`${no} ${LABEL[s]}`);}
-  const c=counts();
-  nOut.textContent=c.out;nSc.textContent=c.sc;nStay.textContent=c[""];nVac.textContent=c.vac;
-  document.getElementById("bd").innerHTML=`<thead><tr><th></th><th>OUT</th><th>連泊清掃</th></tr></thead><tbody>`+
-    TYPE_ORDER.map(t=>`<tr><td>${TYPES[t].en}</td><td>${c.by[t].out}</td><td>${c.by[t].sc}</td></tr>`).join("")+
-    `<tr><td><b>計</b></td><td><b>${c.out}</b></td><td><b>${c.sc}</b></td></tr></tbody>`;
-  document.getElementById("ftc").innerHTML=ftcTable();
-  document.getElementById("ln").innerHTML=linenTable("ja","");
-  document.getElementById("print").innerHTML=sheetHTML("ja",c,null)+sheetHTML("en",c,null)+origPage(c)+page2HTML(c); // 1ページ目=部屋表2枚、2ページ目=集計（日本語）
+  // 階ごと・全体の「n室・n Bed」（OUT清掃＋連泊清掃）
+  let tr=0,tb=0;
+  document.querySelectorAll(".floor").forEach(sec=>{const f=sec.dataset.f;let r=0,bd=0;
+    for(const e of OR[f])if(e&&isClean(e[0])){r++;bd+=BEDS[TYPE_OF[e[0]]];}
+    tr+=r;tb+=bd;sec.querySelector(".fr").textContent=`${r}室`;sec.querySelector(".fb").textContent=`${bd} Bed`;});
+  document.getElementById("ftot").innerHTML=`清掃 合計 <b>${tr}室・${tb} Bed</b>`;
+  renderStaffs();renderPrint();
 }
 
 load();
@@ -459,7 +610,15 @@ const dEl=document.getElementById("date");
 if(!dateVal||dateVal<tomorrow())dateVal=tomorrow(); // 基本は「明日」
 dEl.value=dateVal;
 dEl.addEventListener("change",()=>{dateVal=dEl.value;save();render();});
-buildScreen();render();
+buildScreen();buildStaffs();render();
+document.getElementById("autoAs").addEventListener("click",()=>{
+  if(!sheets.length){alert("先に「＋スタッフ追加」で表を作ってください。");return;}
+  autoAssign();save();render();});
+const ca=document.getElementById("clrAs");let caT=null;
+ca.addEventListener("click",()=>{
+  if(!ca.classList.contains("armed")){ca.classList.add("armed");ca.textContent="もう一度で全部クリア";caT=setTimeout(()=>{ca.classList.remove("armed");ca.textContent="割当クリア";},4000);return;}
+  clearTimeout(caT);ca.classList.remove("armed");ca.textContent="割当クリア";assign={};auto={};save();render();});
+document.getElementById("addStaff").addEventListener("click",()=>{if(sheets.length>=MAX_STAFF)return;sheets.push({name:"スタッフ"+(sheets.length+1)});save();buildStaffs();render();});
 
 // iPhone/iPad のホーム画面アプリ表示では window.print() が動かないので案内を出す
 const standalone=(window.navigator.standalone===true)||(window.matchMedia&&matchMedia("(display-mode: standalone)").matches);
@@ -473,7 +632,7 @@ const rb=document.getElementById("btnReset");let armT=null;
 function disarm(){rb.classList.remove("armed");rb.textContent="リセット";clearTimeout(armT);armT=null;}
 rb.addEventListener("click",()=>{
   if(!rb.classList.contains("armed")){rb.classList.add("armed");rb.textContent="もう一度押すと全部消えます";armT=setTimeout(disarm,5000);return;}
-  disarm();state={};dateVal=tomorrow();dEl.value=dateVal;save();render();
+  disarm();state={};assign={};auto={};dateVal=tomorrow();dEl.value=dateVal;save();render();
 });
 </script>
 </body>
