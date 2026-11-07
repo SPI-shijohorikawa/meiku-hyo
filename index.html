@@ -170,8 +170,11 @@ table.ln td.z{color:#c3c8c5}
   table.ox tr.h2{height:38.4pt} table.ox tr.h2 td{height:38.4pt}
   table.ox tr.h39{height:39pt} table.ox tr.h39 td{height:39pt}
   .pg1{padding:9mm 0 0 7.8mm}
-  .p3{break-before:page;page-break-before:always}
-  .stg{display:grid;grid-template-columns:1fr 1fr;gap:3mm;padding-right:2mm}
+  body:not([data-pm="staff"]) .p3{display:none}
+  body[data-pm="staff"] .pg1,body[data-pm="staff"] .p2{display:none}
+  .stg{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(3,86mm);padding-right:2mm}
+  .sbox{border:.3mm dashed #555;margin:0 -.3mm -.3mm 0;display:flex;align-items:center;justify-content:center;padding:3mm}
+  .sbox .stc{width:92%;border:none}
   .stc{border:.4mm solid #000;padding:1.6mm 2.2mm;break-inside:avoid;display:flex;flex-direction:column;gap:1.4mm;font-family:"Yu Gothic","游ゴシック","Hiragino Sans",sans-serif}
   .stc .sh{display:flex;align-items:baseline;gap:3mm;white-space:nowrap}
   .stc .sh b{font-size:13pt} .stc .sh span{font-size:9pt} .stc .sh .cnt{margin-left:auto;font-size:11pt;font-weight:700}
@@ -247,10 +250,11 @@ table.ln td.z{color:#c3c8c5}
     </div>
     <div class="btns">
       <button class="primary" id="btnPrint" type="button">印刷</button>
+      <button id="btnPrintSt" type="button">メイクスタッフ用印刷</button>
       <button id="btnReset" type="button">リセット</button>
     </div>
     <p class="warn" id="pwaWarn" hidden>ホーム画面から開いたアプリ表示では印刷できません。Safariでこのページを開いて印刷してください。</p>
-    <p class="hint">何も押していない部屋は「連泊」です。下の「メイクスタッフ用」の表で、清掃する部屋をタップするとその人に割り当てます（階の数字をタップするとその階の未割当をまとめて割当）。リセットは1回押すと赤くなり、もう1回押すと全部消えます。入力はこの端末のブラウザに自動保存されます。</p>
+    <p class="hint">何も押していない部屋は「連泊」です。下の「メイクスタッフ用」の表で、清掃する部屋をタップするとその人に割り当てます（階の数字をタップするとその階の未割当をまとめて割当）。リセットは1回押すと赤くなり、もう1回押すと全部消えます（メイクスタッフ用の表も消えます）。入力はこの端末のブラウザに自動保存されます。</p>
   </aside>
 </div>
 
@@ -574,7 +578,9 @@ function page1(c){ // 1ページ目：原本どおり上下2枚
 }
 function page3(){ // 3ページ目：メイクスタッフ用（最大6枚、2列×3段）
   const cards=sheets.map((sh,i)=>staffStat(i+1).rooms?staffCard(sh,i+1):"").filter(Boolean);
-  return cards.length?`<div class="p3"><div class="stg">${cards.join("")}</div></div>`:"";
+  if(!cards.length)return "";
+  let h="";for(let i=0;i<6;i++)h+=`<div class="sbox">${cards[i]||""}</div>`; // 点線で6マス、各表はマスの真ん中
+  return `<div class="p3"><div class="stg">${h}</div></div>`;
 }
 function page2HTML(c){
   const T=L.ja;
@@ -622,17 +628,21 @@ document.getElementById("addStaff").addEventListener("click",()=>{if(sheets.leng
 
 // iPhone/iPad のホーム画面アプリ表示では window.print() が動かないので案内を出す
 const standalone=(window.navigator.standalone===true)||(window.matchMedia&&matchMedia("(display-mode: standalone)").matches);
-document.getElementById("btnPrint").addEventListener("click",()=>{
+function doPrint(pm){
   if(standalone){document.getElementById("pwaWarn").hidden=false;return;}
-  render();window.print();
-});
+  render();document.body.dataset.pm=pm;window.print();
+}
+document.getElementById("btnPrint").addEventListener("click",()=>doPrint("main")); // メイク表＋集計
+document.getElementById("btnPrintSt").addEventListener("click",()=>{ // メイクスタッフ用だけ
+  if(!document.querySelector(".p3")){alert("割り当てられた部屋がありません。「メイクスタッフ用」で部屋を割り当ててください。");return;}
+  doPrint("staff");});
 
 // リセット：1回目で赤くなる → 2回目で全消去。5秒何もしなければ元に戻る
 const rb=document.getElementById("btnReset");let armT=null;
 function disarm(){rb.classList.remove("armed");rb.textContent="リセット";clearTimeout(armT);armT=null;}
 rb.addEventListener("click",()=>{
   if(!rb.classList.contains("armed")){rb.classList.add("armed");rb.textContent="もう一度押すと全部消えます";armT=setTimeout(disarm,5000);return;}
-  disarm();state={};assign={};auto={};dateVal=tomorrow();dEl.value=dateVal;save();render();
+  disarm();state={};assign={};auto={};sheets=[];buildStaffs();dateVal=tomorrow();dEl.value=dateVal;save();render();
 });
 </script>
 </body>
