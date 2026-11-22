@@ -1124,12 +1124,13 @@ document.getElementById("btnPrintOut").addEventListener("click",()=>{if(!outRows
 // ・変えたら1.5秒後に保存。開いたとき・画面に戻ったとき・1分ごとに、ほかの端末の変更を読む
 // ・ネットが切れていたらこの端末に残しておき、つながったら保存
 // ・2台で同時に変えたとき：フル清掃・リネン発注は日付ごとに両方を残す。メイク表は後から保存した方
-// ・合言葉は端末ごとに1回入力（この端末のブラウザに保存。URLには入れない）
+// ・合言葉は CLOUD_PASS を使う（入力不要）。URLには入れない
 // =====================================================================
 var CLOUD_URL="https://script.google.com/macros/s/AKfycbwWLdz7sfsu1pWZrP-CFFUjjcjVfaLAG9k6g1aZko-OIZW3tJP-EAI0GCBGqXl4lm-KHg/exec";
 var KEY3="makehyo-cloud-v1";
-var CM={pass:"",at:{},snap:{}}, cloudReady=false, cloudApplying=false, cloudBusy=false, cloudAgain=false, cloudT=null, cloudErr="", cloudLast=0;
-function cloudLoadMeta(){try{const s=JSON.parse(localStorage.getItem(KEY3)||"null");if(s)CM=Object.assign(CM,s);}catch(e){}CM.at=CM.at||{};CM.snap=CM.snap||{};}
+var CLOUD_PASS="9"; // 合言葉（Apps Script の PASS と同じにする）。入力しなくても最初からこれを使う
+var CM={pass:CLOUD_PASS,at:{},snap:{}}, cloudReady=false, cloudApplying=false, cloudBusy=false, cloudAgain=false, cloudT=null, cloudErr="", cloudLast=0;
+function cloudLoadMeta(){try{const s=JSON.parse(localStorage.getItem(KEY3)||"null");if(s)CM=Object.assign(CM,s);}catch(e){}CM.at=CM.at||{};CM.snap=CM.snap||{};CM.pass=CLOUD_PASS;}
 function cloudSaveMeta(){try{localStorage.setItem(KEY3,JSON.stringify(CM));}catch(e){}}
 function makeData(){return {state,date:dateVal,assign,sheets,auto};}
 function extData(){return {tms:X2.tms,fullc:X2.fullc,lin:X2.lin};}
@@ -1207,8 +1208,7 @@ function cloudShow(busy){
   const b=document.getElementById("cloudSt");if(!b)return;
   const hm=t=>{const d=new Date(t);return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");};
   let tx,cl;
-  if(!CM.pass){tx="☁ 合言葉を入力";cl="wait";}
-  else if(cloudErr==="pass"){tx="☁ 合言葉が違います";cl="bad";}
+  if(cloudErr==="pass"){tx="☁ 設定エラー（合言葉）";cl="bad";} // Apps Script の PASS が "9" になっていない
   else if(busy==="busy"){tx="☁ 保存中…";cl="";}
   else if(cloudErr){tx="☁ 未保存（つながりません）";cl="wait";}
   else if(cloudReady&&(cloudDirty("make")||cloudDirty("ext"))){tx="☁ 保存待ち";cl="";}
@@ -1217,12 +1217,7 @@ function cloudShow(busy){
   b.textContent=tx;b.className="cst "+cl;}
 function cloudStart(){
   cloudLoadMeta();cloudReady=true;cloudShow();
-  document.getElementById("cloudSt").addEventListener("click",()=>{
-    if(!CM.pass||cloudErr==="pass"){
-      const p=prompt("クラウド保存の合言葉を入力してください（店で決めたもの）");
-      if(p==null)return;CM.pass=p.trim();CM.at={};CM.snap={};cloudSaveMeta(); // 合言葉を変えたら最初からそろえ直す
-    }
-    cloudSync();});
+  document.getElementById("cloudSt").addEventListener("click",()=>cloudSync()); // 押すとすぐ保存・読み込み
   window.addEventListener("online",cloudSync);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")cloudSync();});
   setInterval(()=>{ // 1分ごと：入力中でなければほかの端末の変更を読む／保存できていない分を保存
