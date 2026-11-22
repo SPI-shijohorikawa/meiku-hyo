@@ -43,6 +43,12 @@ header.top h1{font-size:22px;margin:0;letter-spacing:.05em}
 .floors .room .ty,.floors .room .st{font-size:10.5px;height:auto;line-height:1.2}
 .room{position:relative}
 .room .bd{position:absolute;top:3px;right:3px;min-width:18px;height:18px;border-radius:9px;color:#fff;font-size:12px;font-weight:700;line-height:18px;text-align:center;padding:0 4px}
+.tmsr{border:1px solid #c9b27a;background:#fff8e6;border-radius:8px;padding:8px 10px;font-size:13px;line-height:1.5}
+.tmsr b{font-size:14px} .tmsr .x{float:right;font:inherit;font-size:12px;border:1px solid var(--line);background:var(--paper);border-radius:6px;padding:2px 8px;cursor:pointer}
+.tmsset{font-size:13px;color:var(--sub)} .tmsset summary{cursor:pointer;color:var(--ink)} .tmsset ol{padding-left:18px;margin:6px 0} .tmsset ul{padding-left:16px}
+.tmsset .bml{display:inline-block;padding:6px 14px;border-radius:16px;background:var(--accent);color:#fff;font-weight:700;text-decoration:none;margin-right:8px}
+.tmsset button{font:inherit;font-size:13px;padding:5px 12px;border-radius:16px;border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
+.tmsset .sub{font-size:12px}
 .staffwrap{grid-column:1;min-width:0;display:flex;flex-direction:column;gap:6px}
 .staffhead{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .staffhead h3{margin:0;font-size:15px}
@@ -260,10 +266,19 @@ table.ln td.z{color:#c3c8c5}
       <table class="bd" id="bd"></table>
     </div>
     <div class="btns">
+      <button id="btnTms" type="button">TMS取込</button>
       <button class="primary" id="btnPrint" type="button">印刷</button>
       <button id="btnPrintSt" type="button">メイクスタッフ用印刷</button>
       <button id="btnReset" type="button">リセット</button>
     </div>
+    <div class="tmsr" id="tmsr" hidden></div>
+    <details class="tmsset"><summary>TMSから読み込む方法</summary>
+      <p><b>パソコン（Chrome・Edge）</b>：拡張機能「TMS取込」を入れると、上の「TMS取込」ボタン1つで読めます。TMSにログインしておけば、裏でTMSを開いて RESV と C/IN を読み、明日のOUT清掃・連泊・空室を入れます。</p>
+      <p class="sub">入れ方（1回だけ）：tms-ext.zip を解凍 → Chromeで chrome://extensions（Edgeは edge://extensions）を開く → 右上「デベロッパーモード」をオン →「パッケージ化されていない拡張機能を読み込む」→ 解凍した tms-ext フォルダを選ぶ。</p>
+      <p><b>iPad など拡張機能が使えないとき</b>：ブックマーク「TMS取込」を使います。下のリンクをブックマークに入れ（iPadは「コードをコピー」→ 何かのページをブックマーク → URLを貼り替え）、TMSの画面でそのブックマークを押します。</p>
+      <p><a class="bml" id="bml" href="#">TMS取込</a><button type="button" id="bmlCopy">コードをコピー</button></p>
+      <p class="sub">読むのは部屋番号・何泊目／何泊・プランの部屋タイプだけ（お客様の名前は読みません）。部屋が決まっていない予約は一覧にだけ出ます。</p>
+    </details>
     <p class="warn" id="pwaWarn" hidden>ホーム画面から開いたアプリ表示では印刷できません。Safariでこのページを開いて印刷してください。</p>
     <p class="hint">何も押していない部屋は「連泊」です。下の「メイクスタッフ用」の表で、清掃する部屋をタップするとその人に割り当てます（階の数字をタップするとその階の未割当をまとめて割当）。リセットは1回押すと赤くなり、もう1回押すと全部消えます（メイクスタッフ用の表も消えます）。入力はこの端末のブラウザに自動保存されます。</p>
   </aside>
@@ -645,7 +660,55 @@ function today(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth
 if(!dateVal||dateVal<today())dateVal=tomorrow();
 dEl.value=dateVal;
 dEl.addEventListener("change",()=>{dateVal=dEl.value;save();render();});
-buildScreen();buildStaffs();render();
+buildScreen();buildStaffs();
+// ---- TMS取込（ブックマークから #tms=... で渡される）
+const BOOKMARKLET="javascript:(async()=>{const P='https://spi-shijohorikawa.github.io/meiku-hyo/';const z=n=>String(n).padStart(2,'0');const T=new Date();const td=T.getFullYear()+'-'+z(T.getMonth()+1)+'-'+z(T.getDate());if(location.host.indexOf('tms.ninehours.co.jp')<0){alert('TMSを開いてから押してください');return;}if(location.pathname.indexOf('/rsv/sch')!==0){alert('予約検索のページを開きます。開いたら、もう一度このブックマークを押してください。');location.href='/rsv/sch/?date='+td+'&type=STAY';return;}const sl=m=>new Promise(r=>setTimeout(r,m));const wt=async()=>{await sl(400);for(let i=0;i<60&&window.jQuery&&jQuery.active>0;i++)await sl(200);await sl(300);};const rd=()=>[...document.querySelectorAll('tr.search_res_list')].map(tr=>{const c=[...tr.children].map(x=>x.textContent.trim());return{r:c.find(x=>/^\\d{3}$/.test(x))||'',n:c.find(x=>/^\\d+\\/\\d+$/.test(x))||'',t:((c.find(x=>/\\[.+?\\]/.test(x))||'').match(/\\[(.+?)\\]/)||[])[1]||''};});const b1=document.querySelector('#status_resv'),b2=document.querySelector('#status_cin');if(!b1||!b2){alert('RESV / C/IN が見つかりません');return;}b1.click();await wt();const A=rd();b2.click();await wt();const B=rd();const o=[],s=[],u=[];for(const x of A.concat(B)){const q=x.n.split('/').map(Number);if(!q[0]||!q[1])continue;if(x.r)(q[0]===q[1]?o:s).push(x.r);else u.push(x.t+' '+x.n);}const d=(window.jQuery&&jQuery(\"input[name='current_date']\").val())||td;const url=P+'#tms='+encodeURIComponent(JSON.stringify({d,o,s,u}));const w=window.open(url,'_blank');if(!w)location.href=url;})();";
+function showTms(t){
+  const el=document.getElementById("tmsr");if(!t){el.hidden=true;return;}
+  const md=x=>{const a=x.split("-");return (+a[1])+"/"+(+a[2]);};
+  el.innerHTML=`<button class="x" type="button">閉じる</button><b>TMSから読み込みました</b>（${md(t.d)}の夜 → 翌日分）<br>OUT清掃 <b>${t.o.length}</b>室・連泊 <b>${t.s.length}</b>室・空室 <b>${t.v}</b>室`+
+    (t.u.length?`<br><span style="color:var(--danger)">部屋未割当の予約 ${t.u.length}件（部屋が決まったら手で直してください）：</span>${t.u.map(x=>{const q=x.split(" ");const n=(q[1]||"").split("/");return q[0]+" "+q[1]+(n[0]===n[1]?"（明日OUT）":"");}).join("、")}`:"");
+  el.hidden=false;el.querySelector(".x").addEventListener("click",()=>{el.hidden=true;});
+}
+function importTms(){
+  const m=location.hash.match(/^#tms=(.+)$/);if(!m)return;
+  history.replaceState(null,"",location.pathname+location.search);
+  let t;try{t=JSON.parse(decodeURIComponent(m[1]));}catch(e){alert("TMSのデータを読めませんでした。");return;}
+  applyTms(t);
+}
+function applyTms(t){
+  if(!confirm("TMSのデータでメイク表を上書きしますか？\n（OUT清掃・連泊・空室を入れ直します。連泊清掃は手で選んでください）"))return;
+  const O=new Set(t.o),S=new Set(t.s);let v=0;state={};
+  for(const [no] of ROOMS){if(O.has(no))state[no]="out";else if(S.has(no))state[no]="";else{state[no]="vac";v++;}}
+  for(const n in assign)if(!isClean(n)){delete assign[n];delete auto[n];}
+  const nd=new Date(t.d+"T00:00:00");nd.setDate(nd.getDate()+1);
+  dateVal=nd.getFullYear()+"-"+String(nd.getMonth()+1).padStart(2,"0")+"-"+String(nd.getDate()).padStart(2,"0");dEl.value=dateVal;
+  t.v=v;save();render();showTms(t);
+}
+document.getElementById("bml").setAttribute("href",BOOKMARKLET);
+document.getElementById("bml").addEventListener("click",e=>{e.preventDefault();alert("これはブックマーク用です。ブックマークバーにドラッグするか、「コードをコピー」を使ってください。");});
+document.getElementById("bmlCopy").addEventListener("click",async()=>{try{await navigator.clipboard.writeText(BOOKMARKLET);alert("コピーしました。ブックマークのURL欄に貼り付けてください。");}catch(e){prompt("下のコードを全部コピーしてください",BOOKMARKLET);}});
+render();importTms();
+// 拡張機能（tms-ext）があれば、ボタン1つでTMSから読む
+const bt=document.getElementById("btnTms");
+let tmsBusy=false;
+window.addEventListener("message",e=>{
+  if(e.source!==window||!e.data||e.data.type!=="MAKEHYO_TMS_RES")return;
+  tmsBusy=false;bt.disabled=false;bt.textContent="TMS取込";
+  const r=e.data.res||{};
+  if(r.ok)applyTms(r.data);
+  else if(r.error==="login")alert("TMSにログインしていません。開いたTMSの画面でログインしてから、もう一度「TMS取込」を押してください。");
+  else alert("TMSから読めませんでした："+(r.error||""));
+});
+bt.addEventListener("click",()=>{
+  if(document.documentElement.dataset.tmsExt!=="1"){
+    alert("このパソコンには「TMS取込」の拡張機能が入っていません。\n下の「TMSから読み込む方法」を見てください。");
+    document.querySelector(".tmsset").open=true;return;}
+  if(tmsBusy)return;tmsBusy=true;bt.disabled=true;bt.textContent="TMS読込中…";
+  window.postMessage({type:"MAKEHYO_TMS_REQ"},"*");
+  setTimeout(()=>{if(tmsBusy){tmsBusy=false;bt.disabled=false;bt.textContent="TMS取込";alert("時間がかかりすぎました。TMSにつながるか確認して、もう一度押してください。");}},60000);
+});
+window.addEventListener("hashchange",importTms);
 document.getElementById("autoAs").addEventListener("click",()=>{
   if(!sheets.length){alert("先に「＋スタッフ追加」で表を作ってください。");return;}
   autoAssign();save();render();});
