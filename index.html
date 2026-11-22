@@ -7,10 +7,12 @@
 <style>
 /* 画面: 左に4フロア並び（各2列）、右に集計。印刷: A4縦 上=日本語 下=英語 */
 :root{
-  --bg:#f3f4f2; --paper:#ffffff; --ink:#1d2321; --sub:#5d6662; --line:#c9cfcb; --accent:#2f6f5e;
+  /* 色は renga と同じ：浅い底色・白いカード・主色は深い焦糖色（「いまここ」と主なボタンだけ） */
+  --bg:#F2F2EF; --paper:#ffffff; --ink:#262626; --sub:#77746F; --line:#D6D3CC; --accent:#7E4520;
+  --accent-bg:#F3E7DC; --gray:#E8E6E1; --ok:#4F7560; --ring:0 0 0 1px rgba(0,0,0,.06);
   --out:#b9bcbb; --sc:#cfe3f3; --sc-ink:#1f5c8a; --vac:#f6f0dc; --vac-ink:#8a7a45;
   --tA:#2f6fb0; --tB:#c4416e; --dbl:#b8741a; --twn:#23845f; --q4:#7a4bb0; --ev:#4b5560;
-  --danger:#c0392b;
+  --danger:#A65E4E;
   --font:"Hiragino Sans","Yu Gothic UI","Yu Gothic","Noto Sans JP","Meiryo",system-ui,sans-serif;
   color-scheme:light;
 }
@@ -20,6 +22,10 @@ html,body{margin:0}
 body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;
   -webkit-tap-highlight-color:transparent;touch-action:manipulation;
   padding:12px max(16px,env(safe-area-inset-right,0px)) 24px max(16px,env(safe-area-inset-left,0px))}
+/* ボタンは押すと少し縮む。焦点の枠はキーボード操作のときだけ */
+button{transition:transform .1s ease-out}
+button:active:not(:disabled){transform:scale(.96)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .app{display:grid;grid-template-columns:minmax(0,1fr) 240px;gap:16px;max-width:1280px;margin:0 auto}
 @media (max-width:820px){.app{grid-template-columns:minmax(0,1fr)}}
 header.top{grid-column:1/-1;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
@@ -31,11 +37,11 @@ header.top h1{font-size:22px;margin:0;letter-spacing:.05em}
 .sw{width:18px;height:14px;border:1px solid var(--line);display:inline-block;border-radius:3px;background:var(--paper)}
 .sw.out{background:var(--out)} .sw.sc{background:var(--sc)} .sw.vac{background:var(--vac)}
 
-.floors{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:14px;min-width:0;grid-column:1}
+.floors{background:var(--paper);border:0;box-shadow:var(--ring);border-radius:12px;padding:8px;display:flex;flex-direction:column;gap:14px;min-width:0;grid-column:1}
 .floor{display:grid;grid-template-columns:56px minmax(0,1fr);gap:6px}
 .floor+.floor{border-top:1px solid var(--line);padding-top:14px}
 .ftot{font-size:14px;color:var(--sub);padding:0 2px}.ftot b{color:var(--ink)}
-.floor h2{margin:0;font-size:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#eef0ee;border-radius:6px;line-height:1.2}
+.floor h2{margin:0;font-size:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--gray);border-radius:6px;line-height:1.2}
 .floor h2 small{font-size:11px;font-weight:600;color:var(--sub);white-space:nowrap}
 .grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));grid-auto-rows:50px;gap:5px}
 .floors .room{padding:2px 4px 2px 7px}
@@ -53,7 +59,7 @@ header.top h1{font-size:22px;margin:0;letter-spacing:.05em}
 .staffhead #clrAs.armed{background:var(--danger);border-color:var(--danger);color:#fff}
 .staffhead .un{font-size:13px;color:var(--sub)} .staffhead .un.bad{color:var(--danger);font-weight:700}
 .staffs{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
-.stf{background:var(--paper);border:1px solid var(--line);border-top-width:4px;border-radius:10px;padding:6px}
+.stf{background:var(--paper);border:0 solid transparent;border-top-width:4px;box-shadow:var(--ring);border-radius:12px;padding:6px}
 .stf .top{display:flex;gap:4px;align-items:center;margin-bottom:5px}
 .stf .kn{flex:none;width:20px;height:20px;border-radius:10px;color:#fff;font-size:12px;font-weight:700;display:grid;place-items:center}
 .stf input{font:inherit;font-size:14px;font-weight:700;border:1px solid var(--line);border-radius:6px;padding:3px 6px;flex:1;min-width:0;color:var(--ink);background:var(--paper)}
@@ -66,7 +72,7 @@ header.top h1{font-size:22px;margin:0;letter-spacing:.05em}
 .stf .del.armed{background:var(--danger);border-color:var(--danger);color:#fff}
 .mg{display:grid;grid-template-columns:24px repeat(6,minmax(0,1fr));grid-auto-rows:auto;gap:2px}
 .mg .mc{height:24px}
-.mg .fl{grid-row:span 2;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;background:#eef0ee;border-radius:4px;cursor:pointer;user-select:none;-webkit-user-select:none}
+.mg .fl{grid-row:span 2;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;background:var(--gray);border-radius:4px;cursor:pointer;user-select:none;-webkit-user-select:none}
 .mg .gp{grid-column:1/-1;height:3px}
 .mc{appearance:none;font:inherit;font-size:11.5px;font-variant-numeric:tabular-nums;border:1px solid var(--line);border-radius:4px;background:var(--paper);color:var(--ink);padding:0;cursor:pointer;min-width:0;line-height:1}
 .mc small{font-size:8px;margin-left:1px}
@@ -96,7 +102,7 @@ header.top h1{font-size:22px;margin:0;letter-spacing:.05em}
 
 aside{display:flex;flex-direction:column;gap:10px;grid-column:2;grid-row:2 / span 2;align-self:start}
 @media (max-width:820px){aside{grid-column:1;grid-row:auto}}
-.box{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.box{background:var(--paper);border:0;box-shadow:var(--ring);border-radius:12px;padding:10px 12px}
 .big{display:grid;grid-template-columns:1fr auto;row-gap:3px;align-items:baseline}
 .big span{font-size:14px;color:var(--sub)} .big b{font-size:24px;font-variant-numeric:tabular-nums;text-align:right}
 .box h3{margin:0 0 6px;font-size:13px;color:var(--sub);font-weight:600}
@@ -120,13 +126,15 @@ table.ln td.z{color:#c3c8c5}
 .warn{font-size:13px;line-height:1.6;margin:0;padding:10px 12px;border-radius:8px;background:#fdecea;color:#8a2a1f;border:1px solid #f1b5ab}
 
 /* ---------- タブ ---------- */
-nav.tabs{max-width:1280px;margin:0 auto 12px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-nav.tabs .tb{font:inherit;font-size:15px;font-weight:700;padding:9px 16px;border-radius:20px;border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
-nav.tabs .tb[aria-selected="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+/* タブ：いまのタブ＝黒の太字＋焦糖色の短い線（renga と同じ） */
+nav.tabs{max-width:1280px;margin:0 auto 12px;display:flex;align-items:center;gap:2px 18px;flex-wrap:wrap;border-bottom:1px solid rgba(0,0,0,.07)}
+nav.tabs .tb{position:relative;font:inherit;font-size:15px;font-weight:600;padding:10px 2px 11px;border:0;background:none;color:var(--sub);cursor:pointer}
+nav.tabs .tb[aria-selected="true"]{color:var(--ink);font-weight:800}
+nav.tabs .tb[aria-selected="true"]::after{content:"";position:absolute;left:50%;bottom:3px;width:24px;height:3px;margin-left:-12px;border-radius:2px;background:var(--accent)}
 nav.tabs .tmsw{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 nav.tabs .tmsat{font-size:12px;color:var(--sub)}
 nav.tabs .cst{font:inherit;font-size:12px;padding:5px 10px;border-radius:14px;border:1px solid var(--line);background:var(--paper);color:var(--sub);cursor:pointer;white-space:nowrap}
-nav.tabs .cst.ok{color:var(--accent);border-color:#b9d3ca}
+nav.tabs .cst.ok{color:var(--ok);border-color:#c5d3c9}
 nav.tabs .cst.bad{color:#fff;background:var(--danger);border-color:var(--danger);font-weight:700}
 nav.tabs .cst.wait{color:#8a6d1f;border-color:#e3cf8f;background:#fff8e6}
 nav.tabs #btnTms{font:inherit;font-size:15px;font-weight:700;padding:9px 18px;border-radius:20px;border:1px solid var(--accent);background:var(--paper);color:var(--accent);cursor:pointer}
@@ -168,6 +176,7 @@ table.lt td.z{color:#c3c8c5}
 .seg button{font:inherit;font-size:14px;padding:4px 12px;border:0;background:var(--paper);color:var(--ink);cursor:pointer}
 .seg button.on{background:var(--ink);color:#fff;font-weight:700}
 .note{font-size:13px;color:var(--sub);line-height:1.6;margin:0}
+.note:empty{display:none}
 .bad{color:var(--danger);font-weight:700}
 /* カレンダー */
 .cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
@@ -178,13 +187,13 @@ table.lt td.z{color:#c3c8c5}
 .cal .dy.today{border-color:var(--ink);border-width:2px}
 .cal .dy.sel{outline:3px solid var(--accent);outline-offset:1px}
 .cal .dy b{font-size:15px}
-.cal .dy .fc{font-size:12px;font-weight:700;color:var(--sc-ink);background:var(--sc);border-radius:4px;padding:0 4px;align-self:flex-start}
-.cal .dy .oc{position:absolute;top:4px;right:5px;font-size:12px;font-weight:700;color:var(--ink);background:#e4e7e5;border-radius:4px;padding:0 4px;line-height:1.5}
+.cal .dy .fc{font-size:12.5px;font-weight:700;color:var(--sc-ink);background:var(--sc);border-radius:4px;padding:1px 5px;align-self:stretch;line-height:1.45;word-spacing:2px;font-variant-numeric:tabular-nums}
+.cal .dy .oc{position:absolute;top:4px;right:5px;font-size:12px;font-weight:700;color:var(--ink);background:var(--gray);border-radius:4px;padding:0 4px;line-height:1.5}
 .cal .dy .oc small{font-size:9px;font-weight:600;color:var(--sub);margin-right:2px}
 /* 部屋表は <dialog>（showModal）：後ろの日历は押せない・Escで閉じる */
 .fov{border:0;padding:0;background:transparent;margin:60px auto auto;width:min(520px,calc(100% - 24px));max-height:calc(100% - 80px);overflow:auto}
 .fov::backdrop{background:rgba(20,25,23,.35)}
-.fbox{background:var(--paper);border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,.25);padding:10px 12px}
+.fbox{background:var(--paper);border-radius:14px;box-shadow:0 0 0 1px rgba(0,0,0,.08);padding:10px 12px}
 .fbox .fhd{display:flex;align-items:center;gap:8px;margin-bottom:6px}
 .fbox .fhd h3{margin:0;font-size:16px;color:var(--ink)}
 .fbox .fhd .x{margin-left:auto;font:inherit;font-size:14px;border:1px solid var(--line);background:var(--paper);border-radius:8px;padding:4px 12px;cursor:pointer;color:var(--ink)}
@@ -198,6 +207,11 @@ table.lt td.z{color:#c3c8c5}
 .fbox .room .ty{display:none}
 .fbox .room .st{font-size:9.5px;line-height:1.15}
 .cal .ept{min-height:0}
+.fbox .fhd .rob{font-size:12px;font-weight:700;background:var(--gray);color:var(--sub);border-radius:6px;padding:2px 8px}
+.fgrid.ro .room{cursor:default}
+.fpr .row{gap:8px}
+.fpr .chk{gap:4px;font-size:14px}
+.fpr .chk input{width:18px;height:18px;accent-color:var(--accent)}
 .calhd{display:flex;align-items:center;gap:10px}
 .calhd b{font-size:17px;min-width:7em;text-align:center}
 .calhd button{font:inherit;font-size:16px;width:38px;height:34px;border-radius:8px;border:1px solid var(--line);background:var(--paper);cursor:pointer;color:var(--ink)}
@@ -323,6 +337,23 @@ table.om tr.otot td{font-size:16px;border-bottom:2px solid var(--line)}
   body[data-pm="order"] #print,body[data-pm="out"] #print{display:none}
   body:not([data-pm="order"]) #printOrder{display:none}
   body:not([data-pm="out"]) #printOut{display:none}
+  body[data-pm="full"] #print{display:none}
+  body:not([data-pm="full"]) #printFull{display:none}
+  /* 連泊清掃の表：A4 1枚に6日（2列×3段）。連泊清掃＝グレー＋太枠、連泊＝n/N、連泊でない部屋＝うすい番号 */
+  .pfp{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(3,86mm);gap:4mm 5mm;break-after:page;page-break-after:always;font-family:"Yu Gothic","游ゴシック","Hiragino Sans",sans-serif}
+  .pfp:last-child{break-after:auto;page-break-after:auto}
+  .pfd{border:.3mm solid #000;padding:2mm 2.5mm;display:flex;flex-direction:column;gap:1.8mm;break-inside:avoid}
+  .pfh{display:flex;justify-content:space-between;align-items:baseline;font-size:10.5pt}
+  .pfh b{font-size:13pt}
+  .pfg{display:grid;grid-template-columns:8mm repeat(6,minmax(0,1fr));grid-auto-rows:8.4mm}
+  .pff{grid-row:span 2;font-weight:700;font-size:10pt;display:flex;align-items:center;justify-content:center}
+  .pfc{border:.25mm solid #888;margin:0 -.25mm -.25mm 0;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .pfc b{font-size:10.5pt}
+  .pfc small{font-size:6.8pt;min-height:1.1em}
+  .pfc.on{background:#c8c8c8;border:.6mm solid #000;position:relative;z-index:1}
+  .pfc.on small{font-weight:700}
+  .pfc.x b{color:#aaa;font-weight:400}
+  .pfc.e{border:0}
   /* 発注書（発注書.docx と同じ並び・大きさ） */
   /* 発注書.docx は B5（余白 上35・左右30mm）を A4 の真ん中に印刷したもの → 左右44mm・上35mm・文字幅122mm */
   .po{height:230mm;width:156mm;display:flex;flex-direction:column;padding:25mm 0 0 34mm;font-family:"Yu Mincho","游明朝","YuMincho","Hiragino Mincho ProN","Noto Serif JP",serif;font-size:10.5pt;line-height:18pt;color:#000}
@@ -353,10 +384,10 @@ table.om tr.otot td{font-size:16px;border-bottom:2px solid var(--line)}
 </head>
 <body>
 <nav class="tabs" role="tablist">
-  <button class="tb" type="button" role="tab" data-tab="make">連泊表</button>
-  <button class="tb" type="button" role="tab" data-tab="linen">リネン発注</button>
-  <button class="tb" type="button" role="tab" data-tab="full">連泊清掃カレンダー</button>
-  <button class="tb" type="button" role="tab" data-tab="out">OUT数（今から1か月分）</button>
+  <button class="tb" type="button" role="tab" id="t-make" aria-controls="p-make" data-tab="make">連泊表</button>
+  <button class="tb" type="button" role="tab" id="t-linen" aria-controls="p-linen" data-tab="linen">リネン発注</button>
+  <button class="tb" type="button" role="tab" id="t-full" aria-controls="p-full" data-tab="full">連泊清掃カレンダー</button>
+  <button class="tb" type="button" role="tab" id="t-out" aria-controls="p-out" data-tab="out">OUT数（今から1か月分）</button>
   <div class="tmsw"><button id="cloudSt" class="cst" type="button" title="クラウド保存"></button><span class="tmsat" id="tmsAt"></span><button id="btnTms" type="button" title="TMS取込" aria-label="TMS取込"></button></div>
 </nav>
 <div class="tmsbar"><div class="tmsr" id="tmsr" hidden></div></div>
@@ -413,7 +444,7 @@ table.om tr.otot td{font-size:16px;border-bottom:2px solid var(--line)}
 <!-- ① リネン発注 -->
 <div class="panel" id="p-linen" hidden><div class="pnl">
   <div class="row"><h2>リネン発注</h2>
-    <label>発注日（発注書を作る夜勤の日）<input type="date" id="lnDate"></label>
+    <label>発注日 <input type="date" id="lnDate"></label>
     <label>納品日 <input type="date" id="lnDeliv"></label>
     <button class="act primary" type="button" id="btnPrintOrder">発注書を印刷</button></div>
   <p class="note" id="lnFlow" style="font-size:14px;color:var(--ink)"></p>
@@ -433,8 +464,18 @@ table.om tr.otot td{font-size:16px;border-bottom:2px solid var(--line)}
 <!-- ② 連泊清掃 -->
 <div class="panel" id="p-full" hidden><div class="pnl">
   <div class="row"><h2>連泊清掃カレンダー</h2>
-    <div class="calhd"><button type="button" id="calPrev" aria-label="前の月">‹</button><b id="calTitle"></b><button type="button" id="calNext" aria-label="次の月">›</button></div></div>
-  <p class="note">日をタップすると部屋表が出ます。部屋をタップ＝その日その部屋は連泊清掃（もう一度タップで取消）。タップすると部屋表は自動で閉じます。右上の数字＝その日のOUT数（TMS）。メイク表の「連泊清掃」と自動でつながります。</p>
+    <div class="calhd"><button type="button" id="calPrev" aria-label="前の月">‹</button><b id="calTitle"></b><button type="button" id="calNext" aria-label="次の月">›</button></div>
+    <label>日付を選ぶ <input type="date" id="fDate"></label></div>
+  <p class="note">日をタップ（または日付を選ぶ）と部屋表が出ます。部屋をタップ＝その日その部屋は連泊清掃（もう一度タップで取消）。タップすると部屋表は自動で閉じます。右上の数字＝その日のOUT数（TMS）。連泊表の「連泊清掃」と自動でつながります。今日（夜勤の日）より前の日は見るだけで、変更できません。</p>
+  <div class="box fpr">
+    <h3>連泊清掃の表を印刷</h3>
+    <div class="row">
+      <label><input type="date" id="fpFrom"></label><span>〜</span><label><input type="date" id="fpTo"></label>
+      <label class="chk"><input type="checkbox" id="fpOnly" checked> 連泊清掃がある日だけ</label>
+      <button class="act primary" type="button" id="btnPrintFull">印刷</button>
+    </div>
+    <p class="note" id="fpInfo"></p>
+  </div>
   <div class="box"><div class="cal" id="cal"></div></div>
   <dialog class="fov" id="fov" aria-label="連泊清掃の部屋表"><div class="fbox" id="fday"></div></dialog>
 </div></div>
@@ -449,6 +490,7 @@ table.om tr.otot td{font-size:16px;border-bottom:2px solid var(--line)}
 <div class="print" id="print"></div>
 <div class="print" id="printOrder"></div>
 <div class="print" id="printOut"></div>
+<div class="print" id="printFull"></div>
 
 <script>
 const TYPES={
@@ -828,7 +870,8 @@ function render(){
 //   lin  : {発注日:{typ, come, cnt, ov, wipe, deliv, ord}}
 // =====================================================================
 const KEY2="makehyo-shijohorikawa-ext-v1";
-let X2={tms:null,fullc:{},lin:{},tab:"make"};
+//   hist : {日付:{st:{部屋:"n/N"}, o:[OUTの部屋], n:OUT数}}  TMSのデータから外れた日の連泊・OUT（過去の連泊清掃の表用）
+let X2={tms:null,fullc:{},lin:{},hist:{},tab:"make"};
 const ymd=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
 const addD=(s,n)=>{const d=new Date(s+"T00:00:00");d.setDate(d.getDate()+n);return ymd(d);};
 const WD="日月火水木金土";
@@ -856,6 +899,10 @@ function guessType(t){const s=hank(t);
   if(/トリプル/.test(s)){if(/B/i.test(s))return "TB";if(/A/i.test(s))return "TA";return "";}
   if(/4|フォー|クア|クワ/.test(s))return "Q"; return "";}
 function saveTmsDays(t){
+  // 新しいデータに入らない日（t.d 以前）の連泊・OUTを残しておく（過去の連泊清掃の表に使う）
+  if(X2.tms&&X2.tms.days){X2.hist=X2.hist||{};
+    for(const k in X2.tms.days){const d=addD(k,1);if(d>t.d)continue;const st=staysOn(d),o=outsOn(d);
+      if(st)X2.hist[d]={st,o:o?o.rooms:[],n:o?o.n:0};}}
   const days={};
   for(const x of t.days)days[x.d]={ok:!!x.ok,rows:(x.rows||[]).map(r=>({r:r.r||"",n:r.n||"",t:r.t||""}))};
   // 部屋が決まっている予約から「プランの[ ]の文字 → 部屋タイプ」を覚える（部屋未割当の予約に使う）
@@ -864,9 +911,8 @@ function saveTmsDays(t){
   const map={};for(const k in cnt)map[k]=Object.keys(cnt[k]).sort((a,b)=>cnt[k][b]-cnt[k][a])[0];
   X2.tms={at:Date.now(),base:t.d,days,map};
   lnDateVal=t.d;
-  // 古い記録を消す（60日より前）
+  // リネン発注の古い記録を消す（60日より前）。連泊清掃の記録（fullc・hist）はあとで見るので消さない
   const old=addD(today(),-60);
-  for(const d in X2.fullc)if(d<old)delete X2.fullc[d];
   for(const d in X2.lin)if(d<old)delete X2.lin[d];
   saveX();
 }
@@ -881,12 +927,16 @@ function outsOn(X){const day=X2.tms&&X2.tms.days[addD(X,-1)];if(!day||!day.ok)re
 // 日付 X に連泊している部屋（X-1 の一覧で 何泊目＜何泊）→ {部屋:"n/N"}（X の日の何泊目に直す）
 function staysOn(X){const day=X2.tms&&X2.tms.days[addD(X,-1)];if(!day||!day.ok)return null;
   const r={};for(const x of day.rows){const q=nN(x);if(x.r&&q[0]&&q[0]<q[1])r[x.r]=(q[0]+1)+"/"+q[1];}return r;}
+// その日の連泊（{部屋:"n/N"}）とOUT。TMSの今のデータ → なければ残しておいた記録（hist）
+function dayView(d){const st=staysOn(d);
+  if(st){const o=outsOn(d);return {st,o:o?o.rooms:[],n:o?o.n:0};}
+  const h=X2.hist&&X2.hist[d];return h?{st:h.st||{},o:h.o||[],n:h.n||0}:null;}
 function tmsRange(){if(!X2.tms)return [];const ds=Object.keys(X2.tms.days).sort();return ds.map(d=>addD(d,1));} // OUTが分かる日
 
 // ---- タブ
 const TABS=["make","linen","full","out"];
 function showTab(k){if(!TABS.includes(k))k="make";X2.tab=k;saveX();if(typeof fov!=="undefined")closeFov();
-  document.querySelectorAll("nav.tabs .tb").forEach(b=>b.setAttribute("aria-selected",b.dataset.tab===k?"true":"false"));
+  document.querySelectorAll("nav.tabs .tb").forEach(b=>{const on=b.dataset.tab===k;b.setAttribute("aria-selected",on?"true":"false");b.tabIndex=on?0:-1;});
   for(const t of TABS)document.getElementById("p-"+t).hidden=t!==k;
   renderTabs();}
 function renderTabs(){
@@ -948,14 +998,13 @@ function buildLinen(){
   document.getElementById("lnDate").value=X;
   document.getElementById("lnDeliv").value=c.deliv;
   document.getElementById("lnTgt").textContent=md2(c.T)+"OUT＋連泊清掃数";
-  const X1=addD(X,1),Xm=addD(X,-1);
-  document.getElementById("lnFlow").innerHTML=`<b>${mdw(X)}の夜</b>に発注書を作る → <b>${mdw(X1)}</b>にドライバーへ渡す → <b>${mdw(c.T)}</b>に納品。<br>`+
-    `必要数は<b>${mdw(c.T)}</b>のOUT＋連泊清掃で計算。「${md2(X1)}に届く」＝${mdw(Xm)}の夜に作った発注数。`;
+  const X1=addD(X,1);
+  document.getElementById("lnFlow").innerHTML=`<b>${mdw(X)}</b>夜 作成 → <b>${mdw(X1)}</b> ドライバーへ → <b>${mdw(c.T)}</b> 納品`;
   const info=[];
-  if(!c.o)info.push(`<span class="bad">${mdw(c.T)}のOUTのデータがありません。「TMS取込」を押してください（または左の表に手で入れてください）。</span>`);
+  if(!c.o)info.push(`<span class="bad">${mdw(c.T)}のOUTのデータがありません。右上の↻で読み込んでください（左の表に手で入れても計算できます）。</span>`);
   if(c.unk.length)info.push(`<span class="bad">部屋タイプが分からないOUTが${c.unk.length}室あります（${esc([...new Set(c.unk)].join("、"))}）。左の表に手で足してください。</span>`);
   const pr=X2.lin[X]&&X2.lin[X].printed;
-  if(pr){const d=new Date(pr);info.push(`発注書は ${d.getMonth()+1}月${d.getDate()}日 ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")} に印刷済み（そのときの発注数を保存しています）。`);}
+  if(pr){const d=new Date(pr);info.push(`${d.getMonth()+1}月${d.getDate()}日 ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")} 印刷済み`);}
   document.getElementById("lnInfo").innerHTML=info.join("<br>");
   // タイプ別
   let h=`<thead><tr><th>タイプ</th><th>室数</th></tr></thead><tbody>`; // OUT＋連泊清掃
@@ -1042,19 +1091,22 @@ function renderFull(){
   const first=new Date(y,m-1,1),nd=new Date(y,m,0).getDate();
   for(let i=0;i<first.getDay();i++)h+='<div class="ept"></div>';
   for(let d=1;d<=nd;d++){const s=ymd(new Date(y,m-1,d));
-    const n=(X2.fullc[s]||[]).length,o=outsOn(s);
+    const n=(X2.fullc[s]||[]).length,v=dayView(s);
     h+=`<button type="button" class="dy${s<td?" past":""}${s===td?" today":""}${s===selDay?" sel":""}" data-d="${s}"><b>${d}</b>`+
-      (o?`<span class="oc"><small>OUT</small>${o.n}</span>`:"")+(n?`<span class="fc">フル ${n}</span>`:"")+`</button>`;}
+      (v?`<span class="oc"><small>OUT</small>${v.n}</span>`:"")+(n?`<span class="fc">${X2.fullc[s].join(" ")}</span>`:"")+`</button>`;}
   document.getElementById("cal").innerHTML=h;
-  renderFday();
+  document.getElementById("fDate").value=selDay;
+  renderFday();renderFullPrint();
 }
+const fRO=d=>d<bizToday(); // 今日（夜勤の日）より前は見るだけ
 function renderFday(){
-  const d=selDay,fs=new Set(X2.fullc[d]||[]),st=staysOn(d),o=outsOn(d),oset=new Set(o?o.rooms:[]);
-  let h=`<div class="fhd"><h3>${mdw(d)}　連泊清掃 ${fs.size}室</h3>`+
-    (d===dateVal?`<span class="note">（メイク表の日付）</span>`:"")+`<button type="button" class="x" id="fClose">閉じる</button></div>`;
+  const d=selDay,ro=fRO(d),fs=new Set(X2.fullc[d]||[]),v=dayView(d),st=v?v.st:null,oset=new Set(v?v.o:[]);
+  let h=`<div class="fhd"><h3>${mdw(d)}　連泊清掃 ${fs.size}室</h3>`+(ro?`<span class="rob">閲覧のみ</span>`:"")+
+    (d===dateVal?`<span class="note">（連泊表の日付）</span>`:"")+`<button type="button" class="x" id="fClose">閉じる</button></div>`;
+  if(ro)h+=`<p class="note" style="margin-bottom:6px">過去の日付は変更できません。</p>`;
   if(!st)h+=`<p class="note" style="margin-bottom:6px">この日のTMSのデータがありません（連泊・OUTの表示なし）。</p>`;
   else h+=`<p class="note" style="margin-bottom:6px">「連泊 n/N」＝その日が何泊目/何泊。グレー＝連泊ではない部屋（OUT・空室など）。</p>`;
-  h+='<div class="floors fgrid">';
+  h+=`<div class="floors fgrid${ro?" ro":""}">`;
   for(const f of FLOOR_SCREEN){
     h+=`<section class="floor"><h2>${f}</h2><div class="grid">`;
     for(const e of OR[f]){
@@ -1065,8 +1117,8 @@ function renderFday(){
       else if(st&&st[no])lab="連泊 "+st[no];
       else if(oset.has(no)){lab="OUT";cls=" o";}
       else if(st)cls=" o";
-      if(on&&st&&st[no])lab="フル "+st[no];
-      h+=`<button type="button" class="room${on?" fs":cls}" data-no="${no}" style="--tc:${TYPES[t].c}"><span class="no">${no}</span><span class="ty">${TYPES[t].en}</span><span class="st">${lab}</span></button>`;}
+      if(on&&st&&st[no])lab="清掃 "+st[no];
+      h+=`<button type="button" class="room${on?" fs":cls}" data-no="${no}"${ro?' aria-disabled="true"':""} style="--tc:${TYPES[t].c}"><span class="no">${no}</span><span class="ty">${TYPES[t].en}</span><span class="st">${lab}</span></button>`;}
     h+="</div></section>";}
   h+="</div>";
   document.getElementById("fday").innerHTML=h;
@@ -1076,7 +1128,7 @@ function closeFov(){clearTimeout(fovT);if(fov.open)fov.close();}
 document.getElementById("cal").addEventListener("click",e=>{const b=e.target.closest(".dy");if(!b)return;selDay=b.dataset.d;renderFull();clearTimeout(fovT);if(!fov.open)fov.showModal();});
 fov.addEventListener("click",e=>{
   if(e.target===fov||e.target.id==="fClose"){closeFov();return;} // 外側（背景）・閉じる
-  const b=e.target.closest(".room");if(!b)return;
+  const b=e.target.closest(".room");if(!b||fRO(selDay))return; // 過去の日は見るだけ
   const no=b.dataset.no,on=!(X2.fullc[selDay]||[]).includes(no);
   fcSet(selDay,no,on);
   if(selDay===dateVal){save();render();}
@@ -1085,17 +1137,37 @@ fov.addEventListener("click",e=>{
 fov.addEventListener("close",()=>clearTimeout(fovT)); // Escで閉じたとき
 document.getElementById("calPrev").addEventListener("click",()=>{const [y,m]=calYM.split("-").map(Number);calYM=ymd(new Date(y,m-2,1)).slice(0,7);renderFull();});
 document.getElementById("calNext").addEventListener("click",()=>{const [y,m]=calYM.split("-").map(Number);calYM=ymd(new Date(y,m,1)).slice(0,7);renderFull();});
+document.getElementById("fDate").addEventListener("change",e=>{const v=e.target.value;if(!v)return;
+  selDay=v;calYM=v.slice(0,7);renderFull();clearTimeout(fovT);if(!fov.open)fov.showModal();});
+
+// ---- 連泊清掃の表をまとめて印刷（A4 1枚に6日）
+const fpF=document.getElementById("fpFrom"),fpT=document.getElementById("fpTo"),fpO=document.getElementById("fpOnly");
+fpF.value=bizToday();fpT.value=addD(bizToday(),6);
+function fullPrintDays(){let a=fpF.value,b=fpT.value;if(!a||!b)return [];if(a>b)[a,b]=[b,a];
+  const r=[];for(let d=a;d<=b&&r.length<366;d=addD(d,1))if(!fpO.checked||(X2.fullc[d]||[]).length)r.push(d);return r;}
+function fullBlock(d){const fs=new Set(X2.fullc[d]||[]),v=dayView(d),st=v?v.st:{};
+  let h=`<div class="pfd"><div class="pfh"><b>${mdw(d)}</b><span>連泊清掃 ${fs.size}室</span></div><div class="pfg">`;
+  for(const f of FLOOR_SCREEN){h+=`<div class="pff">${f}</div>`;
+    for(const e of OR[f]){if(!e){h+='<div class="pfc e"></div>';continue;}
+      const no=e[0],on=fs.has(no);
+      h+=`<div class="pfc${on?" on":""}${v&&!on&&!st[no]?" x":""}"><b>${no}</b><small>${on?"清掃":(st[no]||"")}</small></div>`;}}
+  return h+"</div></div>";}
+function renderFullPrint(){const ds=fullPrintDays(),info=document.getElementById("fpInfo");let h="";
+  for(let i=0;i<ds.length;i+=6)h+=`<div class="pfp">${ds.slice(i,i+6).map(fullBlock).join("")}</div>`;
+  document.getElementById("printFull").innerHTML=h;
+  info.innerHTML=ds.length?`${mdw(ds[0])}〜${mdw(ds[ds.length-1])}：${ds.length}日分（A4 ${Math.ceil(ds.length/6)}枚・1枚に6日）`:
+    `<span class="bad">この期間に${fpO.checked?"連泊清掃がある日が":"日付が"}ありません。</span>`;
+  return ds.length;}
+[fpF,fpT,fpO].forEach(el=>el.addEventListener("change",renderFullPrint));
+document.getElementById("btnPrintFull").addEventListener("click",()=>{if(renderFullPrint())doPrint("full");});
 
 // ---- ③ OUT数（1か月）
 function outRows(){return tmsRange().map(d=>{const o=outsOn(d);return {d,o,f:(X2.fullc[d]||[]).length};});}
 function renderOut(){
   const rows=outRows(),info=document.getElementById("outInfo"),tb=document.getElementById("outTable");
-  if(!rows.length){info.innerHTML='まだTMSのデータがありません。「TMS取込」を押してください。';tb.innerHTML="";return;}
-  const unk=new Set();rows.forEach(r=>r.o&&r.o.unk.forEach(u=>unk.add(u)));
-  const lnT=addD(lnDateVal||lnDefaultDate(),2);
-  info.innerHTML=`${mdw(rows[0].d)}〜${mdw(rows[rows.length-1].d)}の毎日のOUT室数（TMSの予約から。部屋未割当の予約もプランのタイプで数えます）。黄色＝リネン発注で使う日。`+
-    (unk.size?`<br><span class="bad">部屋タイプが分からないプラン：${esc([...unk].join("、"))}（「不明」に数えています）</span>`:"");
-  tb.innerHTML=outGrid(rows,lnT,false);
+  if(!rows.length){info.innerHTML='まだTMSのデータがありません。右上の↻で読み込んでください。';tb.innerHTML="";return;}
+  info.innerHTML="";
+  tb.innerHTML=outGrid(rows,"",false);
 }
 // 日付を左から右へ並べた表。行＝OUT計・タイプ別・不明・連泊清掃
 function outGrid(rows,hl,pr){
@@ -1119,10 +1191,16 @@ function renderOutPrint(){
 }
 
 document.querySelectorAll("nav.tabs .tb").forEach(b=>b.addEventListener("click",()=>showTab(b.dataset.tab)));
+for(const t of TABS){const p=document.getElementById("p-"+t);p.setAttribute("role","tabpanel");p.setAttribute("aria-labelledby","t-"+t);}
+document.querySelector("nav.tabs").addEventListener("keydown",e=>{ // ←→・Home・End でタブを切り替え
+  if(!e.target.classList.contains("tb"))return;
+  const i=TABS.indexOf(X2.tab),n=TABS.length;
+  const j={ArrowRight:(i+1)%n,ArrowLeft:(i+n-1)%n,Home:0,End:n-1}[e.key];if(j==null)return;
+  e.preventDefault();showTab(TABS[j]);document.getElementById("t-"+TABS[j]).focus();});
 document.getElementById("btnPrintOrder").addEventListener("click",()=>{
   if(!lnDateVal)lnDateVal=lnDefaultDate();
   lnPersist(lnDateVal,true);buildLinen();doPrint("order");}); // 印刷したときの発注数を保存（次の日の「届く数」になる）
-document.getElementById("btnPrintOut").addEventListener("click",()=>{if(!outRows().length){alert("先に「TMS取込」を押してください。");return;}renderOutPrint();doPrint("out");});
+document.getElementById("btnPrintOut").addEventListener("click",()=>{if(!outRows().length){alert("先に右上の↻で読み込んでください。");return;}renderOutPrint();doPrint("out");});
 
 // =====================================================================
 // クラウド保存（Google スプレッドシート＋Apps Script。cloud/apps-script.gs）
@@ -1140,26 +1218,27 @@ var CM={pass:CLOUD_PASS,at:{},snap:{}}, cloudReady=false, cloudApplying=false, c
 function cloudLoadMeta(){try{const s=JSON.parse(localStorage.getItem(KEY3)||"null");if(s)CM=Object.assign(CM,s);}catch(e){}CM.at=CM.at||{};CM.snap=CM.snap||{};CM.pass=CLOUD_PASS;}
 function cloudSaveMeta(){try{localStorage.setItem(KEY3,JSON.stringify(CM));}catch(e){}}
 function makeData(){return {state,date:dateVal,assign,sheets,auto};}
-function extData(){return {tms:X2.tms,fullc:X2.fullc,lin:X2.lin};}
+const EXT_SECS=["fullc","lin","hist"]; // 日付ごとに重ねる部分
+function extData(){return {tms:X2.tms,fullc:X2.fullc,lin:X2.lin,hist:X2.hist};}
 function cloudData(k){return k==="make"?makeData():extData();}
 function snapOf(k,d){
   if(k==="make")return JSON.stringify(d||null);
-  d=d||{};const s={tms:d.tms?d.tms.at:0,fullc:{},lin:{}};
-  for(const sec of ["fullc","lin"])for(const x in (d[sec]||{}))s[sec][x]=JSON.stringify(d[sec][x]);
+  d=d||{};const s={tms:d.tms?d.tms.at:0};
+  for(const sec of EXT_SECS){s[sec]={};for(const x in (d[sec]||{}))s[sec][x]=JSON.stringify(d[sec][x]);}
   return s;}
 function cloudDirty(k){
   const now=snapOf(k,cloudData(k)),old=CM.snap[k];
   if(k==="make")return now!==old;
   if(!old)return true;
   if(now.tms!==old.tms)return true;
-  for(const sec of ["fullc","lin"]){const ks=new Set(Object.keys(now[sec]).concat(Object.keys(old[sec]||{})));
+  for(const sec of EXT_SECS){const ks=new Set(Object.keys(now[sec]).concat(Object.keys(old[sec]||{})));
     for(const x of ks)if(now[sec][x]!==(old[sec]||{})[x])return true;}
   return false;}
 // cloud にこの端末の変更を重ねる。snap=前回そろえたときの形（なし＝初めて：cloudにない日だけ足す）
 function mergeExt(cloud,local,snap){
-  const m=JSON.parse(JSON.stringify(cloud||{}));m.fullc=m.fullc||{};m.lin=m.lin||{};m.tms=m.tms||null;
+  const m=JSON.parse(JSON.stringify(cloud||{}));for(const sec of EXT_SECS)m[sec]=m[sec]||{};m.tms=m.tms||null;
   if(local.tms&&(!m.tms||local.tms.at>m.tms.at))m.tms=local.tms;
-  for(const sec of ["fullc","lin"]){const L=local[sec]||{},S=snap?(snap[sec]||{}):null;
+  for(const sec of EXT_SECS){const L=local[sec]||{},S=snap?(snap[sec]||{}):null;
     const ks=new Set(Object.keys(L).concat(S?Object.keys(S):[]));
     for(const x of ks){const lj=L[x]===undefined?undefined:JSON.stringify(L[x]);
       if(S){if(lj!==S[x]){if(lj===undefined)delete m[sec][x];else m[sec][x]=JSON.parse(lj);}}
@@ -1170,7 +1249,7 @@ function cloudAdopt(k,d){
   try{
     if(k==="make"){d=d||{};state=d.state||{};if(d.date)dateVal=d.date;assign=d.assign||{};sheets=d.sheets||[];auto=d.auto||{};
       dEl.value=dateVal;save();buildStaffs();}
-    else{d=d||{};X2.tms=d.tms||null;X2.fullc=d.fullc||{};X2.lin=d.lin||{};saveX();}
+    else{d=d||{};X2.tms=d.tms||null;X2.fullc=d.fullc||{};X2.lin=d.lin||{};X2.hist=d.hist||{};saveX();}
     render();renderTabs();
   }finally{cloudApplying=false;}}
 async function cloudApi(b){
@@ -1248,13 +1327,12 @@ buildScreen();buildStaffs();
 function showTms(t,applied){
   const el=document.getElementById("tmsr");if(!t){el.hidden=true;return;}
   const md=md2;
-  let h=`<button class="x" type="button">閉じる</button><b>TMSから読み込みました</b>`;
-  if(applied)h+=`<br>メイク表（${md(t.d)}の夜 → ${md(addD(t.d,1))}分）：OUT清掃 <b>${t.o.length}</b>室・連泊 <b>${t.s.length}</b>室・空室 <b>${t.v}</b>室`+
-    (t.u.length?`<br><span style="color:var(--danger)">部屋未割当の予約 ${t.u.length}件（部屋が決まったら手で直してください）：</span>${esc(t.u.map(x=>{const q=String(x).split(" ");const n=(q[1]||"").split("/");return q[0]+" "+(q[1]||"")+(n[0]===n[1]?`（${md(addD(t.d,1))}OUT）`:"");}).join("、"))}`:"")+
-    (t.cf&&t.cf.length?`<br><span style="color:var(--danger)">連泊清掃の記録があるのにOUT・空室になった部屋：${esc(t.cf.join("、"))}（連泊清掃タブで確認してください）</span>`:"");
-  else h+="<br>メイク表は変えていません。";
+  // ふだんは「読み込みました」だけ。直す必要があるときだけ赤で1行足す
+  let h=`<button class="x" type="button">閉じる</button><b>読み込みました</b>`;
+  if(applied){if(t.cf&&t.cf.length)h+=`<br><span style="color:var(--danger)">連泊清掃の記録があるのにOUT・空室になった部屋：${esc(t.cf.join("、"))}（連泊清掃カレンダーで確認してください）</span>`;}
+  else h+="<br>連泊表は変えていません。";
   if(t.days){const miss=t.days.filter(x=>!x.ok).map(x=>md(x.d));
-    h+=`<br>リネン発注・連泊清掃・OUT数：${md(t.days[0].d)}から${t.days.length}日分`+(miss.length?`<br><span style="color:var(--danger)">読めなかった日：${miss.join("、")}（もう一度「TMS取込」を押してください）</span>`:"");}
+    if(miss.length)h+=`<br><span style="color:var(--danger)">読めなかった日：${miss.join("、")}（もう一度読み込んでください）</span>`;}
   else h+=`<br><span style="color:var(--danger)">拡張機能が古いので、1か月分（リネン発注・OUT数）は読めませんでした。拡張機能を新しくして、chrome://extensions で「再読み込み」してください。</span>`;
   el.innerHTML=h;el.hidden=false;el.querySelector(".x").addEventListener("click",()=>{el.hidden=true;});
 }
@@ -1279,7 +1357,7 @@ render();showTab(X2.tab);importTms();cloudStart();
 // 拡張機能（tms-ext）があれば、ボタン1つでTMSから読む
 const bt=document.getElementById("btnTms");
 let tmsBusy=false,tmsTimer=null;
-const TMS_FAIL="TMSから読み込めませんでした。\nChromeでTMSにログインしてから、もう一度「TMS取込」を押してください。";
+const TMS_FAIL="TMSから読み込めませんでした。\nChromeでTMSにログインしてから、もう一度右上の↻を押してください。";
 const TMS_DAYS=32; // 今日〜31日後の一覧 → 明日〜32日後のOUT
 // 「TMS取込」ボタンは更新アイコン。読込中は回って「n/32」を出す
 const TMS_ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/></svg>';
