@@ -158,13 +158,28 @@ table.lt td.z{color:#c3c8c5}
 .cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
 .cal .dw{font-size:12px;color:var(--sub);text-align:center;font-weight:700}
 .cal .dw.su{color:var(--danger)} .cal .dw.sa{color:#2f6fb0}
-.cal .dy{appearance:none;font:inherit;text-align:left;min-height:64px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);padding:4px 6px;cursor:pointer;display:flex;flex-direction:column;gap:2px;min-width:0}
+.cal .dy{position:relative;appearance:none;font:inherit;text-align:left;min-height:64px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);padding:4px 6px;cursor:pointer;display:flex;flex-direction:column;gap:2px;min-width:0}
 .cal .dy.past{opacity:.45}
 .cal .dy.today{border-color:var(--ink);border-width:2px}
 .cal .dy.sel{outline:3px solid var(--accent);outline-offset:1px}
 .cal .dy b{font-size:15px}
 .cal .dy .fc{font-size:12px;font-weight:700;color:var(--sc-ink);background:var(--sc);border-radius:4px;padding:0 4px;align-self:flex-start}
-.cal .dy .oc{font-size:11px;color:var(--sub)}
+.cal .dy .oc{position:absolute;top:4px;right:5px;font-size:12px;font-weight:700;color:var(--ink);background:#e4e7e5;border-radius:4px;padding:0 4px;line-height:1.5}
+.cal .dy .oc small{font-size:9px;font-weight:600;color:var(--sub);margin-right:2px}
+.fov{position:fixed;inset:0;z-index:50;background:rgba(20,25,23,.35);display:flex;align-items:flex-start;justify-content:center;padding:70px 12px 12px;overflow:auto}
+.fbox{background:var(--paper);border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,.25);padding:10px 12px;width:min(520px,100%)}
+.fbox .fhd{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.fbox .fhd h3{margin:0;font-size:16px;color:var(--ink)}
+.fbox .fhd .x{margin-left:auto;font:inherit;font-size:14px;border:1px solid var(--line);background:var(--paper);border-radius:8px;padding:4px 12px;cursor:pointer;color:var(--ink)}
+.fbox .floors{padding:4px;gap:6px}
+.fbox .floor{grid-template-columns:30px minmax(0,1fr);gap:4px}
+.fbox .floor+.floor{padding-top:6px}
+.fbox .floor h2{font-size:12px}
+.fbox .grid{grid-auto-rows:38px;gap:3px}
+.fbox .room{padding:1px 2px 1px 5px;border-left-width:4px;border-radius:6px}
+.fbox .room .no{font-size:14px}
+.fbox .room .ty{display:none}
+.fbox .room .st{font-size:9.5px;line-height:1.15}
 .cal .ept{min-height:0}
 .calhd{display:flex;align-items:center;gap:10px}
 .calhd b{font-size:17px;min-width:7em;text-align:center}
@@ -175,9 +190,15 @@ table.lt td.z{color:#c3c8c5}
 .fgrid .room.o{background:#eceeed}
 .fgrid .room.o .no,.fgrid .room.o .ty{color:#9aa19e}
 /* OUT数 */
-table.om td.we0{color:var(--danger)} table.om td.we6{color:#2f6fb0}
-table.om tr.miss td{color:#c3c8c5}
-table.om tr.hl td{background:#fff8e6}
+table.om{width:auto;font-size:14px}
+table.om th,table.om td{text-align:center;padding:5px 4px;min-width:42px;border-left:1px solid #f0f1f0}
+table.om tbody th{text-align:left;position:sticky;left:0;background:var(--paper);z-index:1;font-weight:700;padding-right:10px;color:var(--ink);font-size:13px}
+table.om thead th:first-child{position:sticky;left:0;background:var(--paper);z-index:1}
+table.om thead th{line-height:1.25}
+table.om .we0{color:var(--danger)} table.om .we6{color:#2f6fb0}
+table.om td.miss{color:#c3c8c5}
+table.om .hl{background:#fff8e6}
+table.om tr.otot td{font-size:16px;border-bottom:2px solid var(--line)}
 
 /* ---------- 印刷用（白黒プリンター前提） ---------- */
 .print{display:none}
@@ -302,12 +323,13 @@ table.om tr.hl td{background:#fff8e6}
   .pout .hd{display:flex;align-items:baseline;gap:5mm}
   .pout .hd .t{font-size:15pt;font-weight:700}
   .pout .hd .d{font-size:9pt;margin-left:auto}
-  .pout table{border-collapse:collapse;width:100%;font-size:10pt;font-variant-numeric:tabular-nums}
-  .pout th,.pout td{border:.3mm solid #000;padding:.7mm 2mm;text-align:center;white-space:nowrap}
-  .pout th{font-weight:600;font-size:9pt}
-  .pout td.b{font-weight:800}
-  .pout td:first-child{text-align:left}
-  .pout tr.we td{background:#eee;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .pout{gap:5mm}
+  .pout table{border-collapse:collapse;width:100%;table-layout:fixed;font-size:10pt;font-variant-numeric:tabular-nums}
+  .pout th,.pout td{border:.3mm solid #000;padding:1.2mm .5mm;text-align:center;white-space:nowrap}
+  .pout thead th{font-weight:600;font-size:8.5pt;line-height:1.2}
+  .pout th:first-child{width:17mm;text-align:left;padding-left:1.5mm;font-size:8.5pt}
+  .pout tr.otot td{font-weight:800;font-size:11pt}
+  .pout .we{background:#e6e6e6;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
 </style>
 </head>
@@ -373,9 +395,10 @@ table.om tr.hl td{background:#fff8e6}
 <!-- ① リネン発注 -->
 <div class="panel" id="p-linen" hidden><div class="pnl">
   <div class="row"><h2>リネン発注</h2>
-    <label>発注日（夜勤の日）<input type="date" id="lnDate"></label>
+    <label>発注日（発注書を作る夜勤の日）<input type="date" id="lnDate"></label>
     <label>納品日 <input type="date" id="lnDeliv"></label>
     <button class="act primary" type="button" id="btnPrintOrder">発注書を印刷</button></div>
+  <p class="note" id="lnFlow" style="font-size:14px;color:var(--ink)"></p>
   <p class="note" id="lnInfo"></p>
   <div class="two">
     <div class="box">
@@ -386,7 +409,7 @@ table.om tr.hl td{background:#fff8e6}
     <div class="box">
       <h3>発注数</h3>
       <div style="overflow-x:auto"><table class="lt" id="lnTable"></table></div>
-      <p class="note" style="margin-top:8px">黄色の欄を入力。発注数＝定数 −（カウント＋明日来る − 明日必要）を発注単位に切り上げ（マイナスは0）。「明日来る」は前の日の発注数が自動で入ります（直すこともできます）。カウントは第2倉庫のみ。</p>
+      <p class="note" style="margin-top:8px" id="lnNote"></p>
     </div>
   </div>
 </div></div>
@@ -395,11 +418,9 @@ table.om tr.hl td{background:#fff8e6}
 <div class="panel" id="p-full" hidden><div class="pnl">
   <div class="row"><h2>フル清掃（連泊清掃）</h2>
     <div class="calhd"><button type="button" id="calPrev" aria-label="前の月">‹</button><b id="calTitle"></b><button type="button" id="calNext" aria-label="次の月">›</button></div></div>
-  <p class="note">日をタップすると部屋表が出ます。部屋をタップ＝その日その部屋はフル清掃（もう一度タップで取消）。メイク表の「連泊清掃」と同じものです（メイク表の日付の分は自動でつながります）。</p>
-  <div class="two">
-    <div class="box"><div class="cal" id="cal"></div></div>
-    <div class="box" id="fday"></div>
-  </div>
+  <p class="note">日をタップすると部屋表が出ます。部屋をタップ＝その日その部屋はフル清掃（もう一度タップで取消）。タップすると部屋表は自動で閉じます。右上の数字＝その日のOUT数（TMS）。メイク表の「連泊清掃」と同じものです（メイク表の日付の分は自動でつながります）。</p>
+  <div class="box"><div class="cal" id="cal"></div></div>
+  <div class="fov" id="fov" hidden><div class="fbox" id="fday"></div></div>
 </div></div>
 
 <!-- ③ 1か月のOUT数 -->
@@ -796,7 +817,8 @@ const ymd=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+Stri
 const addD=(s,n)=>{const d=new Date(s+"T00:00:00");d.setDate(d.getDate()+n);return ymd(d);};
 const WD="日月火水木金土";
 const wdOf=s=>new Date(s+"T00:00:00").getDay();
-const mdw=s=>{const a=s.split("-");return `${+a[1]}/${+a[2]}（${WD[wdOf(s)]}）`;};
+const md2=s=>{const a=s.split("-");return `${+a[1]}月${+a[2]}日`;};
+const mdw=s=>md2(s)+`（${WD[wdOf(s)]}）`;
 function loadX(){let had=false;try{const s=JSON.parse(localStorage.getItem(KEY2)||"null");if(s){X2=Object.assign(X2,s);had=true;}}catch(e){}return had;}
 function saveX(){try{localStorage.setItem(KEY2,JSON.stringify(X2));}catch(e){}}
 function fcSet(d,no,on){const a=new Set(X2.fullc[d]||[]);if(on)a.add(no);else a.delete(no);
@@ -858,7 +880,9 @@ function renderTabs(){
 
 // ---- ① リネン発注
 let lnDateVal="";
-function lnDefaultDate(){ // TMS取込から18時間以内ならその日（夜勤の日）、それ以外は今日
+// 流れ：X日の夜勤が発注書を作る → X+1日にドライバーへ渡す → X+2日に納品。
+// だから X+2日のOUT＋フル清掃で計算し、「X+1日に届く数」＝X−1日の夜に作った発注数。
+function lnDefaultDate(){ // TMS取込から18時間以内ならその日（夜勤の日）、それ以外はこの端末の日付
   if(X2.tms&&Date.now()-X2.tms.at<18*3600e3)return X2.tms.base;return today();}
 const LN_ITEMS=[ // 発注書の並び。c=定数、u=発注単位、fix=固定の発注数
   {k:"SS",nm:"シーツ　S",u:10,c:70},{k:"SW",nm:"シーツ　W",u:10,c:30},
@@ -895,7 +919,7 @@ function lnCalc(X){
     }
     r.ov=L.ov&&L.ov[it.k]!=null;r.ord=r.ov?L.ov[it.k]:r.calc;
     return r;});
-  return {X,T,o,out,full,auto,typ,rows,wipe,unk:o?o.unk:[],deliv:L.deliv||addD(X,1)};
+  return {X,T,o,out,full,auto,typ,rows,wipe,unk:o?o.unk:[],deliv:L.deliv||addD(X,2)};
 }
 const fmtN=v=>v==null?"":(Math.round(v*10)/10).toString();
 function buildLinen(){
@@ -904,6 +928,10 @@ function buildLinen(){
   document.getElementById("lnDate").value=X;
   document.getElementById("lnDeliv").value=c.deliv;
   document.getElementById("lnTgt").textContent=mdw(c.T)+"のOUT＋フル清掃";
+  const X1=addD(X,1),Xm=addD(X,-1);
+  document.getElementById("lnFlow").innerHTML=`<b>${mdw(X)}の夜</b>に発注書を作る → <b>${mdw(X1)}</b>にドライバーへ渡す → <b>${mdw(c.T)}</b>に納品。<br>`+
+    `必要数は<b>${mdw(c.T)}</b>のOUT＋フル清掃で計算。「${md2(X1)}に届く」＝${mdw(Xm)}の夜に作った発注数。`;
+  document.getElementById("lnNote").textContent=`黄色の欄を入力。発注数＝定数 −（カウント＋${md2(X1)}に届く − ${md2(c.T)}に必要）を発注単位に切り上げ（マイナスは0）。「${md2(X1)}に届く」には${mdw(Xm)}の発注数が自動で入ります（直すこともできます）。カウントは第2倉庫のみ。`;
   const info=[];
   if(!c.o)info.push(`<span class="bad">${mdw(c.T)}のOUTのデータがありません。「TMS取込」を押してください（または左の表に手で入れてください）。</span>`);
   if(c.unk.length)info.push(`<span class="bad">部屋タイプが分からないOUTが${c.unk.length}室あります（${[...new Set(c.unk)].join("、")}）。左の表に手で足してください。</span>`);
@@ -914,7 +942,7 @@ function buildLinen(){
   h+=`<tr class="sum"><td>合計</td><td>${LN_ORDER.reduce((a,t)=>a+c.out[t],0)}</td><td>${LN_ORDER.reduce((a,t)=>a+c.full[t],0)}</td><td id="lnTypSum"></td></tr></tbody>`;
   document.getElementById("lnTypes").innerHTML=h;
   // 発注数
-  h=`<thead><tr><th>種類</th><th>定数</th><th>明日必要</th><th>明日来る</th><th>カウント</th><th>計算</th><th>発注数</th><th>単位</th></tr></thead><tbody>`;
+  h=`<thead><tr><th>種類</th><th>定数</th><th>${md2(c.T)}に必要</th><th>${md2(X1)}に届く</th><th>カウント</th><th>計算</th><th>発注数</th><th>単位</th></tr></thead><tbody>`;
   for(const r of c.rows){const k=r.it.k;
     h+=`<tr><td>${r.it.nm}</td><td>${r.it.c||"―"}</td><td data-need="${k}"></td>`;
     if(r.it.fix!=null)h+=`<td></td><td></td><td>${k==="WP"?`<span class="seg"><button type="button" data-wipe="40">40</button><button type="button" data-wipe="20">20</button></span>`:"固定"}</td>`;
@@ -941,7 +969,7 @@ function updLinen(all){ // 入力中の欄はさわらずに数字だけ入れ�
     }
     setIn("ov",k,r.ord,r.ov?"ov":"");}
   document.querySelectorAll("#p-linen [data-wipe]").forEach(b=>b.classList.toggle("on",+b.dataset.wipe===c.wipe));
-  // 発注履歴（翌日の「明日来る」に使う）
+  // 発注履歴（次の夜勤の「X+1日に届く」に使う）
   const rec=linRec(X);rec.ord={};for(const r of c.rows)if(r.ord!=null)rec.ord[r.it.k]=r.ord;saveX();
   renderOrderPrint();
 }
@@ -992,17 +1020,17 @@ function renderFull(){
   for(let d=1;d<=nd;d++){const s=ymd(new Date(y,m-1,d));
     const n=(X2.fullc[s]||[]).length,o=outsOn(s);
     h+=`<button type="button" class="dy${s<td?" past":""}${s===td?" today":""}${s===selDay?" sel":""}" data-d="${s}"><b>${d}</b>`+
-      (n?`<span class="fc">フル ${n}</span>`:"")+(o?`<span class="oc">OUT ${o.n}</span>`:"")+`</button>`;}
+      (o?`<span class="oc"><small>OUT</small>${o.n}</span>`:"")+(n?`<span class="fc">フル ${n}</span>`:"")+`</button>`;}
   document.getElementById("cal").innerHTML=h;
   renderFday();
 }
 function renderFday(){
   const d=selDay,fs=new Set(X2.fullc[d]||[]),st=staysOn(d),o=outsOn(d),oset=new Set(o?o.rooms:[]);
-  let h=`<div class="row" style="margin-bottom:8px"><h3 style="margin:0;font-size:17px;color:var(--ink)">${mdw(d)}　フル清掃 <span id="fdN">${fs.size}</span>室</h3>`+
-    (d===dateVal?`<span class="note">（メイク表の日付）</span>`:"")+`</div>`;
-  if(!st)h+=`<p class="note" style="margin-bottom:8px">この日のTMSのデータがありません（連泊・OUTの表示なし）。</p>`;
-  else h+=`<p class="note" style="margin-bottom:8px">「連泊 n/N」＝その日が何泊目/何泊。グレー＝連泊ではない部屋（OUT・空室など）。</p>`;
-  h+='<div class="floors fgrid" style="padding:6px">';
+  let h=`<div class="fhd"><h3>${mdw(d)}　フル清掃 ${fs.size}室</h3>`+
+    (d===dateVal?`<span class="note">（メイク表の日付）</span>`:"")+`<button type="button" class="x" id="fClose">閉じる</button></div>`;
+  if(!st)h+=`<p class="note" style="margin-bottom:6px">この日のTMSのデータがありません（連泊・OUTの表示なし）。</p>`;
+  else h+=`<p class="note" style="margin-bottom:6px">「連泊 n/N」＝その日が何泊目/何泊。グレー＝連泊ではない部屋（OUT・空室など）。</p>`;
+  h+='<div class="floors fgrid">';
   for(const f of FLOOR_SCREEN){
     h+=`<section class="floor"><h2>${f}</h2><div class="grid">`;
     for(const e of OR[f]){
@@ -1019,12 +1047,18 @@ function renderFday(){
   h+="</div>";
   document.getElementById("fday").innerHTML=h;
 }
-document.getElementById("cal").addEventListener("click",e=>{const b=e.target.closest(".dy");if(!b)return;selDay=b.dataset.d;renderFull();});
-document.getElementById("fday").addEventListener("click",e=>{const b=e.target.closest(".room");if(!b)return;
+const fov=document.getElementById("fov");let fovT=null;
+function closeFov(){clearTimeout(fovT);fov.hidden=true;}
+document.getElementById("cal").addEventListener("click",e=>{const b=e.target.closest(".dy");if(!b)return;selDay=b.dataset.d;renderFull();clearTimeout(fovT);fov.hidden=false;});
+fov.addEventListener("click",e=>{
+  if(e.target===fov||e.target.id==="fClose"){closeFov();return;} // 外側・閉じる
+  const b=e.target.closest(".room");if(!b)return;
   const no=b.dataset.no,on=!(X2.fullc[selDay]||[]).includes(no);
   fcSet(selDay,no,on);
   if(selDay===dateVal){save();render();}
-  renderFull();});
+  renderFull();
+  fovT=setTimeout(closeFov,450);}); // タップしたら少し見せてから自動で閉じる
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!fov.hidden)closeFov();});
 document.getElementById("calPrev").addEventListener("click",()=>{const [y,m]=calYM.split("-").map(Number);calYM=ymd(new Date(y,m-2,1)).slice(0,7);renderFull();});
 document.getElementById("calNext").addEventListener("click",()=>{const [y,m]=calYM.split("-").map(Number);calYM=ymd(new Date(y,m,1)).slice(0,7);renderFull();});
 
@@ -1037,23 +1071,27 @@ function renderOut(){
   const lnT=addD(lnDateVal||lnDefaultDate(),2);
   info.innerHTML=`${mdw(rows[0].d)}〜${mdw(rows[rows.length-1].d)}の毎日のOUT室数（TMSの予約から。部屋未割当の予約もプランのタイプで数えます）。黄色＝リネン発注で使う日。`+
     (unk.size?`<br><span class="bad">部屋タイプが分からないプラン：${[...unk].join("、")}（「不明」に数えています）</span>`:"");
-  let h=`<thead><tr><th>日付</th><th>OUT計</th>${LN_ORDER.map(t=>`<th>${TNAME[t]}</th>`).join("")}<th>不明</th><th>フル清掃</th></tr></thead><tbody>`;
-  for(const r of rows){const w=wdOf(r.d);
-    if(!r.o){h+=`<tr class="miss"><td class="we${w}">${mdw(r.d)}</td><td colspan="${LN_ORDER.length+2}" style="text-align:center">読めませんでした</td><td>${r.f||""}</td></tr>`;continue;}
-    const z=v=>`<td${v?"":' class="z"'}>${v}</td>`;
-    h+=`<tr${r.d===lnT?' class="hl"':""}><td class="we${w}">${mdw(r.d)}</td><td><b>${r.o.n}</b></td>${LN_ORDER.map(t=>z(r.o.by[t])).join("")}${z(r.o.unk.length)}${z(r.f)}</tr>`;}
-  tb.innerHTML=h+"</tbody>";
+  tb.innerHTML=outGrid(rows,lnT,false);
+}
+// 日付を左から右へ並べた表。行＝OUT計・タイプ別・不明・フル清掃
+function outGrid(rows,hl,pr){
+  const lines=[["OUT計",r=>r.o.n,1]].concat(LN_ORDER.map(t=>[TNAME[t],r=>r.o.by[t]]),[["不明",r=>r.o.unk.length],["フル清掃",r=>r.f,0,1]]);
+  const cls=r=>{const w=wdOf(r.d);return (w===0?"we0":w===6?"we6":"")+(r.d===hl?" hl":"")+(!r.o?" miss":"")+(pr&&(w===0||w===6)?" we":"");};
+  let h=`<thead><tr><th>${pr?"":"日付"}</th>${rows.map(r=>{const a=r.d.split("-");return `<th class="${cls(r)}">${+a[1]}/${+a[2]}<br>${WD[wdOf(r.d)]}</th>`;}).join("")}</tr></thead><tbody>`;
+  for(const [nm,f,bold,always] of lines){
+    h+=`<tr${bold?' class="otot"':""}><th>${nm}</th>`+rows.map(r=>{
+      if(!r.o&&!always)return `<td class="${cls(r)}">${pr?"―":"―"}</td>`;
+      const v=f(r);return `<td class="${cls(r)}${v?"":" z"}">${v?(bold?`<b>${v}</b>`:v):(pr?"":0)}</td>`;}).join("")+"</tr>";}
+  return h+"</tbody>";
 }
 function renderOutPrint(){
   const rows=outRows(),el=document.getElementById("printOut");
   if(!rows.length){el.innerHTML="";return;}
   const at=new Date(X2.tms.at);
   let h=`<div class="pout"><div class="hd"><span class="t">OUT数（1か月）</span><span>${mdw(rows[0].d)}〜${mdw(rows[rows.length-1].d)}</span><span class="d">TMS取込 ${at.getMonth()+1}/${at.getDate()} ${String(at.getHours()).padStart(2,"0")}:${String(at.getMinutes()).padStart(2,"0")}</span></div>
-    <table><thead><tr><th>日付</th><th>OUT計</th>${LN_ORDER.map(t=>`<th>${TNAME[t]}</th>`).join("")}<th>不明</th><th>フル清掃</th></tr></thead><tbody>`;
-  for(const r of rows){const w=wdOf(r.d),we=w===0||w===6?' class="we"':"";
-    if(!r.o){h+=`<tr${we}><td>${mdw(r.d)}</td><td colspan="${LN_ORDER.length+2}">―</td><td>${r.f||""}</td></tr>`;continue;}
-    h+=`<tr${we}><td>${mdw(r.d)}</td><td class="b">${r.o.n}</td>${LN_ORDER.map(t=>`<td>${r.o.by[t]||""}</td>`).join("")}<td>${r.o.unk.length||""}</td><td>${r.f||""}</td></tr>`;}
-  el.innerHTML=h+"</tbody></table></div>";
+`;
+  for(let i=0;i<rows.length;i+=16)h+=`<table>${outGrid(rows.slice(i,i+16),"",true)}</table>`; // A4縦に16日ずつ
+  el.innerHTML=h+"</div>";
 }
 
 document.querySelectorAll("nav.tabs .tb").forEach(b=>b.addEventListener("click",()=>showTab(b.dataset.tab)));
@@ -1074,10 +1112,10 @@ buildScreen();buildStaffs();
 // ---- TMS取込（ブックマークから #tms=... で渡される）
 function showTms(t,applied){
   const el=document.getElementById("tmsr");if(!t){el.hidden=true;return;}
-  const md=x=>{const a=x.split("-");return (+a[1])+"/"+(+a[2]);};
+  const md=md2;
   let h=`<button class="x" type="button">閉じる</button><b>TMSから読み込みました</b>`;
-  if(applied)h+=`<br>メイク表（${md(t.d)}の夜 → 翌日分）：OUT清掃 <b>${t.o.length}</b>室・連泊 <b>${t.s.length}</b>室・空室 <b>${t.v}</b>室`+
-    (t.u.length?`<br><span style="color:var(--danger)">部屋未割当の予約 ${t.u.length}件（部屋が決まったら手で直してください）：</span>${t.u.map(x=>{const q=x.split(" ");const n=(q[1]||"").split("/");return q[0]+" "+q[1]+(n[0]===n[1]?"（明日OUT）":"");}).join("、")}`:"")+
+  if(applied)h+=`<br>メイク表（${md(t.d)}の夜 → ${md(addD(t.d,1))}分）：OUT清掃 <b>${t.o.length}</b>室・連泊 <b>${t.s.length}</b>室・空室 <b>${t.v}</b>室`+
+    (t.u.length?`<br><span style="color:var(--danger)">部屋未割当の予約 ${t.u.length}件（部屋が決まったら手で直してください）：</span>${t.u.map(x=>{const q=x.split(" ");const n=(q[1]||"").split("/");return q[0]+" "+q[1]+(n[0]===n[1]?`（${md(addD(t.d,1))}OUT）`:"");}).join("、")}`:"")+
     (t.cf&&t.cf.length?`<br><span style="color:var(--danger)">フル清掃の記録があるのにOUT・空室になった部屋：${t.cf.join("、")}（フル清掃タブで確認してください）</span>`:"");
   else h+="<br>メイク表は変えていません。";
   if(t.days){const miss=t.days.filter(x=>!x.ok).map(x=>md(x.d));
