@@ -45,10 +45,6 @@ header.top h1{font-size:22px;margin:0;letter-spacing:.05em}
 .room .bd{position:absolute;top:3px;right:3px;min-width:18px;height:18px;border-radius:9px;color:#fff;font-size:12px;font-weight:700;line-height:18px;text-align:center;padding:0 4px}
 .tmsr{border:1px solid #c9b27a;background:#fff8e6;border-radius:8px;padding:8px 10px;font-size:13px;line-height:1.5}
 .tmsr b{font-size:14px} .tmsr .x{float:right;font:inherit;font-size:12px;border:1px solid var(--line);background:var(--paper);border-radius:6px;padding:2px 8px;cursor:pointer}
-.tmsset{font-size:13px;color:var(--sub)} .tmsset summary{cursor:pointer;color:var(--ink)} .tmsset ol{padding-left:18px;margin:6px 0} .tmsset ul{padding-left:16px}
-.tmsset .bml{display:inline-block;padding:6px 14px;border-radius:16px;background:var(--accent);color:#fff;font-weight:700;text-decoration:none;margin-right:8px}
-.tmsset button{font:inherit;font-size:13px;padding:5px 12px;border-radius:16px;border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
-.tmsset .sub{font-size:12px}
 .staffwrap{grid-column:1;min-width:0;display:flex;flex-direction:column;gap:6px}
 .staffhead{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .staffhead h3{margin:0;font-size:15px}
@@ -122,6 +118,66 @@ table.ln tr.sum td{font-weight:800;border-top:2px solid var(--line)}
 table.ln td.z{color:#c3c8c5}
 .hint{font-size:12px;color:var(--sub);line-height:1.6;margin:0}
 .warn{font-size:13px;line-height:1.6;margin:0;padding:10px 12px;border-radius:8px;background:#fdecea;color:#8a2a1f;border:1px solid #f1b5ab}
+
+/* ---------- タブ ---------- */
+nav.tabs{max-width:1280px;margin:0 auto 12px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+nav.tabs .tb{font:inherit;font-size:15px;font-weight:700;padding:9px 16px;border-radius:20px;border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
+nav.tabs .tb[aria-selected="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+nav.tabs .tmsw{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+nav.tabs .tmsat{font-size:12px;color:var(--sub)}
+nav.tabs #btnTms{font:inherit;font-size:15px;font-weight:700;padding:9px 18px;border-radius:20px;border:1px solid var(--accent);background:var(--paper);color:var(--accent);cursor:pointer}
+nav.tabs #btnTms:disabled{opacity:.6;cursor:default}
+.tmsbar{max-width:1280px;margin:0 auto 12px}
+.panel{max-width:1280px;margin:0 auto}
+.pnl{display:flex;flex-direction:column;gap:12px}
+.pnl h2{margin:0;font-size:20px;letter-spacing:.04em}
+.pnl .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pnl .row label{display:flex;align-items:center;gap:6px}
+.pnl input[type=date]{font:inherit;font-size:16px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--paper);color:var(--ink)}
+.pnl .act{font:inherit;font-size:15px;padding:9px 16px;border-radius:8px;border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
+.pnl .act.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:12px;align-items:start}
+@media (max-width:900px){.two{grid-template-columns:minmax(0,1fr)}}
+table.lt{width:100%;border-collapse:collapse;font-size:15px;font-variant-numeric:tabular-nums}
+table.lt th,table.lt td{padding:5px 6px;border-bottom:1px solid #eceeed;text-align:right;white-space:nowrap}
+table.lt th:first-child,table.lt td:first-child{text-align:left}
+table.lt thead th{color:var(--sub);font-weight:600;font-size:12.5px}
+table.lt tr.sum td{font-weight:800;border-top:2px solid var(--line)}
+table.lt input{font:inherit;font-size:16px;width:4.6em;text-align:right;padding:4px 6px;border:1px solid #d9c98f;border-radius:6px;background:#fffbe6;color:var(--ink)}
+table.lt input.auto{color:var(--sub)}
+table.lt input.ov{border-color:var(--danger);background:#fdecea}
+table.lt td.ord{font-size:19px;font-weight:800}
+table.lt .rs{font:inherit;font-size:12px;border:1px solid var(--line);background:var(--paper);border-radius:6px;padding:2px 6px;margin-left:4px;cursor:pointer;color:var(--sub)}
+table.lt td.z{color:#c3c8c5}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{font:inherit;font-size:14px;padding:4px 12px;border:0;background:var(--paper);color:var(--ink);cursor:pointer}
+.seg button.on{background:var(--ink);color:#fff;font-weight:700}
+.note{font-size:13px;color:var(--sub);line-height:1.6;margin:0}
+.bad{color:var(--danger);font-weight:700}
+/* カレンダー */
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.cal .dw{font-size:12px;color:var(--sub);text-align:center;font-weight:700}
+.cal .dw.su{color:var(--danger)} .cal .dw.sa{color:#2f6fb0}
+.cal .dy{appearance:none;font:inherit;text-align:left;min-height:64px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);padding:4px 6px;cursor:pointer;display:flex;flex-direction:column;gap:2px;min-width:0}
+.cal .dy.past{opacity:.45}
+.cal .dy.today{border-color:var(--ink);border-width:2px}
+.cal .dy.sel{outline:3px solid var(--accent);outline-offset:1px}
+.cal .dy b{font-size:15px}
+.cal .dy .fc{font-size:12px;font-weight:700;color:var(--sc-ink);background:var(--sc);border-radius:4px;padding:0 4px;align-self:flex-start}
+.cal .dy .oc{font-size:11px;color:var(--sub)}
+.cal .ept{min-height:0}
+.calhd{display:flex;align-items:center;gap:10px}
+.calhd b{font-size:17px;min-width:7em;text-align:center}
+.calhd button{font:inherit;font-size:16px;width:38px;height:34px;border-radius:8px;border:1px solid var(--line);background:var(--paper);cursor:pointer;color:var(--ink)}
+.fgrid .room .st{height:auto}
+.fgrid .room.fs{background:var(--sc);border-color:#9cc0de}
+.fgrid .room.fs .st{color:var(--sc-ink)}
+.fgrid .room.o{background:#eceeed}
+.fgrid .room.o .no,.fgrid .room.o .ty{color:#9aa19e}
+/* OUT数 */
+table.om td.we0{color:var(--danger)} table.om td.we6{color:#2f6fb0}
+table.om tr.miss td{color:#c3c8c5}
+table.om tr.hl td{background:#fff8e6}
 
 /* ---------- 印刷用（白黒プリンター前提） ---------- */
 .print{display:none}
@@ -224,10 +280,48 @@ table.ln td.z{color:#c3c8c5}
   table.pbd th,table.pbd td{border:.3mm solid #000;padding:.6mm 2mm;text-align:center}
   table.pbd th{font-weight:600}
   table.pbd td:first-child,table.pbd th:first-child{text-align:left}
+  /* 印刷するもの：main/staff=メイク表、order=発注書、out=1か月のOUT数 */
+  nav.tabs,.tmsbar,.panel{display:none!important}
+  body[data-pm="order"] #print,body[data-pm="out"] #print{display:none}
+  body:not([data-pm="order"]) #printOrder{display:none}
+  body:not([data-pm="out"]) #printOut{display:none}
+  /* 発注書（発注書.docx と同じ並び・大きさ） */
+  .po{height:262mm;display:flex;flex-direction:column;padding:22mm 18mm 0 20mm;font-family:"Yu Mincho","游明朝","YuMincho","Hiragino Mincho ProN","Noto Serif JP",serif;font-size:10.5pt;line-height:18pt;color:#000}
+  .po p{margin:0;min-height:18pt}
+  .po .r{text-align:right} .po .c{text-align:center}
+  .po .tt{font-size:18pt;line-height:36pt}
+  .po .s12{font-size:12pt;line-height:22pt}
+  .po .mk{display:inline-block;border:.9pt solid #000;border-radius:50%;padding:0 4pt;margin:0 -4pt;line-height:1.25}
+  .po table{border-collapse:collapse;width:123.6mm;table-layout:fixed}
+  .po td{border:.5pt solid #000;text-align:center;vertical-align:middle;height:10.4mm;padding:0 1.9mm}
+  .po td.n{font-size:12pt;font-weight:700}
+  .po .ms{font-family:"MS Mincho","ＭＳ 明朝","Hiragino Mincho ProN",serif}
+  .po .ft{margin-top:auto;display:block;text-align:right;font-family:"Yu Mincho","游明朝","Hiragino Mincho ProN",serif;line-height:16pt}
+  /* 1か月のOUT数 */
+  .pout{font-family:"Yu Gothic","游ゴシック","Hiragino Sans",sans-serif;display:flex;flex-direction:column;gap:2mm}
+  .pout .hd{display:flex;align-items:baseline;gap:5mm}
+  .pout .hd .t{font-size:15pt;font-weight:700}
+  .pout .hd .d{font-size:9pt;margin-left:auto}
+  .pout table{border-collapse:collapse;width:100%;font-size:10pt;font-variant-numeric:tabular-nums}
+  .pout th,.pout td{border:.3mm solid #000;padding:.7mm 2mm;text-align:center;white-space:nowrap}
+  .pout th{font-weight:600;font-size:9pt}
+  .pout td.b{font-weight:800}
+  .pout td:first-child{text-align:left}
+  .pout tr.we td{background:#eee;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
 </style>
 </head>
 <body>
+<nav class="tabs" role="tablist">
+  <button class="tb" type="button" role="tab" data-tab="make">メイク表</button>
+  <button class="tb" type="button" role="tab" data-tab="linen">リネン発注</button>
+  <button class="tb" type="button" role="tab" data-tab="full">フル清掃</button>
+  <button class="tb" type="button" role="tab" data-tab="out">OUT数（1か月）</button>
+  <div class="tmsw"><span class="tmsat" id="tmsAt"></span><button id="btnTms" type="button">TMS取込</button></div>
+</nav>
+<div class="tmsbar"><div class="tmsr" id="tmsr" hidden></div></div>
+
+<div class="panel" id="p-make">
 <div class="app">
   <header class="top">
     <h1>メイク表</h1>
@@ -266,25 +360,58 @@ table.ln td.z{color:#c3c8c5}
       <table class="bd" id="bd"></table>
     </div>
     <div class="btns">
-      <button id="btnTms" type="button">TMS取込</button>
       <button class="primary" id="btnPrint" type="button">印刷</button>
       <button id="btnPrintSt" type="button">メイクスタッフ用印刷</button>
       <button id="btnReset" type="button">リセット</button>
     </div>
-    <div class="tmsr" id="tmsr" hidden></div>
-    <details class="tmsset"><summary>TMSから読み込む方法</summary>
-      <p><b>パソコン（Chrome・Edge）</b>：拡張機能「TMS取込」を入れると、上の「TMS取込」ボタン1つで読めます。TMSにログインしておけば、裏でTMSを開いて RESV と C/IN を読み、明日のOUT清掃・連泊・空室を入れます。</p>
-      <p class="sub">入れ方（1回だけ）：tms-ext.zip を解凍 → Chromeで chrome://extensions（Edgeは edge://extensions）を開く → 右上「デベロッパーモード」をオン →「パッケージ化されていない拡張機能を読み込む」→ 解凍した tms-ext フォルダを選ぶ。</p>
-      <p><b>iPad など拡張機能が使えないとき</b>：ブックマーク「TMS取込」を使います。下のリンクをブックマークに入れ（iPadは「コードをコピー」→ 何かのページをブックマーク → URLを貼り替え）、TMSの画面でそのブックマークを押します。</p>
-      <p><a class="bml" id="bml" href="#">TMS取込</a><button type="button" id="bmlCopy">コードをコピー</button></p>
-      <p class="sub">読むのは部屋番号・何泊目／何泊・プランの部屋タイプだけ（お客様の名前は読みません）。部屋が決まっていない予約は一覧にだけ出ます。</p>
-    </details>
     <p class="warn" id="pwaWarn" hidden>ホーム画面から開いたアプリ表示では印刷できません。Safariでこのページを開いて印刷してください。</p>
     <p class="hint">何も押していない部屋は「連泊」です。下の「メイクスタッフ用」の表で、清掃する部屋をタップするとその人に割り当てます（階の数字をタップするとその階の未割当をまとめて割当）。リセットは1回押すと赤くなり、もう1回押すと全部消えます（メイクスタッフ用の表も消えます）。入力はこの端末のブラウザに自動保存されます。</p>
   </aside>
 </div>
+</div>
+
+<!-- ① リネン発注 -->
+<div class="panel" id="p-linen" hidden><div class="pnl">
+  <div class="row"><h2>リネン発注</h2>
+    <label>発注日（夜勤の日）<input type="date" id="lnDate"></label>
+    <label>納品日 <input type="date" id="lnDeliv"></label>
+    <button class="act primary" type="button" id="btnPrintOrder">発注書を印刷</button></div>
+  <p class="note" id="lnInfo"></p>
+  <div class="two">
+    <div class="box">
+      <h3>ルームタイプ別の部屋数（<span id="lnTgt"></span>）</h3>
+      <table class="lt" id="lnTypes"></table>
+      <p class="note" style="margin-top:8px">OUT（TMS）＋フル清掃（フル清掃タブの記録）。数字を直すとその値で計算します（↺で自動に戻す）。</p>
+    </div>
+    <div class="box">
+      <h3>発注数</h3>
+      <div style="overflow-x:auto"><table class="lt" id="lnTable"></table></div>
+      <p class="note" style="margin-top:8px">黄色の欄を入力。発注数＝定数 −（カウント＋明日来る − 明日必要）を発注単位に切り上げ（マイナスは0）。「明日来る」は前の日の発注数が自動で入ります（直すこともできます）。カウントは第2倉庫のみ。</p>
+    </div>
+  </div>
+</div></div>
+
+<!-- ② フル清掃 -->
+<div class="panel" id="p-full" hidden><div class="pnl">
+  <div class="row"><h2>フル清掃（連泊清掃）</h2>
+    <div class="calhd"><button type="button" id="calPrev" aria-label="前の月">‹</button><b id="calTitle"></b><button type="button" id="calNext" aria-label="次の月">›</button></div></div>
+  <p class="note">日をタップすると部屋表が出ます。部屋をタップ＝その日その部屋はフル清掃（もう一度タップで取消）。メイク表の「連泊清掃」と同じものです（メイク表の日付の分は自動でつながります）。</p>
+  <div class="two">
+    <div class="box"><div class="cal" id="cal"></div></div>
+    <div class="box" id="fday"></div>
+  </div>
+</div></div>
+
+<!-- ③ 1か月のOUT数 -->
+<div class="panel" id="p-out" hidden><div class="pnl">
+  <div class="row"><h2>OUT数（1か月）</h2><button class="act primary" type="button" id="btnPrintOut">印刷</button></div>
+  <p class="note" id="outInfo"></p>
+  <div class="box" style="overflow-x:auto"><table class="lt om" id="outTable"></table></div>
+</div></div>
 
 <div class="print" id="print"></div>
+<div class="print" id="printOrder"></div>
+<div class="print" id="printOut"></div>
 
 <script>
 const TYPES={
@@ -344,7 +471,9 @@ function save(){try{localStorage.setItem(KEY,JSON.stringify({state,date:dateVal,
 
 const FLOOR_SCREEN=["4F","3F","2F","1F"];
 const isClean=no=>{const x=state[no]||"";return x==="out"||x==="sc";};
-function onRoom(no){state[no]=NEXT[state[no]||""];save();render();}
+function onRoom(no){const old=state[no]||"",nx=NEXT[old];state[no]=nx;
+  if(nx==="sc")fcSet(dateVal,no,true);else if(old==="sc")fcSet(dateVal,no,false); // 連泊清掃＝フル清掃（カレンダーとつなぐ）
+  save();render();renderTabs();}
 function buildScreen(){
   const wrap=document.getElementById("floors");wrap.innerHTML='<div class="ftot" id="ftot"></div>';
   for(const f of FLOOR_SCREEN){
@@ -637,6 +766,7 @@ function renderPrint(){
   document.getElementById("print").innerHTML=page1(c)+page2HTML(c)+page3();
 }
 function render(){
+  syncSc();
   for(const [no] of ROOMS){const s=state[no]||"";const b=document.getElementById("r"+no);
     const cl=isClean(no),a=assign[no];
     b.className="room"+(s?" "+s:"");
@@ -646,29 +776,314 @@ function render(){
     b.setAttribute("aria-label",`${no} ${LABEL[s]}`);}
   // 階ごと・全体の「n室・n Bed」（OUT清掃＋連泊清掃）
   let tr=0,tb=0;
-  document.querySelectorAll(".floor").forEach(sec=>{const f=sec.dataset.f;let r=0,bd=0;
+  document.querySelectorAll("#floors .floor").forEach(sec=>{const f=sec.dataset.f;let r=0,bd=0;
     for(const e of OR[f])if(e&&isClean(e[0])){r++;bd+=BEDS[TYPE_OF[e[0]]];}
     tr+=r;tb+=bd;sec.querySelector(".fr").textContent=`${r}室`;sec.querySelector(".fb").textContent=`${bd} Bed`;});
   document.getElementById("ftot").innerHTML=`清掃 合計 <b>${tr}室・${tb} Bed</b>`;
   renderStaffs();renderPrint();
 }
 
+// =====================================================================
+// タブ：リネン発注・フル清掃・OUT数（1か月）。データは TMS取込 でまとめて読む
+// 保存：localStorage KEY2（メイク表のリセットでは消えない）
+//   tms  : {at, base, days:{日付:{ok, rows:[{r:部屋,n:"何泊目/何泊",t:プランの[ ]}]}}, map:{[ ]の文字:タイプ}}
+//   fullc: {日付:[部屋,...]}  フル清掃（＝連泊清掃）
+//   lin  : {発注日:{typ, come, cnt, ov, wipe, deliv, ord}}
+// =====================================================================
+const KEY2="makehyo-shijohorikawa-ext-v1";
+let X2={tms:null,fullc:{},lin:{},tab:"make"};
+const ymd=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+const addD=(s,n)=>{const d=new Date(s+"T00:00:00");d.setDate(d.getDate()+n);return ymd(d);};
+const WD="日月火水木金土";
+const wdOf=s=>new Date(s+"T00:00:00").getDay();
+const mdw=s=>{const a=s.split("-");return `${+a[1]}/${+a[2]}（${WD[wdOf(s)]}）`;};
+function loadX(){let had=false;try{const s=JSON.parse(localStorage.getItem(KEY2)||"null");if(s){X2=Object.assign(X2,s);had=true;}}catch(e){}return had;}
+function saveX(){try{localStorage.setItem(KEY2,JSON.stringify(X2));}catch(e){}}
+function fcSet(d,no,on){const a=new Set(X2.fullc[d]||[]);if(on)a.add(no);else a.delete(no);
+  if(a.size)X2.fullc[d]=ROOMS.map(r=>r[0]).filter(n=>a.has(n));else delete X2.fullc[d];saveX();}
+// メイク表の「連泊清掃」＝その日のフル清掃の記録（連泊の部屋だけ。OUT・空室はそのまま）
+function syncSc(){const fs=new Set(X2.fullc[dateVal]||[]);
+  for(const [no] of ROOMS){const s=state[no]||"";if(fs.has(no)){if(s==="")state[no]="sc";}else if(s==="sc")state[no]="";}}
+
+// ---- TMSの1か月分
+const TNAME={D:"ダブル",W:"ツイン",TA:"トリプルA",TB:"トリプルB",Q:"4ベッド"};
+const LN_ORDER=["D","W","TA","TB","Q"];
+function hank(s){return (s||"").replace(/[Ａ-Ｚａ-ｚ０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0));}
+function guessType(t){const s=hank(t);
+  if(/ダブル/.test(s))return "D"; if(/ツイン/.test(s))return "W";
+  if(/トリプル/.test(s)){if(/B/i.test(s))return "TB";if(/A/i.test(s))return "TA";return "";}
+  if(/4|フォー|クア|クワ/.test(s))return "Q"; return "";}
+function saveTmsDays(t){
+  const days={};
+  for(const x of t.days)days[x.d]={ok:!!x.ok,rows:(x.rows||[]).map(r=>({r:r.r||"",n:r.n||"",t:r.t||""}))};
+  // 部屋が決まっている予約から「プランの[ ]の文字 → 部屋タイプ」を覚える（部屋未割当の予約に使う）
+  const cnt={};
+  for(const d in days)for(const r of days[d].rows)if(r.r&&TYPE_OF[r.r]&&r.t){(cnt[r.t]=cnt[r.t]||{})[TYPE_OF[r.r]]=(cnt[r.t][TYPE_OF[r.r]]||0)+1;}
+  const map={};for(const k in cnt)map[k]=Object.keys(cnt[k]).sort((a,b)=>cnt[k][b]-cnt[k][a])[0];
+  X2.tms={at:Date.now(),base:t.d,days,map};
+  lnDateVal=t.d;
+  // 古い記録を消す（60日より前）
+  const old=addD(today(),-60);
+  for(const d in X2.fullc)if(d<old)delete X2.fullc[d];
+  for(const d in X2.lin)if(d<old)delete X2.lin[d];
+  saveX();
+}
+function rowType(x){if(x.r&&TYPE_OF[x.r])return TYPE_OF[x.r];const m=(X2.tms&&X2.tms.map)||{};return m[x.t]||guessType(x.t)||"?";}
+const nN=x=>x.n.split("/").map(Number);
+// 日付 X のOUT（X-1 の一覧で 何泊目＝何泊）。データがなければ null
+function outsOn(X){const day=X2.tms&&X2.tms.days[addD(X,-1)];if(!day||!day.ok)return null;
+  const r={by:{},n:0,rooms:[],unk:[]};for(const t of LN_ORDER)r.by[t]=0;
+  for(const x of day.rows){const q=nN(x);if(!q[0]||q[0]!==q[1])continue;
+    const t=rowType(x);r.n++;if(x.r)r.rooms.push(x.r);if(t==="?")r.unk.push(x.t||"（なし）");else r.by[t]++;}
+  return r;}
+// 日付 X に連泊している部屋（X-1 の一覧で 何泊目＜何泊）→ {部屋:"n/N"}（X の日の何泊目に直す）
+function staysOn(X){const day=X2.tms&&X2.tms.days[addD(X,-1)];if(!day||!day.ok)return null;
+  const r={};for(const x of day.rows){const q=nN(x);if(x.r&&q[0]&&q[0]<q[1])r[x.r]=(q[0]+1)+"/"+q[1];}return r;}
+function tmsRange(){if(!X2.tms)return [];const ds=Object.keys(X2.tms.days).sort();return ds.map(d=>addD(d,1));} // OUTが分かる日
+
+// ---- タブ
+const TABS=["make","linen","full","out"];
+function showTab(k){if(!TABS.includes(k))k="make";X2.tab=k;saveX();
+  document.querySelectorAll("nav.tabs .tb").forEach(b=>b.setAttribute("aria-selected",b.dataset.tab===k?"true":"false"));
+  for(const t of TABS)document.getElementById("p-"+t).hidden=t!==k;
+  renderTabs();}
+function renderTabs(){
+  const at=document.getElementById("tmsAt");
+  if(X2.tms){const d=new Date(X2.tms.at);at.textContent=`最終取込 ${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;}else at.textContent="";
+  if(X2.tab==="linen")buildLinen();
+  if(X2.tab==="full")renderFull();
+  if(X2.tab==="out")renderOut();
+  renderOrderPrint();renderOutPrint();
+}
+
+// ---- ① リネン発注
+let lnDateVal="";
+function lnDefaultDate(){ // TMS取込から18時間以内ならその日（夜勤の日）、それ以外は今日
+  if(X2.tms&&Date.now()-X2.tms.at<18*3600e3)return X2.tms.base;return today();}
+const LN_ITEMS=[ // 発注書の並び。c=定数、u=発注単位、fix=固定の発注数
+  {k:"SS",nm:"シーツ　S",u:10,c:70},{k:"SW",nm:"シーツ　W",u:10,c:30},
+  {k:"DS",nm:"デュベ　S",u:5,c:70},{k:"DW",nm:"デュベ　W",u:5,c:30},
+  {k:"PC",nm:"ピロケース",u:50,fix:50},
+  {k:"BT",nm:"バスタオル",u:10,c:80},{k:"FT",nm:"フェイスタオル",u:20,c:80},
+  {k:"BM",nm:"バスマット",u:20,fix:20},{k:"GW",nm:"ガウン",u:10,fix:20},
+  {k:"WP",nm:"拭き上げタオル",u:20,fix:"wipe"}];
+function linRec(X){return X2.lin[X]||(X2.lin[X]={typ:{},come:{},cnt:{},ov:{},wipe:40});}
+function lnCalc(X){
+  const L=X2.lin[X]||{typ:{},come:{},cnt:{},ov:{},wipe:40};
+  const T=addD(X,2); // audit前の日付の2日後
+  const o=outsOn(T),fs=X2.fullc[T]||[];
+  const auto={},out={},full={};
+  for(const t of LN_ORDER){out[t]=o?o.by[t]:0;full[t]=0;}
+  const oset=new Set(o?o.rooms:[]);
+  for(const no of fs)if(!oset.has(no))full[TYPE_OF[no]]++;
+  for(const t of LN_ORDER)auto[t]=out[t]+full[t];
+  const typ={};for(const t of LN_ORDER)typ[t]=L.typ&&L.typ[t]!=null?L.typ[t]:auto[t];
+  const {D,W,TA,TB,Q}=typ;
+  const SS=W*2+TA*3+TB+Q*4, SW=D+TB*2, PC=D*2+W*2+TA*3+TB*3+Q*4, BT=PC*1.3;
+  const need={SS,SW,DS:SS,DW:SW,PC,BT,FT:BT,BM:D+W+TA+TB+Q,GW:60,WP:null};
+  const prev=X2.lin[addD(X,-1)];
+  const wipe=L.wipe===20?20:40;
+  const rows=LN_ITEMS.map(it=>{
+    const r={it,need:need[it.k]};
+    if(it.fix!=null){r.calc=it.fix==="wipe"?wipe:it.fix;}
+    else{
+      const pc=prev&&prev.ord&&prev.ord[it.k]!=null?prev.ord[it.k]:null;
+      r.comeAuto=L.come[it.k]==null; r.come=r.comeAuto?pc:L.come[it.k];
+      r.cnt=L.cnt[it.k];
+      if(r.cnt==null)r.calc=null; // カウント未入力
+      else{const raw=it.c-(r.cnt+(r.come||0)-need[it.k]);r.raw=raw;r.calc=Math.max(0,Math.ceil(raw/it.u-1e-9)*it.u);}
+    }
+    r.ov=L.ov&&L.ov[it.k]!=null;r.ord=r.ov?L.ov[it.k]:r.calc;
+    return r;});
+  return {X,T,o,out,full,auto,typ,rows,wipe,unk:o?o.unk:[],deliv:L.deliv||addD(X,1)};
+}
+const fmtN=v=>v==null?"":(Math.round(v*10)/10).toString();
+function buildLinen(){
+  if(!lnDateVal)lnDateVal=lnDefaultDate();
+  const X=lnDateVal,c=lnCalc(X);
+  document.getElementById("lnDate").value=X;
+  document.getElementById("lnDeliv").value=c.deliv;
+  document.getElementById("lnTgt").textContent=mdw(c.T)+"のOUT＋フル清掃";
+  const info=[];
+  if(!c.o)info.push(`<span class="bad">${mdw(c.T)}のOUTのデータがありません。「TMS取込」を押してください（または左の表に手で入れてください）。</span>`);
+  if(c.unk.length)info.push(`<span class="bad">部屋タイプが分からないOUTが${c.unk.length}室あります（${[...new Set(c.unk)].join("、")}）。左の表に手で足してください。</span>`);
+  document.getElementById("lnInfo").innerHTML=info.join("<br>");
+  // タイプ別
+  let h=`<thead><tr><th>タイプ</th><th>OUT</th><th>フル清掃</th><th>計</th></tr></thead><tbody>`;
+  for(const t of LN_ORDER)h+=`<tr><td>${TNAME[t]}</td><td>${c.out[t]}</td><td>${c.full[t]}</td><td><input type="number" inputmode="numeric" min="0" data-g="typ" data-k="${t}"><button class="rs" type="button" data-g="typ" data-k="${t}" hidden>↺</button></td></tr>`;
+  h+=`<tr class="sum"><td>合計</td><td>${LN_ORDER.reduce((a,t)=>a+c.out[t],0)}</td><td>${LN_ORDER.reduce((a,t)=>a+c.full[t],0)}</td><td id="lnTypSum"></td></tr></tbody>`;
+  document.getElementById("lnTypes").innerHTML=h;
+  // 発注数
+  h=`<thead><tr><th>種類</th><th>定数</th><th>明日必要</th><th>明日来る</th><th>カウント</th><th>計算</th><th>発注数</th><th>単位</th></tr></thead><tbody>`;
+  for(const r of c.rows){const k=r.it.k;
+    h+=`<tr><td>${r.it.nm}</td><td>${r.it.c||"―"}</td><td data-need="${k}"></td>`;
+    if(r.it.fix!=null)h+=`<td></td><td></td><td>${k==="WP"?`<span class="seg"><button type="button" data-wipe="40">40</button><button type="button" data-wipe="20">20</button></span>`:"固定"}</td>`;
+    else h+=`<td><input type="number" inputmode="numeric" min="0" data-g="come" data-k="${k}"></td><td><input type="number" inputmode="numeric" min="0" data-g="cnt" data-k="${k}"></td><td data-calc="${k}"></td>`;
+    h+=`<td class="ord"><input type="number" inputmode="numeric" min="0" step="${r.it.u}" data-g="ov" data-k="${k}"><button class="rs" type="button" data-g="ov" data-k="${k}" hidden>↺</button></td><td>${r.it.u}枚</td></tr>`;}
+  h+="</tbody>";
+  document.getElementById("lnTable").innerHTML=h;
+  updLinen(true);
+}
+function updLinen(all){ // 入力中の欄はさわらずに数字だけ入れ直す
+  const X=lnDateVal,c=lnCalc(X),L=X2.lin[X]||{typ:{},come:{},cnt:{},ov:{}};
+  const setIn=(g,k,v,cls)=>{const el=document.querySelector(`#p-linen input[data-g="${g}"][data-k="${k}"]`);if(!el)return;
+    if(all||document.activeElement!==el)el.value=v==null?"":v;el.className=cls||"";
+    const b=document.querySelector(`#p-linen button.rs[data-g="${g}"][data-k="${k}"]`);if(b)b.hidden=cls!=="ov";};
+  for(const t of LN_ORDER)setIn("typ",t,c.typ[t],L.typ&&L.typ[t]!=null?"ov":"");
+  document.getElementById("lnTypSum").textContent=LN_ORDER.reduce((a,t)=>a+c.typ[t],0);
+  for(const r of c.rows){const k=r.it.k;
+    const nd=document.querySelector(`#p-linen [data-need="${k}"]`);if(nd)nd.textContent=r.need==null?"":fmtN(r.need);
+    if(r.it.fix==null){
+      setIn("come",k,r.come,r.comeAuto?"auto":"");
+      setIn("cnt",k,r.cnt,"");
+      const cc=document.querySelector(`#p-linen [data-calc="${k}"]`);
+      if(cc)cc.innerHTML=r.calc==null?'<span class="bad">カウント未入力</span>':r.calc;
+    }
+    setIn("ov",k,r.ord,r.ov?"ov":"");}
+  document.querySelectorAll("#p-linen [data-wipe]").forEach(b=>b.classList.toggle("on",+b.dataset.wipe===c.wipe));
+  // 発注履歴（翌日の「明日来る」に使う）
+  const rec=linRec(X);rec.ord={};for(const r of c.rows)if(r.ord!=null)rec.ord[r.it.k]=r.ord;saveX();
+  renderOrderPrint();
+}
+(function(){const p=document.getElementById("p-linen");
+  p.addEventListener("input",e=>{const el=e.target;if(!el.dataset||!el.dataset.g)return;
+    const L=linRec(lnDateVal),g=el.dataset.g,k=el.dataset.k;(L[g]=L[g]||{});
+    if(el.value===""){delete L[g][k];}else{const v=Math.max(0,Math.round(+el.value));if(isFinite(v))L[g][k]=v;}
+    saveX();updLinen(false);});
+  p.addEventListener("change",e=>{if(e.target.dataset&&e.target.dataset.g)updLinen(true);});
+  p.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+    if(b.dataset.wipe){linRec(lnDateVal).wipe=+b.dataset.wipe;saveX();updLinen(true);}
+    else if(b.classList.contains("rs")){const L=linRec(lnDateVal);if(L[b.dataset.g])delete L[b.dataset.g][b.dataset.k];saveX();updLinen(true);}});
+  document.getElementById("lnDate").addEventListener("change",e=>{if(!e.target.value)return;lnDateVal=e.target.value;buildLinen();});
+  document.getElementById("lnDeliv").addEventListener("change",e=>{const L=linRec(lnDateVal);if(e.target.value)L.deliv=e.target.value;else delete L.deliv;saveX();buildLinen();});
+})();
+function ymdJa(s){const a=s.split("-");return `　${+a[0]}年　${+a[1]}月　${+a[2]}日`;}
+function renderOrderPrint(){ // 発注書.docx と同じ見た目
+  if(!lnDateVal)lnDateVal=lnDefaultDate();
+  const c=lnCalc(lnDateVal);
+  const row=(a,b,v)=>`<tr><td>${a}</td><td>${b}</td><td class="n">${v}</td></tr>`;
+  let t=`<tr><td>種類</td><td>発注単位</td><td>発注枚数</td></tr>`;
+  for(const r of c.rows)t+=row(r.it.nm,r.it.u+"枚",r.ord==null?"":r.ord+"枚");
+  document.getElementById("printOrder").innerHTML=`<div class="po">
+    <p class="r">発注日：${ymdJa(c.X)}　</p>
+    <p class="c tt">発注書</p>
+    <p class="c s12">スマートプレイスイン</p>
+    <p class="c s12">　<span class="mk">四条堀川</span>　・　二条城堀川　・　四条大宮イースト　</p>
+    <p class="c s12">四条大宮駅　・　二条城前駅</p>
+    <p class="c s12"></p>
+    <table>${t}</table>
+    <p></p>
+    <p>納品日：${ymdJa(c.deliv)}</p>
+    <p class="ms">※納品日の前日正午までにFAXをお願い致します。</p>
+    <div class="ft">ファーストリネンサプライ(株)<br>TEL：077-523-0280<br>FAX：077-523-0281</div></div>`;
+}
+
+// ---- ② フル清掃
+let calYM="",selDay="";
+function renderFull(){
+  const td=today();
+  if(!selDay)selDay=dateVal||addD(td,1);
+  if(!calYM)calYM=selDay.slice(0,7);
+  const [y,m]=calYM.split("-").map(Number);
+  document.getElementById("calTitle").textContent=`${y}年${m}月`;
+  let h=[..."日月火水木金土"].map((w,i)=>`<div class="dw${i===0?" su":i===6?" sa":""}">${w}</div>`).join("");
+  const first=new Date(y,m-1,1),nd=new Date(y,m,0).getDate();
+  for(let i=0;i<first.getDay();i++)h+='<div class="ept"></div>';
+  for(let d=1;d<=nd;d++){const s=ymd(new Date(y,m-1,d));
+    const n=(X2.fullc[s]||[]).length,o=outsOn(s);
+    h+=`<button type="button" class="dy${s<td?" past":""}${s===td?" today":""}${s===selDay?" sel":""}" data-d="${s}"><b>${d}</b>`+
+      (n?`<span class="fc">フル ${n}</span>`:"")+(o?`<span class="oc">OUT ${o.n}</span>`:"")+`</button>`;}
+  document.getElementById("cal").innerHTML=h;
+  renderFday();
+}
+function renderFday(){
+  const d=selDay,fs=new Set(X2.fullc[d]||[]),st=staysOn(d),o=outsOn(d),oset=new Set(o?o.rooms:[]);
+  let h=`<div class="row" style="margin-bottom:8px"><h3 style="margin:0;font-size:17px;color:var(--ink)">${mdw(d)}　フル清掃 <span id="fdN">${fs.size}</span>室</h3>`+
+    (d===dateVal?`<span class="note">（メイク表の日付）</span>`:"")+`</div>`;
+  if(!st)h+=`<p class="note" style="margin-bottom:8px">この日のTMSのデータがありません（連泊・OUTの表示なし）。</p>`;
+  else h+=`<p class="note" style="margin-bottom:8px">「連泊 n/N」＝その日が何泊目/何泊。グレー＝連泊ではない部屋（OUT・空室など）。</p>`;
+  h+='<div class="floors fgrid" style="padding:6px">';
+  for(const f of FLOOR_SCREEN){
+    h+=`<section class="floor"><h2>${f}</h2><div class="grid">`;
+    for(const e of OR[f]){
+      if(!e){h+='<div class="blank"></div>';continue;}
+      const no=e[0],t=TYPE_OF[no],on=fs.has(no);
+      let lab="",cls="";
+      if(on)lab="フル清掃";
+      else if(st&&st[no])lab="連泊 "+st[no];
+      else if(oset.has(no)){lab="OUT";cls=" o";}
+      else if(st)cls=" o";
+      if(on&&st&&st[no])lab="フル "+st[no];
+      h+=`<button type="button" class="room${on?" fs":cls}" data-no="${no}" style="--tc:${TYPES[t].c}"><span class="no">${no}</span><span class="ty">${TYPES[t].en}</span><span class="st">${lab}</span></button>`;}
+    h+="</div></section>";}
+  h+="</div>";
+  document.getElementById("fday").innerHTML=h;
+}
+document.getElementById("cal").addEventListener("click",e=>{const b=e.target.closest(".dy");if(!b)return;selDay=b.dataset.d;renderFull();});
+document.getElementById("fday").addEventListener("click",e=>{const b=e.target.closest(".room");if(!b)return;
+  const no=b.dataset.no,on=!(X2.fullc[selDay]||[]).includes(no);
+  fcSet(selDay,no,on);
+  if(selDay===dateVal){save();render();}
+  renderFull();});
+document.getElementById("calPrev").addEventListener("click",()=>{const [y,m]=calYM.split("-").map(Number);calYM=ymd(new Date(y,m-2,1)).slice(0,7);renderFull();});
+document.getElementById("calNext").addEventListener("click",()=>{const [y,m]=calYM.split("-").map(Number);calYM=ymd(new Date(y,m,1)).slice(0,7);renderFull();});
+
+// ---- ③ OUT数（1か月）
+function outRows(){return tmsRange().map(d=>{const o=outsOn(d);return {d,o,f:(X2.fullc[d]||[]).length};});}
+function renderOut(){
+  const rows=outRows(),info=document.getElementById("outInfo"),tb=document.getElementById("outTable");
+  if(!rows.length){info.innerHTML='まだTMSのデータがありません。「TMS取込」を押してください。';tb.innerHTML="";return;}
+  const unk=new Set();rows.forEach(r=>r.o&&r.o.unk.forEach(u=>unk.add(u)));
+  const lnT=addD(lnDateVal||lnDefaultDate(),2);
+  info.innerHTML=`${mdw(rows[0].d)}〜${mdw(rows[rows.length-1].d)}の毎日のOUT室数（TMSの予約から。部屋未割当の予約もプランのタイプで数えます）。黄色＝リネン発注で使う日。`+
+    (unk.size?`<br><span class="bad">部屋タイプが分からないプラン：${[...unk].join("、")}（「不明」に数えています）</span>`:"");
+  let h=`<thead><tr><th>日付</th><th>OUT計</th>${LN_ORDER.map(t=>`<th>${TNAME[t]}</th>`).join("")}<th>不明</th><th>フル清掃</th></tr></thead><tbody>`;
+  for(const r of rows){const w=wdOf(r.d);
+    if(!r.o){h+=`<tr class="miss"><td class="we${w}">${mdw(r.d)}</td><td colspan="${LN_ORDER.length+2}" style="text-align:center">読めませんでした</td><td>${r.f||""}</td></tr>`;continue;}
+    const z=v=>`<td${v?"":' class="z"'}>${v}</td>`;
+    h+=`<tr${r.d===lnT?' class="hl"':""}><td class="we${w}">${mdw(r.d)}</td><td><b>${r.o.n}</b></td>${LN_ORDER.map(t=>z(r.o.by[t])).join("")}${z(r.o.unk.length)}${z(r.f)}</tr>`;}
+  tb.innerHTML=h+"</tbody>";
+}
+function renderOutPrint(){
+  const rows=outRows(),el=document.getElementById("printOut");
+  if(!rows.length){el.innerHTML="";return;}
+  const at=new Date(X2.tms.at);
+  let h=`<div class="pout"><div class="hd"><span class="t">OUT数（1か月）</span><span>${mdw(rows[0].d)}〜${mdw(rows[rows.length-1].d)}</span><span class="d">TMS取込 ${at.getMonth()+1}/${at.getDate()} ${String(at.getHours()).padStart(2,"0")}:${String(at.getMinutes()).padStart(2,"0")}</span></div>
+    <table><thead><tr><th>日付</th><th>OUT計</th>${LN_ORDER.map(t=>`<th>${TNAME[t]}</th>`).join("")}<th>不明</th><th>フル清掃</th></tr></thead><tbody>`;
+  for(const r of rows){const w=wdOf(r.d),we=w===0||w===6?' class="we"':"";
+    if(!r.o){h+=`<tr${we}><td>${mdw(r.d)}</td><td colspan="${LN_ORDER.length+2}">―</td><td>${r.f||""}</td></tr>`;continue;}
+    h+=`<tr${we}><td>${mdw(r.d)}</td><td class="b">${r.o.n}</td>${LN_ORDER.map(t=>`<td>${r.o.by[t]||""}</td>`).join("")}<td>${r.o.unk.length||""}</td><td>${r.f||""}</td></tr>`;}
+  el.innerHTML=h+"</tbody></table></div>";
+}
+
+document.querySelectorAll("nav.tabs .tb").forEach(b=>b.addEventListener("click",()=>showTab(b.dataset.tab)));
+document.getElementById("btnPrintOrder").addEventListener("click",()=>{renderOrderPrint();doPrint("order");});
+document.getElementById("btnPrintOut").addEventListener("click",()=>{if(!outRows().length){alert("先に「TMS取込」を押してください。");return;}renderOutPrint();doPrint("out");});
+
+const hadX=loadX();
 load();
+if(!hadX){ // 初めて：今の表の連泊清掃をフル清掃の記録に移す
+  const sc=ROOMS.map(r=>r[0]).filter(no=>state[no]==="sc");if(sc.length&&dateVal)X2.fullc[dateVal]=sc;saveX();}
 const dEl=document.getElementById("date");
 function today(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
 // 前の晩に作った表を翌朝そのまま使えるよう、日付が「今日」以降なら変えない。過去の日付のときだけ「明日」に
 if(!dateVal||dateVal<today())dateVal=tomorrow();
 dEl.value=dateVal;
-dEl.addEventListener("change",()=>{dateVal=dEl.value;save();render();});
+dEl.addEventListener("change",()=>{dateVal=dEl.value;save();render();renderTabs();});
 buildScreen();buildStaffs();
 // ---- TMS取込（ブックマークから #tms=... で渡される）
-const BOOKMARKLET="javascript:(async()=>{const P='https://spi-shijohorikawa.github.io/meiku-hyo/';const z=n=>String(n).padStart(2,'0');const T=new Date();const td=T.getFullYear()+'-'+z(T.getMonth()+1)+'-'+z(T.getDate());if(location.host.indexOf('tms.ninehours.co.jp')<0){alert('TMSを開いてから押してください');return;}if(location.pathname.indexOf('/rsv/sch')!==0){alert('予約検索のページを開きます。開いたら、もう一度このブックマークを押してください。');location.href='/rsv/sch/?date='+td+'&type=STAY';return;}const sl=m=>new Promise(r=>setTimeout(r,m));const wt=async()=>{await sl(400);for(let i=0;i<60&&window.jQuery&&jQuery.active>0;i++)await sl(200);await sl(300);};const rd=()=>[...document.querySelectorAll('tr.search_res_list')].map(tr=>{const c=[...tr.children].map(x=>x.textContent.trim());return{r:c.find(x=>/^\\d{3}$/.test(x))||'',n:c.find(x=>/^\\d+\\/\\d+$/.test(x))||'',t:((c.find(x=>/\\[.+?\\]/.test(x))||'').match(/\\[(.+?)\\]/)||[])[1]||''};});const b1=document.querySelector('#status_resv'),b2=document.querySelector('#status_cin');if(!b1||!b2){alert('RESV / C/IN が見つかりません');return;}b1.click();await wt();const A=rd();b2.click();await wt();const B=rd();const o=[],s=[],u=[];for(const x of A.concat(B)){const q=x.n.split('/').map(Number);if(!q[0]||!q[1])continue;if(x.r)(q[0]===q[1]?o:s).push(x.r);else u.push(x.t+' '+x.n);}const d=(window.jQuery&&jQuery(\"input[name='current_date']\").val())||td;const url=P+'#tms='+encodeURIComponent(JSON.stringify({d,o,s,u}));const w=window.open(url,'_blank');if(!w)location.href=url;})();";
-function showTms(t){
+function showTms(t,applied){
   const el=document.getElementById("tmsr");if(!t){el.hidden=true;return;}
   const md=x=>{const a=x.split("-");return (+a[1])+"/"+(+a[2]);};
-  el.innerHTML=`<button class="x" type="button">閉じる</button><b>TMSから読み込みました</b>（${md(t.d)}の夜 → 翌日分）<br>OUT清掃 <b>${t.o.length}</b>室・連泊 <b>${t.s.length}</b>室・空室 <b>${t.v}</b>室`+
-    (t.u.length?`<br><span style="color:var(--danger)">部屋未割当の予約 ${t.u.length}件（部屋が決まったら手で直してください）：</span>${t.u.map(x=>{const q=x.split(" ");const n=(q[1]||"").split("/");return q[0]+" "+q[1]+(n[0]===n[1]?"（明日OUT）":"");}).join("、")}`:"");
-  el.hidden=false;el.querySelector(".x").addEventListener("click",()=>{el.hidden=true;});
+  let h=`<button class="x" type="button">閉じる</button><b>TMSから読み込みました</b>`;
+  if(applied)h+=`<br>メイク表（${md(t.d)}の夜 → 翌日分）：OUT清掃 <b>${t.o.length}</b>室・連泊 <b>${t.s.length}</b>室・空室 <b>${t.v}</b>室`+
+    (t.u.length?`<br><span style="color:var(--danger)">部屋未割当の予約 ${t.u.length}件（部屋が決まったら手で直してください）：</span>${t.u.map(x=>{const q=x.split(" ");const n=(q[1]||"").split("/");return q[0]+" "+q[1]+(n[0]===n[1]?"（明日OUT）":"");}).join("、")}`:"")+
+    (t.cf&&t.cf.length?`<br><span style="color:var(--danger)">フル清掃の記録があるのにOUT・空室になった部屋：${t.cf.join("、")}（フル清掃タブで確認してください）</span>`:"");
+  else h+="<br>メイク表は変えていません。";
+  if(t.days){const miss=t.days.filter(x=>!x.ok).map(x=>md(x.d));
+    h+=`<br>リネン発注・フル清掃・OUT数：${md(t.days[0].d)}から${t.days.length}日分`+(miss.length?`<br><span style="color:var(--danger)">読めなかった日：${miss.join("、")}（もう一度「TMS取込」を押してください）</span>`:"");}
+  else h+=`<br><span style="color:var(--danger)">拡張機能が古いので、1か月分（リネン発注・OUT数）は読めませんでした。拡張機能を新しくして、chrome://extensions で「再読み込み」してください。</span>`;
+  el.innerHTML=h;el.hidden=false;el.querySelector(".x").addEventListener("click",()=>{el.hidden=true;});
 }
 function importTms(){
   const m=location.hash.match(/^#tms=(.+)$/);if(!m)return;
@@ -677,36 +1092,38 @@ function importTms(){
   applyTms(t);
 }
 function applyTms(t){
-  if(!confirm("TMSのデータでメイク表を上書きしますか？\n（OUT清掃・連泊・空室を入れ直します。連泊清掃は手で選んでください）"))return;
+  if(t.days)saveTmsDays(t);
+  if(!confirm("TMSのデータでメイク表を上書きしますか？\n（OUT清掃・連泊・空室を入れ直します。連泊清掃はフル清掃タブの記録から入ります）")){renderTabs();showTms(t,false);return;}
   const O=new Set(t.o),S=new Set(t.s);let v=0;state={};
   for(const [no] of ROOMS){if(O.has(no))state[no]="out";else if(S.has(no))state[no]="";else{state[no]="vac";v++;}}
+  dateVal=addD(t.d,1);dEl.value=dateVal;
+  syncSc();
+  t.cf=(X2.fullc[dateVal]||[]).filter(no=>state[no]==="out"||state[no]==="vac");
   for(const n in assign)if(!isClean(n)){delete assign[n];delete auto[n];}
-  const nd=new Date(t.d+"T00:00:00");nd.setDate(nd.getDate()+1);
-  dateVal=nd.getFullYear()+"-"+String(nd.getMonth()+1).padStart(2,"0")+"-"+String(nd.getDate()).padStart(2,"0");dEl.value=dateVal;
-  t.v=v;save();render();showTms(t);
+  t.v=v;save();render();renderTabs();showTms(t,true);
 }
-document.getElementById("bml").setAttribute("href",BOOKMARKLET);
-document.getElementById("bml").addEventListener("click",e=>{e.preventDefault();alert("これはブックマーク用です。ブックマークバーにドラッグするか、「コードをコピー」を使ってください。");});
-document.getElementById("bmlCopy").addEventListener("click",async()=>{try{await navigator.clipboard.writeText(BOOKMARKLET);alert("コピーしました。ブックマークのURL欄に貼り付けてください。");}catch(e){prompt("下のコードを全部コピーしてください",BOOKMARKLET);}});
-render();importTms();
+render();showTab(X2.tab);importTms();
 // 拡張機能（tms-ext）があれば、ボタン1つでTMSから読む
 const bt=document.getElementById("btnTms");
-let tmsBusy=false;
+let tmsBusy=false,tmsTimer=null;
+const TMS_FAIL="TMSから読み込めませんでした。\nChromeでTMSにログインしてから、もう一度「TMS取込」を押してください。";
+const TMS_DAYS=32; // 今日〜31日後の一覧 → 明日〜32日後のOUT
+function tmsDone(){tmsBusy=false;clearTimeout(tmsTimer);bt.disabled=false;bt.textContent="TMS取込";}
+function tmsArm(){clearTimeout(tmsTimer);tmsTimer=setTimeout(()=>{if(tmsBusy){tmsDone();alert(TMS_FAIL);}},90000);} // 90秒なにも来なければ失敗
 window.addEventListener("message",e=>{
-  if(e.source!==window||!e.data||e.data.type!=="MAKEHYO_TMS_RES")return;
-  tmsBusy=false;bt.disabled=false;bt.textContent="TMS取込";
+  if(e.source!==window||!e.data)return;
+  if(e.data.type==="MAKEHYO_TMS_PROG"){if(tmsBusy){bt.textContent=`TMS読込中… ${e.data.i}/${e.data.n}日`;tmsArm();}return;}
+  if(e.data.type!=="MAKEHYO_TMS_RES")return;
+  tmsDone();
   const r=e.data.res||{};
   if(r.ok)applyTms(r.data);
-  else if(r.error==="login")alert("TMSにログインしていません。開いたTMSの画面でログインしてから、もう一度「TMS取込」を押してください。");
-  else alert("TMSから読めませんでした："+(r.error||""));
+  else alert(TMS_FAIL);
 });
 bt.addEventListener("click",()=>{
-  if(document.documentElement.dataset.tmsExt!=="1"){
-    alert("このパソコンには「TMS取込」の拡張機能が入っていません。\n下の「TMSから読み込む方法」を見てください。");
-    document.querySelector(".tmsset").open=true;return;}
+  if(!document.documentElement.dataset.tmsExt){alert(TMS_FAIL);return;}
   if(tmsBusy)return;tmsBusy=true;bt.disabled=true;bt.textContent="TMS読込中…";
-  window.postMessage({type:"MAKEHYO_TMS_REQ"},"*");
-  setTimeout(()=>{if(tmsBusy){tmsBusy=false;bt.disabled=false;bt.textContent="TMS取込";alert("時間がかかりすぎました。TMSにつながるか確認して、もう一度押してください。");}},60000);
+  window.postMessage({type:"MAKEHYO_TMS_REQ",days:TMS_DAYS},"*");
+  tmsArm();
 });
 window.addEventListener("hashchange",importTms);
 document.getElementById("autoAs").addEventListener("click",()=>{
@@ -734,8 +1151,8 @@ const rb=document.getElementById("btnReset");let armT=null;
 function disarm(){rb.classList.remove("armed");rb.textContent="リセット";clearTimeout(armT);armT=null;}
 rb.addEventListener("click",()=>{
   if(!rb.classList.contains("armed")){rb.classList.add("armed");rb.textContent="もう一度押すと全部消えます";armT=setTimeout(disarm,5000);return;}
-  disarm();state={};assign={};auto={};sheets=[];buildStaffs();dateVal=tomorrow();dEl.value=dateVal;save();render();
-});
+  disarm();state={};assign={};auto={};sheets=[];buildStaffs();dateVal=tomorrow();dEl.value=dateVal;save();render();renderTabs();
+}); // フル清掃の記録・リネン発注・TMSの1か月分は消さない
 </script>
 </body>
 </html>
