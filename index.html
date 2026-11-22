@@ -353,10 +353,10 @@ table.om tr.otot td{font-size:16px;border-bottom:2px solid var(--line)}
 </head>
 <body>
 <nav class="tabs" role="tablist">
-  <button class="tb" type="button" role="tab" data-tab="make">メイク表</button>
+  <button class="tb" type="button" role="tab" data-tab="make">連泊表</button>
   <button class="tb" type="button" role="tab" data-tab="linen">リネン発注</button>
-  <button class="tb" type="button" role="tab" data-tab="full">連泊清掃</button>
-  <button class="tb" type="button" role="tab" data-tab="out">OUT数（1か月）</button>
+  <button class="tb" type="button" role="tab" data-tab="full">連泊清掃カレンダー</button>
+  <button class="tb" type="button" role="tab" data-tab="out">OUT数（今から1か月分）</button>
   <div class="tmsw"><button id="cloudSt" class="cst" type="button" title="クラウド保存"></button><span class="tmsat" id="tmsAt"></span><button id="btnTms" type="button" title="TMS取込" aria-label="TMS取込"></button></div>
 </nav>
 <div class="tmsbar"><div class="tmsr" id="tmsr" hidden></div></div>
@@ -364,7 +364,7 @@ table.om tr.otot td{font-size:16px;border-bottom:2px solid var(--line)}
 <div class="panel" id="p-make">
 <div class="app">
   <header class="top">
-    <h1>メイク表</h1>
+    <h1>連泊表</h1>
     <label class="date">日付 <input type="date" id="date"></label>
     <div class="legend">
       <span class="chip"><span class="sw"></span>連泊</span>
@@ -432,7 +432,7 @@ table.om tr.otot td{font-size:16px;border-bottom:2px solid var(--line)}
 
 <!-- ② 連泊清掃 -->
 <div class="panel" id="p-full" hidden><div class="pnl">
-  <div class="row"><h2>連泊清掃</h2>
+  <div class="row"><h2>連泊清掃カレンダー</h2>
     <div class="calhd"><button type="button" id="calPrev" aria-label="前の月">‹</button><b id="calTitle"></b><button type="button" id="calNext" aria-label="次の月">›</button></div></div>
   <p class="note">日をタップすると部屋表が出ます。部屋をタップ＝その日その部屋は連泊清掃（もう一度タップで取消）。タップすると部屋表は自動で閉じます。右上の数字＝その日のOUT数（TMS）。メイク表の「連泊清掃」と自動でつながります。</p>
   <div class="box"><div class="cal" id="cal"></div></div>
@@ -441,7 +441,7 @@ table.om tr.otot td{font-size:16px;border-bottom:2px solid var(--line)}
 
 <!-- ③ 1か月のOUT数 -->
 <div class="panel" id="p-out" hidden><div class="pnl">
-  <div class="row"><h2>OUT数（1か月）</h2><button class="act primary" type="button" id="btnPrintOut">印刷</button></div>
+  <div class="row"><h2>OUT数（今から1か月分）</h2><button class="act primary" type="button" id="btnPrintOut">印刷</button></div>
   <p class="note" id="outInfo"></p>
   <div class="box" style="overflow-x:auto"><table class="lt om" id="outTable"></table></div>
 </div></div>
