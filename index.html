@@ -184,6 +184,9 @@ table.ln td.z{color:#c3c8c5}
   .stc{border:.4mm solid #000;padding:1.6mm 2.2mm;break-inside:avoid;display:flex;flex-direction:column;gap:1.4mm;font-family:"Yu Gothic","游ゴシック","Hiragino Sans",sans-serif}
   .stc .sh{display:flex;align-items:baseline;gap:3mm;white-space:nowrap}
   .stc .sh b{font-size:13pt} .stc .sh span{font-size:9pt} .stc .sh .cnt{margin-left:auto;font-size:11pt;font-weight:700}
+  .stc .sh{align-items:flex-end}
+  .stc .sh .cnt{display:flex;flex-direction:column;align-items:flex-end;line-height:1.15}
+  .stc .sh .cnt small{font-size:7.5pt;font-weight:400}
   .sgr{display:grid;grid-template-columns:12mm repeat(6,minmax(0,1fr));grid-auto-rows:5.2mm}
   .sfl{grid-row:span 2;display:flex;flex-direction:column;justify-content:center;font-size:10pt;line-height:1.15}
   .sfl small{font-size:7pt}
@@ -191,7 +194,7 @@ table.ln td.z{color:#c3c8c5}
   .sc{border:.25mm dotted #aaa;margin:0 -.25mm -.25mm 0;display:flex;align-items:center;justify-content:center;font-size:10.5pt;font-weight:700;
     -webkit-print-color-adjust:exact;print-color-adjust:exact}
   .sc.g{background:#c8c8c8;border:.6mm solid #000;position:relative;z-index:1;font-weight:800;font-size:9.5pt}
-  .sc.ot{font-weight:400;color:#888;font-size:8.5pt}
+  .sc.ot{font-weight:400;color:#888;font-size:8.5pt;background:#efefef}
   .sc.ot .sm svg{opacity:.5}
   .sc .ci{border:.8pt solid #000;border-radius:50%;padding:0 2pt;line-height:1.15}
   .sl{font-size:8pt;line-height:1.3;min-height:1.3em}
@@ -590,9 +593,9 @@ function staffCard(sh,k){
       else g+='<div class="sc"></div>';
     }
   });
-  const ln=ITEMS.filter(i=>st.ln[i[0]]).map(i=>`${i[1]} ${st.ln[i[0]]}`).join("・");
-  return `<div class="stc"><div class="sh"><b>${sh.name||("スタッフ"+k)}</b><span>${dateVal?L.ja.date(dateVal):""}</span><span class="cnt">${st.rooms}室・${st.beds} Bed</span></div>
-    <div class="sgr">${g}</div><div class="sl">${ln||"&nbsp;"}</div><div class="slg">グレー太枠＝自分の担当　うすい字＝ほかの人　○＝連泊清掃</div></div>`;
+  let allR=0,allB=0;for(const [no,t] of ROOMS)if(isClean(no)){allR++;allB+=BEDS[t];}
+  return `<div class="stc"><div class="sh"><b>${sh.name||("スタッフ"+k)}</b><span>${dateVal?L.ja.date(dateVal):""}</span><span class="cnt">${st.rooms}室・${st.beds} Bed<small>（全体 ${allR}室・${allB} Bed）</small></span></div>
+    <div class="sgr">${g}</div></div>`;
 }
 function page1(c){ // 1ページ目：原本どおり上下2枚
   const x=origTable(c,{show:()=>true,main:true});
