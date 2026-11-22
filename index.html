@@ -55,6 +55,11 @@ header.top h1{font-size:22px;margin:0;letter-spacing:.05em}
 .stf .top{display:flex;gap:4px;align-items:center;margin-bottom:5px}
 .stf .kn{flex:none;width:20px;height:20px;border-radius:10px;color:#fff;font-size:12px;font-weight:700;display:grid;place-items:center}
 .stf input{font:inherit;font-size:14px;font-weight:700;border:1px solid var(--line);border-radius:6px;padding:3px 6px;flex:1;min-width:0;color:var(--ink);background:var(--paper)}
+.stf .cpr{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:13px}
+.stf .cpr button{font:inherit;font-size:15px;width:30px;height:28px;border-radius:7px;border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
+.stf .cpr button:disabled{opacity:.35;cursor:default}
+.stf .cpr b{min-width:1.2em;text-align:center;font-size:15px}
+.stf .cpr.off{opacity:.45}
 .stf .del{flex:none;font:inherit;font-size:11px;padding:4px 6px;border-radius:6px;border:1px solid var(--line);background:var(--paper);color:var(--sub);cursor:pointer}
 .stf .del.armed{background:var(--danger);border-color:var(--danger);color:#fff}
 .mg{display:grid;grid-template-columns:24px repeat(6,minmax(0,1fr));grid-auto-rows:auto;gap:2px}
@@ -166,7 +171,8 @@ table.ln td.z{color:#c3c8c5}
   table.ox .rc{display:flex;justify-content:space-between;align-items:center;padding:0 2pt;white-space:nowrap}
   table.ox .rc .mk{display:flex;align-items:center;justify-content:center;width:11pt;height:11pt}
   table.ox .rc .mk svg{width:11pt;height:11pt}
-  .sc .sm{display:inline-flex;margin-left:1.5mm} .sc .sm svg{width:3.6mm;height:3.6mm}
+  .sc .sm{display:inline-flex;margin-left:.6mm} .sc .sm svg{width:2.8mm;height:2.8mm}
+  .sc{white-space:nowrap;overflow:hidden;letter-spacing:-.2pt}
   table.ox tr.h2{height:38.4pt} table.ox tr.h2 td{height:38.4pt}
   table.ox tr.h39{height:39pt} table.ox tr.h39 td{height:39pt}
   .pg1{padding:9mm 0 0 7.8mm}
@@ -184,7 +190,9 @@ table.ln td.z{color:#c3c8c5}
   .sgp{grid-column:1/-1;height:1.2mm}
   .sc{border:.25mm dotted #aaa;margin:0 -.25mm -.25mm 0;display:flex;align-items:center;justify-content:center;font-size:10.5pt;font-weight:700;
     -webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .sc.g{background:#d6d6d6;border:.3mm solid #000;position:relative;z-index:1}
+  .sc.g{background:#c8c8c8;border:.6mm solid #000;position:relative;z-index:1;font-weight:800;font-size:9.5pt}
+  .sc.ot{font-weight:400;color:#888;font-size:8.5pt}
+  .sc.ot .sm svg{opacity:.5}
   .sc .ci{border:.8pt solid #000;border-radius:50%;padding:0 2pt;line-height:1.15}
   .sl{font-size:8pt;line-height:1.3;min-height:1.3em}
   .slg{font-size:7pt;color:#333}
@@ -226,7 +234,7 @@ table.ln td.z{color:#c3c8c5}
 
   <div class="floors" id="floors"></div>
   <div class="staffwrap">
-    <div class="staffhead"><h3>メイクスタッフ用</h3><button type="button" id="addStaff">＋スタッフ追加</button><button type="button" id="autoAs">自動割当</button><button type="button" id="clrAs">割当クリア</button><span class="un" id="unas"></span></div>
+    <div class="staffhead"><h3>メイクスタッフ用</h3><button type="button" id="addStaff">＋スタッフ追加</button><button type="button" id="autoAs">自動割当</button><button type="button" id="clrAs">割当クリア</button><span class="un" id="unas"></span><span class="un" id="cpTot"></span></div>
     <div class="staffs" id="staffs"></div>
   </div>
 
@@ -352,9 +360,11 @@ function buildStaffs(){
   const w=document.getElementById("staffs");w.innerHTML="";
   sheets.forEach((sh,i)=>{const k=i+1;
     const d=document.createElement("div");d.className="stf";d.style.borderTopColor=SHEETC[i];
-    d.innerHTML=`<div class="top"><span class="kn" style="background:${SHEETC[i]}">${k}</span><input maxlength="12" aria-label="名前"><button class="del" type="button">削除</button></div><div class="mg"></div><div class="sum"></div>`;
+    d.innerHTML=`<div class="top"><span class="kn" style="background:${SHEETC[i]}">${k}</span><input maxlength="12" aria-label="名前"><button class="del" type="button">削除</button></div><div class="mg"></div><div class="sum"></div><div class="cpr">印刷 <button class="cm" type="button" aria-label="減らす">−</button><b class="cv"></b>枚 <button class="cpp" type="button" aria-label="増やす">＋</button></div>`;
     const inp=d.querySelector("input");inp.value=sh.name;
     inp.addEventListener("input",()=>{sh.name=inp.value;save();renderPrint();});
+    d.querySelector(".cm").addEventListener("click",()=>{const v=cpOf(sh);if(v>0){sh.cp=v-1;save();render();}});
+    d.querySelector(".cpp").addEventListener("click",()=>{if(cpTotal()>=6)return;sh.cp=cpOf(sh)+1;save();render();});
     const del=d.querySelector(".del");let t=null;
     del.addEventListener("click",()=>{
       if(!del.classList.contains("armed")){del.classList.add("armed");del.textContent="もう一度";t=setTimeout(()=>{del.classList.remove("armed");del.textContent="削除";},4000);return;}
@@ -420,6 +430,9 @@ function autoAssign(){
   }
   best.forEach((a,k)=>a.forEach(no=>{assign[no]=k+1;auto[no]=true;}));
 }
+// 印刷枚数（A4の6マスに入る数）：部屋が割り当てられた人だけ数える。初期値1
+const cpOf=sh=>sh.cp==null?1:sh.cp;
+function cpTotal(){return sheets.reduce((a,sh,i)=>a+(staffStat(i+1).rooms?cpOf(sh):0),0);}
 function renderStaffs(){
   document.querySelectorAll(".stf").forEach((d,i)=>{const k=i+1;
     d.querySelectorAll(".mc[data-no]").forEach(b=>{const no=b.dataset.no,cl=isClean(no),a=assign[no];
@@ -429,6 +442,14 @@ function renderStaffs(){
     const st=staffStat(k);
     d.querySelector(".sum").innerHTML=`<b>${st.rooms}室・${st.beds} Bed</b>　`+FLOOR_SCREEN.filter(f=>st.fb[f]).map(f=>`${f} ${st.fb[f]}`).join("・");
   });
+  const tot=cpTotal();
+  document.querySelectorAll(".stf").forEach((d,i)=>{const sh=sheets[i],has=staffStat(i+1).rooms>0,v=cpOf(sh);
+    d.querySelector(".cv").textContent=has?v:0;
+    d.querySelector(".cpr").classList.toggle("off",!has);
+    d.querySelector(".cm").disabled=!has||v<=0;
+    d.querySelector(".cpp").disabled=!has||tot>=6;});
+  const pc=document.getElementById("cpTot");
+  if(pc){pc.textContent=sheets.length?`印刷マス ${Math.min(tot,6)}/6`+(tot>6?"（多すぎ：6マスまで印刷）":""):"";pc.className="un"+(tot>6?" bad":"");}
   const un=ROOMS.filter(([no])=>isClean(no)&&!(assign[no]&&sheets[assign[no]-1])).length;
   const u=document.getElementById("unas");
   u.textContent=sheets.length?`未割当 ${un}室`:"";u.className="un"+(un&&sheets.length?" bad":"");
@@ -533,8 +554,8 @@ function origTable(c,o){ // o:{show:fn(no), who:string, main:bool}
     R([0,1,2,3,4,5].map(i=>room(f,i)).concat([E,s1]));
     R([6,7,8,9,10,11].map(i=>room(f,i)).concat([E,s2]));
   };
-  pair("4F",M?box(""):E,M?box(c[""]):E);
-  R([E,E,E,E,E,E,E,M?box("空き室"):E]);
+  pair("4F",M?box("連泊"):E,M?box(c[""]):E);
+  R([E,E,E,E,E,E,E,M?box("空室"):E]);
   R([fl("3F","3F"),E,E,E,E,E,E,M?box(c.vac):E]);
   pair("3F",E,E);
   R([E,E,E,E,E,E,lab("　   ダ"),box(cl.D)]);
@@ -563,13 +584,15 @@ function staffCard(sh,k){
     for(const e of OR[f]){
       if(!e){g+='<div class="sn"></div>';continue;}
       const no=e[0];
-      if(isClean(no)&&assign[no]===k)g+=`<div class="sc g">${no}${state[no]==="sc"?`<span class="sm">${O_SVG}</span>`:""}</div>`;
+      const o=state[no]==="sc"?`<span class="sm">${O_SVG}</span>`:"";
+      if(isClean(no)&&assign[no]===k)g+=`<div class="sc g">${no}${o}</div>`;      // 自分の担当：グレー＋太枠＋太字
+      else if(isClean(no))g+=`<div class="sc ot">${no}${o}</div>`;            // ほかの人の清掃：細い文字だけ
       else g+='<div class="sc"></div>';
     }
   });
   const ln=ITEMS.filter(i=>st.ln[i[0]]).map(i=>`${i[1]} ${st.ln[i[0]]}`).join("・");
   return `<div class="stc"><div class="sh"><b>${sh.name||("スタッフ"+k)}</b><span>${dateVal?L.ja.date(dateVal):""}</span><span class="cnt">${st.rooms}室・${st.beds} Bed</span></div>
-    <div class="sgr">${g}</div><div class="sl">${ln||"&nbsp;"}</div><div class="slg">グレー＝OUT清掃　○＝連泊清掃</div></div>`;
+    <div class="sgr">${g}</div><div class="sl">${ln||"&nbsp;"}</div><div class="slg">グレー太枠＝自分の担当　うすい字＝ほかの人　○＝連泊清掃</div></div>`;
 }
 function page1(c){ // 1ページ目：原本どおり上下2枚
   const x=origTable(c,{show:()=>true,main:true});
@@ -577,7 +600,8 @@ function page1(c){ // 1ページ目：原本どおり上下2枚
   return `<div class="pg1"><table class="ox">${CG}${x}${blank}${x.replace('<tr class="h2">','<tr class="h39">')}</table></div>`;
 }
 function page3(){ // 3ページ目：メイクスタッフ用（最大6枚、2列×3段）
-  const cards=sheets.map((sh,i)=>staffStat(i+1).rooms?staffCard(sh,i+1):"").filter(Boolean);
+  const cards=[];
+  sheets.forEach((sh,i)=>{if(!staffStat(i+1).rooms)return;const c=staffCard(sh,i+1);for(let j=0;j<cpOf(sh);j++)cards.push(c);}); // 人ごとに指定枚数
   if(!cards.length)return "";
   let h="";for(let i=0;i<6;i++)h+=`<div class="sbox">${cards[i]||""}</div>`; // 点線で6マス、各表はマスの真ん中
   return `<div class="p3"><div class="stg">${h}</div></div>`;
@@ -613,7 +637,9 @@ function render(){
 
 load();
 const dEl=document.getElementById("date");
-if(!dateVal||dateVal<tomorrow())dateVal=tomorrow(); // 基本は「明日」
+function today(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+// 前の晩に作った表を翌朝そのまま使えるよう、日付が「今日」以降なら変えない。過去の日付のときだけ「明日」に
+if(!dateVal||dateVal<today())dateVal=tomorrow();
 dEl.value=dateVal;
 dEl.addEventListener("change",()=>{dateVal=dEl.value;save();render();});
 buildScreen();buildStaffs();render();
