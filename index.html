@@ -162,7 +162,10 @@ nav.tabs #btnTms.busy svg{animation:spin 1s linear infinite}
 .pnl h2{margin:0;font-size:20px;letter-spacing:.04em}
 .pnl .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
 .pnl .row label{display:flex;align-items:center;gap:6px}
-#outPrN{font:inherit;font-size:16px;width:4em;text-align:right;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--paper);color:var(--ink)}
+.prrange{display:flex;align-items:center;gap:8px 12px;flex-wrap:wrap}
+.prrange .dr{display:flex;align-items:center;gap:6px;min-width:0}
+.prrange .dr input{min-width:0}
+@media (max-width:600px){.prrange .lb{flex-basis:100%;font-weight:700}.prrange .dr{flex:1 1 100%}.prrange .dr input{flex:1 1 0}.prrange .act{flex:1 1 100%}}
 .outttl{font-size:15px;color:var(--sub);font-weight:600}
 .pnl input[type=date]{font:inherit;font-size:16px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--paper);color:var(--ink)}
 .pnl .act{font:inherit;font-size:15px;padding:9px 16px;border-radius:8px;border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
@@ -545,7 +548,8 @@ table.om td.miss{color:#c3c8c5}
 <div class="panel" id="p-out" hidden><div class="pnl">
   <div class="row"><h2>OUT数</h2>
     <b id="outTitle" class="outttl"></b></div>
-  <div class="row"><label>印刷する日数 <input type="number" id="outPrN" inputmode="numeric" min="1" max="60" value="31"> 日</label>
+  <div class="prrange"><span class="lb">印刷する期間</span>
+    <div class="dr"><input type="date" id="outPrFrom" aria-label="印刷の開始日"><span>〜</span><input type="date" id="outPrTo" aria-label="印刷の終了日"></div>
     <button class="act primary" type="button" id="btnPrintOut">印刷</button></div>
   <p class="note" id="outInfo"></p>
   <div class="box" style="overflow-x:auto;width:fit-content;max-width:100%"><table class="lt om" id="outTable"></table></div>
@@ -1261,10 +1265,17 @@ function outsAny(d){const o=outsOn(d);if(o)return o;const h=X2.hist&&X2.hist[d];
 function outRows(n){const bt=bizToday(),out=[];
   for(let i=0;i<(n||OUT_DAYS);i++){const d=addD(bt,i);out.push({d,o:outsAny(d),f:(X2.fullc[d]||[]).length});}
   return out;}
-function outPrN(){const v=Math.round(+document.getElementById("outPrN").value);return Math.min(OUT_DAYS,Math.max(1,isFinite(v)&&v?v:31));}
+// 印刷する期間（開始日〜終了日）。今日〜60日の中。初期値は今日から31日
+function outPrRange(){const bt=bizToday(),last=addD(bt,OUT_DAYS-1),cl=d=>d<bt?bt:d>last?last:d;
+  const fe=document.getElementById("outPrFrom"),te=document.getElementById("outPrTo");
+  let f=cl(fe.value||(X2.outPr&&X2.outPr.f)||bt),t=cl(te.value||(X2.outPr&&X2.outPr.t)||addD(bt,30));
+  if(t<f)t=f;
+  fe.min=te.min=bt;fe.max=te.max=last;fe.value=f;te.value=t;
+  return {f,t};}
+function outPrRows(){const {f,t}=outPrRange();return outRows().filter(r=>r.d>=f&&r.d<=t);}
 function renderOut(){
   const rows=outRows(),info=document.getElementById("outInfo"),tb=document.getElementById("outTable");
-  const pn=document.getElementById("outPrN");if(X2.outPrN&&document.activeElement!==pn)pn.value=X2.outPrN;
+  outPrRange();
   document.getElementById("outTitle").textContent=`${mdw(rows[0].d)}〜${mdw(rows[rows.length-1].d)}`;
   const miss=rows.filter((r,i)=>i&&!r.o).length; // 今日のOUTは前の日の一覧なので読み直せない。数えない
   info.innerHTML=!miss?"":miss===rows.length-1?"まだ読み込んでいません。右上の「データ更新」で読み込んでください。":"読み込んでいない日があります（―）。右上の「データ更新」で読み込んでください。";
@@ -1286,7 +1297,7 @@ function outGrid(rows,hl,pr){
   return h+"</tbody>";
 }
 function renderOutPrint(){
-  const rows=outRows(outPrN()),el=document.getElementById("printOut");
+  const rows=outPrRows(),el=document.getElementById("printOut");
   if(!rows.length){el.innerHTML="";return;}
   // この期間の日を最後に読んだ時刻
   const ts=rows.map(r=>{const x=X2.tms&&X2.tms.days[addD(r.d,-1)];return x&&x.at||0;}),at=new Date(Math.max(...ts)||(X2.tms?X2.tms.at:Date.now()));
@@ -1295,7 +1306,10 @@ function renderOutPrint(){
   h+=`<table>${outGrid(rows,"",true)}</table>`; // 1日1行。多いときは次のページへ（見出しの行はくり返す）
   el.innerHTML=h+"</div>";
 }
-document.getElementById("outPrN").addEventListener("change",e=>{e.target.value=outPrN();X2.outPrN=outPrN();saveX();});
+for(const id of ["outPrFrom","outPrTo"])document.getElementById(id).addEventListener("change",e=>{
+  const fe=document.getElementById("outPrFrom"),te=document.getElementById("outPrTo");
+  if(fe.value&&te.value&&te.value<fe.value){if(id==="outPrFrom")te.value=fe.value;else fe.value=te.value;} // 終了日が開始日より前にならないように
+  X2.outPr=outPrRange();saveX();});
 
 document.querySelectorAll("nav.tabs .tb").forEach(b=>b.addEventListener("click",()=>showTab(b.dataset.tab)));
 for(const t of TABS){const p=document.getElementById("p-"+t);p.setAttribute("role","tabpanel");p.setAttribute("aria-labelledby","t-"+t);}
@@ -1310,7 +1324,7 @@ document.getElementById("btnPrintOrder").addEventListener("click",()=>{
 document.getElementById("lnHist").addEventListener("change",e=>{if(e.target.id==="lnHistSel"){lnHistSel=e.target.value;renderLnHist();}});
 document.getElementById("lnHist").addEventListener("click",e=>{if(e.target.id!=="lnHistPrint"||!X2.lin[lnHistSel])return;
   renderOrderPrint(lnHistSel);doPrint("order");renderOrderPrint();}); // 保存した版をそのまま印刷（保存し直さない）
-document.getElementById("btnPrintOut").addEventListener("click",()=>{if(!outRows(outPrN()).some(r=>r.o)){alert("まだ読み込んでいません。先に右上の「データ更新」で読み込んでください。");return;}renderOutPrint();doPrint("out");});
+document.getElementById("btnPrintOut").addEventListener("click",()=>{if(!outPrRows().some(r=>r.o)){alert("まだ読み込んでいません。先に右上の「データ更新」で読み込んでください。");return;}renderOutPrint();doPrint("out");});
 
 // =====================================================================
 // クラウド保存（Google スプレッドシート＋Apps Script。cloud/apps-script.gs）
