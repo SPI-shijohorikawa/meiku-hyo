@@ -99,7 +99,7 @@ chrome.runtime.onMessage.addListener((msg, sender, reply) => {
   const from = sender.tab && sender.tab.id;
   const prog = (i, n) => { if (from != null) chrome.tabs.sendMessage(from, { type: "TMS_PROGRESS", i, n }).catch(() => {}); };
   (async () => {
-    const n = Math.max(1, Math.min(40, msg.days || 1));
+    const n = Math.max(1, Math.min(62, msg.days || 1));
     // start＝最初に読む一覧の日（ページが指定。なければ今の夜勤の日）。今日より前は読まない
     const base = (typeof msg.start === "string" && /^\d{4}-\d{2}-\d{2}$/.test(msg.start) && msg.start > bizToday()) ? msg.start : bizToday();
     // 読むためのタブは「最小化したウィンドウ」に開く（画面にChromeが出てこないように）。
