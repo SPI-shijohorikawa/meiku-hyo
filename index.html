@@ -550,7 +550,10 @@ function load(){try{const s=JSON.parse(localStorage.getItem(KEY)||"null");if(s){
 // 過去の日付を見ているあいだ（pastView）は、画面の表＝保存した版。今の表は pastView.live に置いておき、保存・クラウドはそちらを使う
 let pastView=null;
 function liveData(){return pastView?pastView.live:{state,date:dateVal,assign,sheets,auto};}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(liveData()));}catch(e){}cloudKick();}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(liveData()));}catch(e){}
+  // 今日以降の連泊表は日付ごとにも残す（X2.dr）。日付を切り替えたらその日の表を出す
+  if(!pastView&&dateVal){try{X2.dr=X2.dr||{};X2.dr[dateVal]=JSON.parse(JSON.stringify({state,assign,sheets,auto,at:Date.now()}));saveX();return;}catch(e){}}
+  cloudKick();}
 
 const FLOOR_SCREEN=["4F","3F","2F","1F"];
 const isClean=no=>{const x=state[no]||"";return x==="out"||x==="sc";};
@@ -876,13 +879,18 @@ function render(){
 const KEY2="makehyo-shijohorikawa-ext-v1";
 //   hist : {日付:{st:{部屋:"n/N"}, o:[OUTの部屋], n:OUT数}}  TMSのデータから外れた日の連泊・OUT（過去の連泊清掃の表用）
 //   mk   : {日付:{state, assign, sheets, at}}  その日の連泊表を最後に印刷したときの版（過去の日付で見る・印刷する用）
-let X2={tms:null,fullc:{},lin:{},hist:{},mk:{},tab:"make"};
+//   dr   : {日付:{state, assign, sheets, auto, at}}  今日以降の連泊表（日付ごと。作業中の表）
+let X2={tms:null,fullc:{},lin:{},hist:{},mk:{},dr:{},tab:"make"};
 const ymd=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
 const addD=(s,n)=>{const d=new Date(s+"T00:00:00");d.setDate(d.getDate()+n);return ymd(d);};
 const WD="日月火水木金土";
 const wdOf=s=>new Date(s+"T00:00:00").getDay();
 // 夜勤の日（営業日）：0時〜6時は前の日の夜勤として扱う（拡張機能と同じ）
 const bizToday=()=>ymd(new Date(Date.now()-6*3600e3));
+// 画面の日付を自動で変える節目＝日本時間の正午。24日12時前は「24日」、12時からは「25日」
+//   リネン発注：発注日＝jstDay(+12)（中では作った夜＝その前の日）／連泊表：jstDay(+12) の表
+const jstDay=h=>new Date(Date.now()+(9+h)*3600e3).toISOString().slice(0,10);
+const autoDay=()=>jstDay(12);
 // TMSから来た文字をページに入れるときは必ずこれを通す
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const md2=s=>{const a=s.split("-");return `${+a[1]}月${+a[2]}日`;};
@@ -960,8 +968,7 @@ function renderTabs(){
 let lnDateVal="";
 // 流れ：X日の夜勤が発注書を作る → X+1日にドライバーへ渡す → X+2日に納品。
 // だから X+2日のOUT＋連泊清掃で計算し、「X+1日に届く数」＝X−1日の夜に作った発注数。
-function lnDefaultDate(){ // TMS取込から18時間以内ならその日（夜勤の日）、それ以外は今の夜勤の日（0時〜6時は前の日）
-  if(X2.tms&&Date.now()-X2.tms.at<18*3600e3)return X2.tms.base;return bizToday();}
+function lnDefaultDate(){return addD(autoDay(),-1);} // 発注日＝autoDay()。中で持つのは作った夜（その前の日）
 const LN_ITEMS=[ // 発注書の並び。c=定数、u=発注単位、fix=固定の発注数
   {k:"SS",nm:"シーツ　S",u:10,c:70},{k:"SW",nm:"シーツ　W",u:10,c:30},
   {k:"DS",nm:"デュベ　S",u:5,c:70},{k:"DW",nm:"デュベ　W",u:5,c:30},
@@ -1248,8 +1255,8 @@ var CM={pass:CLOUD_PASS,at:{},snap:{}}, cloudReady=false, cloudApplying=false, c
 function cloudLoadMeta(){try{const s=JSON.parse(localStorage.getItem(KEY3)||"null");if(s)CM=Object.assign(CM,s);}catch(e){}CM.at=CM.at||{};CM.snap=CM.snap||{};CM.pass=CLOUD_PASS;}
 function cloudSaveMeta(){try{localStorage.setItem(KEY3,JSON.stringify(CM));}catch(e){}}
 function makeData(){return liveData();}
-const EXT_SECS=["fullc","lin","hist","mk"]; // 日付ごとに重ねる部分
-function extData(){return {tms:X2.tms,fullc:X2.fullc,lin:X2.lin,hist:X2.hist,mk:X2.mk};}
+const EXT_SECS=["fullc","lin","hist","mk","dr"]; // 日付ごとに重ねる部分
+function extData(){return {tms:X2.tms,fullc:X2.fullc,lin:X2.lin,hist:X2.hist,mk:X2.mk,dr:X2.dr};}
 function cloudData(k){return k==="make"?makeData():extData();}
 function snapOf(k,d){
   if(k==="make")return JSON.stringify(d||null);
@@ -1281,7 +1288,7 @@ function cloudAdopt(k,d){
       if(pastView){const L=pastView.live;pastView.live={state:d.state||{},date:d.date||L.date,assign:d.assign||{},sheets:d.sheets||[],auto:d.auto||{}};save();} // 過去の表を見ている間は裏の「今の表」だけ入れかえる
       else{state=d.state||{};if(d.date)dateVal=d.date;assign=d.assign||{};sheets=d.sheets||[];auto=d.auto||{};
         dEl.value=dateVal;save();buildStaffs();}}
-    else{d=d||{};X2.tms=d.tms||null;X2.fullc=d.fullc||{};X2.lin=d.lin||{};X2.hist=d.hist||{};X2.mk=d.mk||{};saveX();if(pastView)showPastBar();}
+    else{d=d||{};X2.tms=d.tms||null;X2.fullc=d.fullc||{};X2.lin=d.lin||{};X2.hist=d.hist||{};X2.mk=d.mk||{};X2.dr=d.dr||{};saveX();if(pastView)showPastBar();}
     render();renderTabs();
   }finally{cloudApplying=false;}}
 async function cloudApi(b){
@@ -1350,13 +1357,29 @@ if(!hadX){ // 初めて：今のメイク表の連泊清掃をカレンダーの
   const sc=ROOMS.map(r=>r[0]).filter(no=>state[no]==="sc");if(sc.length&&dateVal)X2.fullc[dateVal]=sc;saveX();}
 const dEl=document.getElementById("date");
 function today(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
-// 前の晩に作った表を翌朝そのまま使えるよう、日付が「今日」以降なら変えない。過去の日付のときだけ「明日」に
-if(!dateVal||dateVal<today())dateVal=tomorrow();
+// 連泊表の日付：日本時間の正午を過ぎたら次の日の表に自動で切り替える（先の日付を選んでいるときはそのまま）
+X2.dr=X2.dr||{};for(const d in X2.dr)if(d<addD(today(),-3))delete X2.dr[d]; // 過ぎた日の作業中の表は消す（印刷した版は mk に残る）
+const jumpAtStart=!dateVal||dateVal<autoDay();
 dEl.value=dateVal;
+// TMSのデータからその日の表を作る（OUT＝OUT清掃、連泊＝連泊、どちらでもない＝空室）。データがなければ null
+function tmsState(v){const o=outsOn(v),st=staysOn(v);if(!o||!st)return null;
+  const O=new Set(o.rooms),s={};for(const [no] of ROOMS)s[no]=O.has(no)?"out":(no in st)?"":"vac";return s;}
+// 今日以降の日付に切り替える：今の表を残して、その日の表（なければTMSから作る）を出す
+function gotoDate(v){
+  if(pastView)leavePast();
+  if(v===dateVal&&X2.dr[v]){render();return;}
+  if(dateVal)save();
+  const dr=X2.dr[v];let note="";
+  if(dr){const c=JSON.parse(JSON.stringify(dr));state=c.state||{};assign=c.assign||{};sheets=c.sheets||[];auto=c.auto||{};}
+  else{const ts=tmsState(v);sheets=sheets.map(s=>({name:s.name}));assign={};auto={};
+    if(ts)state=ts;else{state={};note=`${mdw(v)}のTMSのデータがまだありません。右上の↻でこの日を読み込んでください。`;}}
+  dateVal=v;dEl.value=v;syncSc();save();buildStaffs();render();renderTabs();
+  const el=document.getElementById("tmsr");
+  if(note){el.innerHTML=`<button class="x" type="button">閉じる</button><b>${note}</b>`;el.hidden=false;el.querySelector(".x").addEventListener("click",()=>{el.hidden=true;});}
+  else el.hidden=true;}
 dEl.addEventListener("change",()=>{const v=dEl.value;if(!v)return;
   if(v<today()){enterPast(v);return;} // 今日より前＝最後に印刷した版を見るだけ
-  if(pastView)leavePast();
-  dateVal=v;save();render();renderTabs();});
+  gotoDate(v);});
 // ---- 過去の日付の連泊表（最後に印刷した版。見る・印刷するだけ）
 const RO_EL=()=>["floors","staffs","addStaff","autoAs","clrAs","btnReset"].map(id=>document.getElementById(id)); // メイクスタッフ用印刷は押せるまま
 function enterPast(d){
@@ -1406,20 +1429,33 @@ function applyTms(t){
   if(t.days)saveTmsDays(t);
   // 連泊表のタブで読んだときだけ連泊表を入れ替える。ほかのタブはデータを入れるだけ
   if(t.mode&&t.mode!=="make"){renderTabs();showTms(t,null);return;}
-  if(!confirm("TMSのデータでメイク表を上書きしますか？\n（OUT清掃・連泊・空室を入れ直します。連泊清掃は連泊清掃タブのカレンダーから入ります）")){renderTabs();showTms(t,false);return;}
+  const nd=addD(t.d,1); // この表の日付（読んだ一覧の次の日）
+  if(!confirm(`${mdw(nd)}の連泊表をTMSのデータで上書きしますか？\n（OUT清掃・連泊・空室を入れ直します。連泊清掃は連泊清掃タブのカレンダーから入ります）`)){renderTabs();showTms(t,false);return;}
+  if(nd!==dateVal){ // 別の日の表：今の表を残して、その日の表（スタッフ・割当）に切り替えてから入れ直す
+    if(dateVal)save();const dr=X2.dr[nd];
+    if(dr){const c=JSON.parse(JSON.stringify(dr));assign=c.assign||{};sheets=c.sheets||[];auto=c.auto||{};}
+    else{sheets=sheets.map(s=>({name:s.name}));assign={};auto={};}
+    buildStaffs();}
   const O=new Set(t.o),S=new Set(t.s);let v=0;state={};
   for(const [no] of ROOMS){if(O.has(no))state[no]="out";else if(S.has(no))state[no]="";else{state[no]="vac";v++;}}
-  dateVal=addD(t.d,1);dEl.value=dateVal;
+  dateVal=nd;dEl.value=dateVal;
   syncSc();
   t.cf=(X2.fullc[dateVal]||[]).filter(no=>state[no]==="out"||state[no]==="vac");
   for(const n in assign)if(!isClean(n)){delete assign[n];delete auto[n];}
   t.v=v;save();render();renderTabs();showTms(t,true);
 }
 // バージョン（変えたら CHANGELOG.md にも書く）。拡張のバージョンは content.js が入れる
-const APP_VER="3.4";
+const APP_VER="3.5";
 (function(){const ev=document.documentElement.dataset.tmsExtVer||(document.documentElement.dataset.tmsExt?"2.2以前":"");
   document.getElementById("ver").textContent=`メイク表 v${APP_VER}　・　TMS拡張 ${ev?"v"+ev:"なし"}`;})();
+if(jumpAtStart)gotoDate(autoDay()); // 部屋のボタンを作ったあとで
 render();showTab(X2.tab);importTms();cloudStart();
+// 開いたまま正午をまたいだら、連泊表・リネン発注の日付を進める（1分ごとに確認）
+let lastAuto=autoDay();
+function autoTick(){const a=autoDay();if(a===lastAuto)return;lastAuto=a;
+  if(!pastView&&dateVal<a)gotoDate(a);
+  lnDateVal="";if(X2.tab==="linen")buildLinen();}
+setInterval(autoTick,60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")autoTick();});
 // 拡張機能（tms-ext）があれば、ボタン1つでTMSから読む
 const bt=document.getElementById("btnTms");
 let tmsBusy=false,tmsTimer=null;
@@ -1433,7 +1469,9 @@ function tmsPlan(){const bt=bizToday(),k=X2.tab;
   if(k==="full")return {mode:k,start:bt,days:32};
   if(k==="out"){const r=outMonthRange();let s=addD(r.first,-1);if(s<bt)s=bt;const e=addD(r.last,-1);
     return {mode:k,start:s,days:Math.max(1,Math.round((new Date(e)-new Date(s))/864e5)+1)};}
-  return {mode:"make",start:bt,days:1};}
+  // 連泊表：今出している日の表を読む（その日の前の日の一覧）。今の夜勤の日より前は読めないので、そのときは明日の表
+  const s=dateVal?addD(dateVal,-1):bt;
+  return {mode:"make",start:s>bt?s:bt,days:1};}
 // 「TMS取込」ボタンは更新アイコン。読込中は回って「n/32」を出す
 const TMS_ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/></svg>';
 function tmsBtn(busy,txt){bt.classList.toggle("busy",!!busy);bt.innerHTML=TMS_ICON+(txt?`<span class="n">${txt}</span>`:"");}
