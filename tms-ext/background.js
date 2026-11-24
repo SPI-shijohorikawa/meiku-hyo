@@ -167,3 +167,66 @@ chrome.runtime.onMessage.addListener((msg, sender, reply) => {
   })();
   return true;
 });
+
+
+// =====================================================================
+// スマホからの「データ更新」の依頼（クラウドの req）を見て、メイク表のページを最小化したウィンドウで開く。
+// ページが TMS を読んでクラウドに保存し、終わったら REMOTE_DONE を送ってくるので閉じる。
+// クラウドの URL・合言葉はメイク表 index.html の CLOUD_URL・CLOUD_PASS と同じ
+const CLOUD_URL = "https://script.google.com/macros/s/AKfycbwWLdz7sfsu1pWZrP-CFFUjjcjVfaLAG9k6g1aZko-OIZW3tJP-EAI0GCBGqXl4lm-KHg/exec";
+const CLOUD_PASS = "9";
+const PAGE = "https://spi-shijohorikawa.github.io/meiku-hyo/";
+async function cloud(b) {
+  const r = await fetch(CLOUD_URL, { method: "POST", body: JSON.stringify(Object.assign({ pass: CLOUD_PASS }, b)) });
+  return r.json();
+}
+function ensureAlarm() {
+  chrome.alarms.get("poll", (a) => { if (!a) chrome.alarms.create("poll", { periodInMinutes: 0.5 }); });
+}
+chrome.runtime.onInstalled.addListener(ensureAlarm);
+chrome.runtime.onStartup.addListener(ensureAlarm);
+ensureAlarm();
+chrome.alarms.onAlarm.addListener((a) => { if (a.name === "poll") poll(); });
+let polling = false;
+async function poll() {
+  if (polling) return;
+  polling = true;
+  try {
+    const st = await chrome.storage.local.get(["reqAt", "doneId", "rmWin", "rmAt"]);
+    if (st.rmWin != null) { // 読んでいる最中。10分たっても終わらなければ閉じる
+      if (Date.now() - (st.rmAt || 0) < 10 * 60e3) return;
+      chrome.windows.remove(st.rmWin).catch(() => {});
+      await chrome.storage.local.remove(["rmWin", "rmAt"]);
+    }
+    const h = await cloud({ action: "head" });
+    if (!h.ok || !h.at || !h.at.req || h.at.req === st.reqAt) return; // 依頼は変わっていない
+    await chrome.storage.local.set({ reqAt: h.at.req });
+    const g = await cloud({ action: "get", keys: ["req"] });
+    const d = g.ok && g.res && g.res.req && g.res.req.data;
+    if (!d || !d.ask) return;
+    const a = d.ask;
+    if (a.id === st.doneId || Date.now() - a.at > 5 * 60e3) return; // もう見た・古い依頼
+    if (d.res && d.res.id === a.id) return; // ほかのパソコンが受けた
+    await chrome.storage.local.set({ doneId: a.id });
+    const url = PAGE + "#remote=" + a.id;
+    let winId = null;
+    try { winId = (await chrome.windows.create({ url, state: "minimized", focused: false })).id; }
+    catch (e) { const t = await chrome.tabs.create({ url, active: false }); winId = t.windowId; await chrome.storage.local.set({ rmTab: t.id }); }
+    await chrome.storage.local.set({ rmWin: winId, rmAt: Date.now() });
+  } catch (e) {
+  } finally { polling = false; }
+}
+chrome.runtime.onMessage.addListener((msg, sender) => {
+  if (!msg || msg.type !== "REMOTE_DONE") return;
+  (async () => {
+    const st = await chrome.storage.local.get(["rmWin", "rmTab"]);
+    const tab = sender.tab;
+    if (tab && st.rmTab != null && tab.id === st.rmTab) chrome.tabs.remove(tab.id).catch(() => {}); // ウィンドウを作れなかったとき（裏のタブ）
+    else if (tab && st.rmWin != null && tab.windowId === st.rmWin) chrome.windows.remove(st.rmWin).catch(() => {});
+    await chrome.storage.local.remove(["rmWin", "rmAt", "rmTab"]);
+  })();
+});
+chrome.windows.onRemoved.addListener(async (id) => {
+  const st = await chrome.storage.local.get(["rmWin"]);
+  if (st.rmWin === id) await chrome.storage.local.remove(["rmWin", "rmAt", "rmTab"]);
+});

@@ -12,7 +12,7 @@ const PASS = "9";
 
 const SHEET = "data";
 const CHUNK = 40000;
-const KEYS = ["make", "ext"]; // make=メイク表、ext=TMS1か月分・フル清掃・リネン発注
+const KEYS = ["make", "ext", "req"]; // make=メイク表、ext=TMSデータ・連泊清掃・リネン発注、req=スマホからパソコンへの「データ更新」の依頼
 
 function sheet_() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
