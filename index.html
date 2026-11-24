@@ -849,7 +849,7 @@ function page2HTML(c){
 }
 function renderPrint(){
   const c=counts();
-  document.getElementById("print").innerHTML=page1(c)+page2HTML(c)+page3();
+  document.getElementById("print").innerHTML=page1(c)+page3(); // 2ページ目（清掃・リネン集計）はユーザーの希望で印刷しない（v3.6）
 }
 function render(){
   syncSc();
@@ -1445,7 +1445,7 @@ function applyTms(t){
   t.v=v;save();render();renderTabs();showTms(t,true);
 }
 // バージョン（変えたら CHANGELOG.md にも書く）。拡張のバージョンは content.js が入れる
-const APP_VER="3.5";
+const APP_VER="3.6";
 (function(){const ev=document.documentElement.dataset.tmsExtVer||(document.documentElement.dataset.tmsExt?"2.2以前":"");
   document.getElementById("ver").textContent=`メイク表 v${APP_VER}　・　TMS拡張 ${ev?"v"+ev:"なし"}`;})();
 if(jumpAtStart)gotoDate(autoDay()); // 部屋のボタンを作ったあとで
