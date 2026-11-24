@@ -386,7 +386,7 @@ table.om td.miss{color:#c3c8c5}
   <button class="tb" type="button" role="tab" id="t-make" aria-controls="p-make" data-tab="make">連泊表</button>
   <button class="tb" type="button" role="tab" id="t-linen" aria-controls="p-linen" data-tab="linen">リネン発注</button>
   <button class="tb" type="button" role="tab" id="t-full" aria-controls="p-full" data-tab="full">連泊清掃カレンダー</button>
-  <button class="tb" type="button" role="tab" id="t-out" aria-controls="p-out" data-tab="out">OUT数（今から1か月分）</button>
+  <button class="tb" type="button" role="tab" id="t-out" aria-controls="p-out" data-tab="out">OUT数（月別）</button>
   <div class="tmsw"><button id="cloudSt" class="cst" type="button" title="クラウド保存"></button><span class="tmsat" id="tmsAt"></span><button id="btnTms" type="button" title="TMS取込" aria-label="TMS取込"></button></div>
 </nav>
 <div class="tmsbar"><div class="tmsr" id="tmsr" hidden></div></div>
@@ -469,7 +469,9 @@ table.om td.miss{color:#c3c8c5}
 
 <!-- ③ 1か月のOUT数 -->
 <div class="panel" id="p-out" hidden><div class="pnl">
-  <div class="row"><h2>OUT数（今から1か月分）</h2><button class="act primary" type="button" id="btnPrintOut">印刷</button></div>
+  <div class="row"><h2>OUT数</h2>
+    <div class="calhd"><button type="button" id="outPrev" aria-label="前の月">‹</button><b id="outTitle"></b><button type="button" id="outNext" aria-label="次の月">›</button></div>
+    <button class="act primary" type="button" id="btnPrintOut">印刷</button></div>
   <p class="note" id="outInfo"></p>
   <div class="box" style="overflow-x:auto;width:fit-content;max-width:100%"><table class="lt om" id="outTable"></table></div>
 </div></div>
@@ -891,18 +893,22 @@ function guessType(t){const s=hank(t);
   if(/トリプル/.test(s)){if(/B/i.test(s))return "TB";if(/A/i.test(s))return "TA";return "";}
   if(/4|フォー|クア|クワ/.test(s))return "Q"; return "";}
 function saveTmsDays(t){
-  // 新しいデータに入らない日（t.d 以前）の連泊・OUTを残しておく（過去の連泊清掃の表に使う）
-  if(X2.tms&&X2.tms.days){X2.hist=X2.hist||{};
-    for(const k in X2.tms.days){const d=addD(k,1);if(d>t.d)continue;const st=staysOn(d),o=outsOn(d);
-      if(st)X2.hist[d]={st,o:o?o.rooms:[],n:o?o.n:0};}}
+  // 読んだ日だけ入れ替える（ほかの日は前に読んだまま残す）。読めなかった日は前のデータを残す
+  const bt=bizToday(),prevDays=(X2.tms&&X2.tms.days)||{};
+  // 今の夜勤の日より前の一覧は消す。その前に連泊・OUTを hist に残す（過去の連泊清掃の表に使う）
+  X2.hist=X2.hist||{};
+  for(const k in prevDays){if(k>=bt)continue;const d=addD(k,1),st=staysOn(d),o=outsOn(d);
+    if(st)X2.hist[d]={st,o:o?o.rooms:[],n:o?o.n:0};}
   const days={};
-  for(const x of t.days)days[x.d]={ok:!!x.ok,rows:(x.rows||[]).map(r=>({r:r.r||"",n:r.n||"",t:r.t||""}))};
+  for(const k in prevDays)if(k>=bt)days[k]=prevDays[k];
+  for(const x of t.days){if(!x.ok&&days[x.d]&&days[x.d].ok)continue;
+    days[x.d]={ok:!!x.ok,at:Date.now(),rows:(x.rows||[]).map(r=>({r:r.r||"",n:r.n||"",t:r.t||""}))};}
   // 部屋が決まっている予約から「プランの[ ]の文字 → 部屋タイプ」を覚える（部屋未割当の予約に使う）
   const cnt={};
   for(const d in days)for(const r of days[d].rows)if(r.r&&TYPE_OF[r.r]&&r.t){(cnt[r.t]=cnt[r.t]||{})[TYPE_OF[r.r]]=(cnt[r.t][TYPE_OF[r.r]]||0)+1;}
   const map={};for(const k in cnt)map[k]=Object.keys(cnt[k]).sort((a,b)=>cnt[k][b]-cnt[k][a])[0];
-  X2.tms={at:Date.now(),base:t.d,days,map};
-  lnDateVal=t.d;
+  X2.tms={at:Date.now(),base:bt,days,map};
+  if(t.mode==="linen")lnDateVal=t.d;else if(t.mode!=="out")lnDateVal="";
   // リネン発注の古い記録を消す（60日より前）。連泊清掃の記録（fullc・hist）はあとで見るので消さない
   const old=addD(today(),-60);
   for(const d in X2.lin)if(d<old)delete X2.lin[d];
@@ -923,7 +929,6 @@ function staysOn(X){const day=X2.tms&&X2.tms.days[addD(X,-1)];if(!day||!day.ok)r
 function dayView(d){const st=staysOn(d);
   if(st){const o=outsOn(d);return {st,o:o?o.rooms:[],n:o?o.n:0};}
   const h=X2.hist&&X2.hist[d];return h?{st:h.st||{},o:h.o||[],n:h.n||0}:null;}
-function tmsRange(){if(!X2.tms)return [];const ds=Object.keys(X2.tms.days).sort();return ds.map(d=>addD(d,1));} // OUTが分かる日
 
 // ---- タブ
 const TABS=["make","linen","full","out"];
@@ -1129,11 +1134,23 @@ document.getElementById("calNext").addEventListener("click",()=>{const [y,m]=cal
 
 
 // ---- ③ OUT数（1か月）
-function outRows(){return tmsRange().map(d=>{const o=outsOn(d);return {d,o,f:(X2.fullc[d]||[]).length};});}
+// 月を選ぶ。今月より前には戻れない（OUTが分かるのは明日から）。先は11か月まで
+let outYM="";
+const curYM=()=>addD(bizToday(),1).slice(0,7);
+function shiftYM(ym,n){const [y,m]=ym.split("-").map(Number);return ymd(new Date(y,m-1+n,1)).slice(0,7);}
+function outMonthRange(){if(!outYM||outYM<curYM())outYM=curYM();const [y,m]=outYM.split("-").map(Number);
+  return {first:ymd(new Date(y,m-1,1)),last:ymd(new Date(y,m,0))};}
+function outRows(){const r=outMonthRange(),from=addD(bizToday(),1),out=[];
+  for(let d=r.first>from?r.first:from;d<=r.last;d=addD(d,1)){const o=outsOn(d);out.push({d,o,f:(X2.fullc[d]||[]).length});}
+  return out;}
 function renderOut(){
   const rows=outRows(),info=document.getElementById("outInfo"),tb=document.getElementById("outTable");
-  if(!rows.length){info.innerHTML='まだTMSのデータがありません。右上の↻で読み込んでください。';tb.innerHTML="";return;}
-  info.innerHTML="";
+  const [y,m]=outYM.split("-").map(Number);
+  document.getElementById("outTitle").textContent=`${y}年${m}月`;
+  document.getElementById("outPrev").disabled=outYM<=curYM();
+  document.getElementById("outNext").disabled=outYM>=shiftYM(curYM(),11);
+  const miss=rows.filter(r=>!r.o).length;
+  info.innerHTML=!rows.length?"":miss===rows.length?`${m}月はまだ読み込んでいません。右上の↻で${m}月のTMSを読みます。`:miss?`読み込んでいない日があります（―）。右上の↻で${m}月をもう一度読みます。`:"";
   tb.innerHTML=outGrid(rows,"",false);
 }
 // 1日1行の表。合計＝OUT＋連泊清掃（OUTの部屋と重なる連泊清掃は数えない）
@@ -1154,12 +1171,16 @@ function outGrid(rows,hl,pr){
 function renderOutPrint(){
   const rows=outRows(),el=document.getElementById("printOut");
   if(!rows.length){el.innerHTML="";return;}
-  const at=new Date(X2.tms.at);
-  let h=`<div class="pout"><div class="hd"><span class="t">OUT数（1か月）</span><span>${mdw(rows[0].d)}〜${mdw(rows[rows.length-1].d)}</span><span class="d">TMS取込 ${at.getMonth()+1}/${at.getDate()} ${String(at.getHours()).padStart(2,"0")}:${String(at.getMinutes()).padStart(2,"0")}</span></div>
+  // この月の日を最後に読んだ時刻
+  const ts=rows.map(r=>{const x=X2.tms&&X2.tms.days[addD(r.d,-1)];return x&&x.at||0;}),at=new Date(Math.max(...ts)||(X2.tms?X2.tms.at:Date.now()));
+  const [y,m]=outYM.split("-").map(Number);
+  let h=`<div class="pout"><div class="hd"><span class="t">OUT数（${y}年${m}月）</span><span>${mdw(rows[0].d)}〜${mdw(rows[rows.length-1].d)}</span><span class="d">TMS取込 ${at.getMonth()+1}/${at.getDate()} ${String(at.getHours()).padStart(2,"0")}:${String(at.getMinutes()).padStart(2,"0")}</span></div>
 `;
   h+=`<table>${outGrid(rows,"",true)}</table>`; // A4縦1枚に1日1行
   el.innerHTML=h+"</div>";
 }
+document.getElementById("outPrev").addEventListener("click",()=>{outYM=shiftYM(outYM,-1);renderOut();});
+document.getElementById("outNext").addEventListener("click",()=>{outYM=shiftYM(outYM,1);renderOut();});
 
 document.querySelectorAll("nav.tabs .tb").forEach(b=>b.addEventListener("click",()=>showTab(b.dataset.tab)));
 for(const t of TABS){const p=document.getElementById("p-"+t);p.setAttribute("role","tabpanel");p.setAttribute("aria-labelledby","t-"+t);}
@@ -1171,7 +1192,7 @@ document.querySelector("nav.tabs").addEventListener("keydown",e=>{ // ←→・H
 document.getElementById("btnPrintOrder").addEventListener("click",()=>{
   if(!lnDateVal)lnDateVal=lnDefaultDate();
   lnPersist(lnDateVal,true);buildLinen();doPrint("order");}); // 印刷したときの発注数を保存（次の日の「届く数」になる）
-document.getElementById("btnPrintOut").addEventListener("click",()=>{if(!outRows().length){alert("先に右上の↻で読み込んでください。");return;}renderOutPrint();doPrint("out");});
+document.getElementById("btnPrintOut").addEventListener("click",()=>{if(!outRows().some(r=>r.o)){alert("この月はまだ読み込んでいません。先に右上の↻で読み込んでください。");return;}renderOutPrint();doPrint("out");});
 
 // =====================================================================
 // クラウド保存（Google スプレッドシート＋Apps Script。cloud/apps-script.gs）
@@ -1330,7 +1351,7 @@ function showTms(t,applied){
   // ふだんは「読み込みました」だけ。直す必要があるときだけ赤で1行足す
   let h=`<button class="x" type="button">閉じる</button><b>読み込みました</b>`;
   if(applied){if(t.cf&&t.cf.length)h+=`<br><span style="color:var(--danger)">連泊清掃の記録があるのにOUT・空室になった部屋：${esc(t.cf.join("、"))}（連泊清掃カレンダーで確認してください）</span>`;}
-  else h+="<br>連泊表は変えていません。";
+  else if(applied===false)h+="<br>連泊表は変えていません。";
   if(t.days){const miss=t.days.filter(x=>!x.ok).map(x=>md(x.d));
     if(miss.length)h+=`<br><span style="color:var(--danger)">読めなかった日：${miss.join("、")}（もう一度読み込んでください）</span>`;}
   else h+=`<br><span style="color:var(--danger)">拡張機能が古いので、1か月分（リネン発注・OUT数）は読めませんでした。拡張機能を新しくして、chrome://extensions で「再読み込み」してください。</span>`;
@@ -1345,6 +1366,8 @@ function importTms(){
 function applyTms(t){
   if(pastView)leavePast(); // 過去の表を見ていたら、今の表に戻してから
   if(t.days)saveTmsDays(t);
+  // 連泊表のタブで読んだときだけ連泊表を入れ替える。ほかのタブはデータを入れるだけ
+  if(t.mode&&t.mode!=="make"){renderTabs();showTms(t,null);return;}
   if(!confirm("TMSのデータでメイク表を上書きしますか？\n（OUT清掃・連泊・空室を入れ直します。連泊清掃は連泊清掃タブのカレンダーから入ります）")){renderTabs();showTms(t,false);return;}
   const O=new Set(t.o),S=new Set(t.s);let v=0;state={};
   for(const [no] of ROOMS){if(O.has(no))state[no]="out";else if(S.has(no))state[no]="";else{state[no]="vac";v++;}}
@@ -1355,7 +1378,7 @@ function applyTms(t){
   t.v=v;save();render();renderTabs();showTms(t,true);
 }
 // バージョン（変えたら CHANGELOG.md にも書く）。拡張のバージョンは content.js が入れる
-const APP_VER="3.2";
+const APP_VER="3.3";
 (function(){const ev=document.documentElement.dataset.tmsExtVer||(document.documentElement.dataset.tmsExt?"2.2以前":"");
   document.getElementById("ver").textContent=`メイク表 v${APP_VER}　・　TMS拡張 ${ev?"v"+ev:"なし"}`;})();
 render();showTab(X2.tab);importTms();cloudStart();
@@ -1363,7 +1386,16 @@ render();showTab(X2.tab);importTms();cloudStart();
 const bt=document.getElementById("btnTms");
 let tmsBusy=false,tmsTimer=null;
 const TMS_FAIL="TMSから読み込めませんでした。\nChromeでTMSにログインしてから、もう一度右上の↻を押してください。";
-const TMS_DAYS=32; // 今日〜31日後の一覧 → 明日〜32日後のOUT
+// 読む日数はタブで変える（一覧の日 k を読むと k+1 のOUTが分かる）
+//   連泊表：明日の表だけ → 1日 ／ リネン発注：納品日（作る夜＋2）のOUT → 作る夜から2日
+//   連泊清掃カレンダー：先の連泊 → 32日 ／ OUT数：選んだ月（今月なら明日から）
+let tmsMode="make";
+function tmsPlan(){const bt=bizToday(),k=X2.tab;
+  if(k==="linen")return {mode:k,start:lnDateVal||lnDefaultDate(),days:2};
+  if(k==="full")return {mode:k,start:bt,days:32};
+  if(k==="out"){const r=outMonthRange();let s=addD(r.first,-1);if(s<bt)s=bt;const e=addD(r.last,-1);
+    return {mode:k,start:s,days:Math.max(1,Math.round((new Date(e)-new Date(s))/864e5)+1)};}
+  return {mode:"make",start:bt,days:1};}
 // 「TMS取込」ボタンは更新アイコン。読込中は回って「n/32」を出す
 const TMS_ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/></svg>';
 function tmsBtn(busy,txt){bt.classList.toggle("busy",!!busy);bt.innerHTML=TMS_ICON+(txt?`<span class="n">${txt}</span>`:"");}
@@ -1376,13 +1408,16 @@ window.addEventListener("message",e=>{
   if(e.data.type!=="MAKEHYO_TMS_RES")return;
   tmsDone();
   const r=e.data.res||{};
-  if(r.ok)applyTms(r.data);
+  if(r.ok){r.data.mode=tmsMode;applyTms(r.data);}
   else alert(TMS_FAIL);
 });
 bt.addEventListener("click",()=>{
   if(!document.documentElement.dataset.tmsExt){alert(TMS_FAIL);return;}
-  if(tmsBusy)return;tmsBusy=true;bt.disabled=true;tmsBtn(true);
-  window.postMessage({type:"MAKEHYO_TMS_REQ",days:TMS_DAYS},"*");
+  if(tmsBusy)return;
+  const p=tmsPlan(),ev=parseFloat(document.documentElement.dataset.tmsExtVer||"0");
+  if(p.start>bizToday()&&!(ev>=2.5)){alert("拡張機能が古いので、この日付からは読めません。\nchrome://extensions で「メイク表 TMS取込」の「再読み込み」を押してください（v2.5以上）。");return;}
+  tmsMode=p.mode;tmsBusy=true;bt.disabled=true;tmsBtn(true);
+  window.postMessage({type:"MAKEHYO_TMS_REQ",days:p.days,start:p.start},"*");
   tmsArm();
 });
 window.addEventListener("hashchange",importTms);
