@@ -596,6 +596,16 @@ const TOTAL=ROOMS.length; // 42
 const NEXT={"":"out",out:"sc",sc:"vac",vac:""};
 const LABEL={"":"連泊",out:"OUT清掃",sc:"連泊清掃",vac:"空室"};
 const KEY="makehyo-shijohorikawa-v3";
+// 同じ端末で2つ以上このページを開いているとき（古いタブ・別のウィンドウ）、古い方が自分の古いデータで上書きしないようにする。
+// 書くたびに REVK に印を残す。ほかのタブが書いた印に変わっていたら、書かずにページを読み直す
+var REVK="makehyo-shijohorikawa-rev",myRev="",staleR=false;
+try{myRev=localStorage.getItem(REVK)||"";}catch(e){}
+function staleReload(){if(staleR)return;staleR=true;location.reload();}
+function lsOk(){if(staleR)return false;try{if((localStorage.getItem(REVK)||"")!==myRev){staleReload();return false;}}catch(e){}return true;}
+function lsBump(){myRev=Date.now().toString(36)+Math.random().toString(36).slice(2,6);try{localStorage.setItem(REVK,myRev);}catch(e){}}
+window.addEventListener("storage",e=>{ // ほかのタブが保存した：見ているタブなら読み直す（入力中なら次に書くときに）
+  if(e.key!==REVK||e.newValue===myRev||document.hidden)return;
+  const a=document.activeElement;if(!(a&&(a.tagName==="INPUT"||a.tagName==="TEXTAREA")))staleReload();});
 let state={}, dateVal="", assign={}, sheets=[], auto={}; // auto:{部屋:true} 自動割当で入った部屋 // assign:{部屋:スタッフ番号(1〜)} sheets:[{name}]
 const SHEETC=["#2f6fb0","#c4416e","#23845f","#b8741a","#7a4bb0","#0e8a9a"];
 const BEDS={D:1,W:2,TA:3,TB:3,Q:4};
@@ -606,7 +616,7 @@ function load(){try{const s=JSON.parse(localStorage.getItem(KEY)||"null");if(s){
 // 過去の日付を見ているあいだ（pastView）は、画面の表＝保存した版。今の表は pastView.live に置いておき、保存・クラウドはそちらを使う
 let pastView=null;
 function liveData(){return pastView?pastView.live:{state,date:dateVal,assign,sheets,auto};}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(liveData()));}catch(e){}
+function save(){if(!lsOk())return;try{localStorage.setItem(KEY,JSON.stringify(liveData()));lsBump();}catch(e){}
   // 今日以降の連泊表は日付ごとにも残す（X2.dr）。日付を切り替えたらその日の表を出す
   if(!pastView&&dateVal){try{X2.dr=X2.dr||{};X2.dr[dateVal]=JSON.parse(JSON.stringify({state,assign,sheets,auto,at:Date.now()}));saveX();return;}catch(e){}}
   cloudKick();}
@@ -953,7 +963,7 @@ const mdS=s=>{const a=s.split("-");return `${+a[1]}/${+a[2]}`;};
 const md2=s=>{const a=s.split("-");return `${+a[1]}月${+a[2]}日`;};
 const mdw=s=>md2(s)+`（${WD[wdOf(s)]}）`;
 function loadX(){let had=false;try{const s=JSON.parse(localStorage.getItem(KEY2)||"null");if(s){X2=Object.assign(X2,s);had=true;}}catch(e){}return had;}
-function saveX(){try{localStorage.setItem(KEY2,JSON.stringify(X2));}catch(e){}cloudKick();}
+function saveX(){if(!lsOk())return;try{localStorage.setItem(KEY2,JSON.stringify(X2));lsBump();}catch(e){}cloudKick();}
 function fcSet(d,no,on){const a=new Set(X2.fullc[d]||[]);if(on)a.add(no);else a.delete(no);
   if(a.size)X2.fullc[d]=ROOMS.map(r=>r[0]).filter(n=>a.has(n));else delete X2.fullc[d];saveX();}
 // メイク表の「連泊清掃」＝その日の連泊清掃の記録（連泊の部屋だけ。OUT・空室はそのまま）
@@ -1310,10 +1320,10 @@ var KEY3="makehyo-cloud-v1";
 var CLOUD_PASS="9"; // 合言葉（Apps Script の PASS と同じにする）。入力しなくても最初からこれを使う
 var CM={pass:CLOUD_PASS,at:{},snap:{}}, cloudReady=false, cloudApplying=false, cloudBusy=false, cloudAgain=false, cloudT=null, cloudErr="", cloudLast=0;
 function cloudLoadMeta(){try{const s=JSON.parse(localStorage.getItem(KEY3)||"null");if(s)CM=Object.assign(CM,s);}catch(e){}CM.at=CM.at||{};CM.snap=CM.snap||{};CM.pass=CLOUD_PASS;}
-function cloudSaveMeta(){try{localStorage.setItem(KEY3,JSON.stringify(CM));}catch(e){}}
+function cloudSaveMeta(){if(!lsOk())return;try{localStorage.setItem(KEY3,JSON.stringify(CM));lsBump();}catch(e){}}
 function makeData(){return liveData();}
 const EXT_SECS=["fullc","lin","hist","mk","dr"]; // 日付ごとに重ねる部分
-function extData(){return {tms:X2.tms,fullc:X2.fullc,lin:X2.lin,hist:X2.hist,mk:X2.mk,dr:X2.dr};}
+function extData(){return {v:APP_VER,tms:X2.tms,fullc:X2.fullc,lin:X2.lin,hist:X2.hist,mk:X2.mk,dr:X2.dr};}
 function cloudData(k){return k==="make"?makeData():extData();}
 function snapOf(k,d){
   if(k==="make")return JSON.stringify(d||null);
@@ -1328,6 +1338,22 @@ function cloudDirty(k){
   for(const sec of EXT_SECS){const ks=new Set(Object.keys(now[sec]).concat(Object.keys(old[sec]||{})));
     for(const x of ks)if(now[sec][x]!==(old[sec]||{})[x])return true;}
   return false;}
+// リネン発注の1日分を重ねる。c=クラウド、l=この端末、s=前回そろえたとき（なし＝初めて）。
+// この端末で変えた欄だけ上書きする。日ごと消すことはしない。印刷した発注書（snap）は新しい方
+function mergeLin(c,l,s){
+  if(!l)return c;if(!c)return JSON.parse(JSON.stringify(l));
+  const r=JSON.parse(JSON.stringify(c)),js=v=>JSON.stringify(v);
+  const fs=new Set(Object.keys(l).concat(s?Object.keys(s):[]));
+  for(const f of fs){
+    if(f==="snap"||f==="printed")continue;
+    const lv=l[f],sv=s?s[f]:undefined;
+    if(lv&&typeof lv==="object"){r[f]=(r[f]&&typeof r[f]==="object")?r[f]:{};
+      for(const k of new Set(Object.keys(lv).concat(sv&&typeof sv==="object"?Object.keys(sv):[]))){
+        const a=lv[k],b=sv&&typeof sv==="object"?sv[k]:undefined;
+        if(s?js(a)!==js(b):r[f][k]===undefined){if(a===undefined)delete r[f][k];else r[f][k]=a;}}}
+    else if(s?js(lv)!==js(sv):r[f]===undefined){if(lv===undefined)delete r[f];else r[f]=lv;}}
+  if(l.snap&&(!r.snap||l.snap.at>r.snap.at)){r.snap=l.snap;r.printed=l.printed;}
+  return r;}
 // cloud にこの端末の変更を重ねる。snap=前回そろえたときの形（なし＝初めて：cloudにない日だけ足す）
 function mergeExt(cloud,local,snap){
   const m=JSON.parse(JSON.stringify(cloud||{}));for(const sec of EXT_SECS)m[sec]=m[sec]||{};m.tms=m.tms||null;
@@ -1335,6 +1361,9 @@ function mergeExt(cloud,local,snap){
   for(const sec of EXT_SECS){const L=local[sec]||{},S=snap?(snap[sec]||{}):null;
     const ks=new Set(Object.keys(L).concat(S?Object.keys(S):[]));
     for(const x of ks){const lj=L[x]===undefined?undefined:JSON.stringify(L[x]);
+      if(sec==="lin"){ // リネン発注は日ごと・欄ごとに重ねる（ほかの端末の在庫・印刷した発注書を消さない）
+        if(S&&lj===S[x])continue;
+        m.lin[x]=mergeLin(m.lin[x],L[x],S&&S[x]?JSON.parse(S[x]):null);continue;}
       if(S){if(lj!==S[x]){if(lj===undefined)delete m[sec][x];else m[sec][x]=JSON.parse(lj);}}
       else if(m[sec][x]===undefined&&lj!==undefined)m[sec][x]=JSON.parse(lj);}}
   return m;}
@@ -1368,8 +1397,14 @@ async function cloudPush(k){
     if(r.ok){CM.at[k]=r.at;CM.snap[k]=sn;cloudSaveMeta();continue;}
     if(r.error==="conflict"){cloudRemote(k,r.at,r.data);continue;}
     throw new Error(r.error||"put");}}
+const verGt=(a,b)=>{const x=String(a).split(".").map(Number),y=String(b).split(".").map(Number);
+  for(let i=0;i<Math.max(x.length,y.length);i++){if((x[i]||0)!==(y[i]||0))return (x[i]||0)>(y[i]||0);}return false;};
+function newerReload(v){ // 新しい版のページを読み直す（同じ版で何度も読み直さない）
+  try{if(sessionStorage.getItem("makehyo-reload-v")===String(v))return false;sessionStorage.setItem("makehyo-reload-v",String(v));}catch(e){return false;}
+  staleR=true;location.reload();return true;}
 async function cloudSync(){
   if(!CM.pass){cloudShow();return;}
+  if(!lsOk())return;
   if(cloudBusy){cloudAgain=true;return;}
   cloudBusy=true;cloudErr="";cloudShow("busy");
   try{
@@ -1377,6 +1412,8 @@ async function cloudSync(){
     if(!h.ok)throw new Error(h.error||"head");
     const need=["make","ext"].filter(k=>h.at[k]&&h.at[k]!==CM.at[k]);
     if(need.length){const g=await cloudApi({action:"get",keys:need});if(!g.ok)throw new Error(g.error||"get");
+      const ev=g.res.ext&&g.res.ext.data&&g.res.ext.data.v;
+      if(ev&&verGt(ev,APP_VER)&&newerReload(ev)){cloudBusy=false;return;} // ほかの端末が新しい版：古いページのまま書かない
       for(const k of need)cloudRemote(k,g.res[k].at,g.res[k].data);}
     for(const k of ["make","ext"])await cloudPush(k);
     cloudLast=Date.now();
@@ -1502,7 +1539,7 @@ function applyTms(t){
   t.v=v;save();render();renderTabs();showTms(t,true);
 }
 // バージョン（変えたら CHANGELOG.md にも書く）。拡張のバージョンは content.js が入れる
-const APP_VER="3.8";
+const APP_VER="3.9";
 (function(){const ev=document.documentElement.dataset.tmsExtVer||(document.documentElement.dataset.tmsExt?"2.2以前":"");
   document.getElementById("ver").textContent=`メイク表 v${APP_VER}　・　TMS拡張 ${ev?"v"+ev:"なし"}`;})();
 if(jumpAtStart)gotoDate(autoDay()); // 部屋のボタンを作ったあとで
