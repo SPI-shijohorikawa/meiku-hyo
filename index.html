@@ -286,20 +286,22 @@ table.om td.miss{color:#c3c8c5}
   .cal .dy .oc small{font-size:8px;margin-right:1px}
   .cal .dy .fc{font-size:11.5px;padding:1px 3px;word-spacing:0}
 }
-/* リネン発注表：狭いときは1品目ずつ縦に（ラベルを各欄の上に） */
+/* リネン発注表：狭いときは1品目ずつ。名前／必要数／納品・在庫・発注数 の3行（計算の列は出さない） */
 @container lnw (width < 520px){
   #lnTable,#lnTable tbody{display:block}
   #lnTable thead{display:none}
-  #lnTable tr{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px 10px;padding:10px 0;border-bottom:1px solid #eceeed}
+  #lnTable tr{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px 10px;padding:10px 0;border-bottom:1px solid #eceeed;align-items:end}
   #lnTable tr:last-child{border-bottom:0}
   #lnTable td{display:block;padding:0;border:0;text-align:left;white-space:normal;min-width:0}
-  #lnTable td.nil{display:none}
+  #lnTable td.nil,#lnTable td[data-calc]{display:none}
   #lnTable td:first-child{grid-column:1/-1;font-size:16px;font-weight:700}
   #lnTable td:first-child small.sub{display:inline;margin-left:8px}
   #lnTable td[data-l]::before{content:attr(data-l);display:block;font-size:11.5px;font-weight:600;color:var(--sub);margin-bottom:2px}
+  #lnTable td[data-need]{grid-column:1/-1;display:flex;align-items:baseline;gap:8px;font-size:16px}
+  #lnTable td[data-need]::before{display:inline;margin:0;font-size:12.5px}
+  #lnTable td.fx{grid-column:1/3;padding-bottom:6px}
   #lnTable td.ord{grid-column:3}
-  #lnTable input{width:100%;max-width:6em}
-  #lnTable td.ord input{width:calc(100% - 34px)}
+  #lnTable input{width:4.2em}
 }
 /* ---------- 印刷用（白黒プリンター前提） ---------- */
 .print{display:none}
@@ -947,6 +949,7 @@ const jstDay=h=>new Date(Date.now()+(9+h)*3600e3).toISOString().slice(0,10);
 const autoDay=()=>jstDay(12);
 // TMSから来た文字をページに入れるときは必ずこれを通す
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const mdS=s=>{const a=s.split("-");return `${+a[1]}/${+a[2]}`;};
 const md2=s=>{const a=s.split("-");return `${+a[1]}月${+a[2]}日`;};
 const mdw=s=>md2(s)+`（${WD[wdOf(s)]}）`;
 function loadX(){let had=false;try{const s=JSON.parse(localStorage.getItem(KEY2)||"null");if(s){X2=Object.assign(X2,s);had=true;}}catch(e){}return had;}
@@ -1080,11 +1083,11 @@ function buildLinen(){
   h+=`<tr class="sum"><td>合計</td><td id="lnTypSum"></td></tr></tbody>`;
   document.getElementById("lnTypes").innerHTML=h;
   // 発注数
-  h=`<thead><tr><th>種類</th><th>${md2(c.T)}<br>に必要</th><th>${md2(X1)}<br>に届く</th><th>カウント</th><th>計算</th><th>発注数</th></tr></thead><tbody>`;
+  h=`<thead><tr><th>種類</th><th>${md2(c.T)}<br>に必要</th><th>${md2(X1)}<br>納品</th><th>在庫</th><th>計算</th><th>発注数</th></tr></thead><tbody>`;
   for(const r of c.rows){const k=r.it.k;
-    h+=`<tr><td>${r.it.nm}<small class="sub">${r.it.u}枚単位</small></td><td data-need="${k}" data-l="${md2(c.T)}に必要"></td>`;
-    if(r.it.fix!=null)h+=`<td class="nil"></td><td class="nil"></td><td>${k==="WP"?`<span class="seg"><button type="button" data-wipe="40">40</button><button type="button" data-wipe="20">20</button></span>`:"固定"}</td>`;
-    else h+=`<td data-l="${md2(X1)}に届く"><input type="number" inputmode="numeric" min="0" data-g="come" data-k="${k}"></td><td data-l="カウント"><input type="number" inputmode="numeric" min="0" data-g="cnt" data-k="${k}"></td><td data-calc="${k}" data-l="計算"></td>`;
+    h+=`<tr><td>${r.it.nm}<small class="sub">${r.it.u}枚単位</small></td><td data-need="${k}" data-l="${mdS(c.T)}に必要数"></td>`;
+    if(r.it.fix!=null)h+=`<td class="nil"></td><td class="nil"></td><td class="fx">${k==="WP"?`<span class="seg"><button type="button" data-wipe="40">40</button><button type="button" data-wipe="20">20</button></span>`:"固定"}</td>`;
+    else h+=`<td data-l="${mdS(X1)}納品"><input type="number" inputmode="numeric" min="0" data-g="come" data-k="${k}"></td><td data-l="在庫"><input type="number" inputmode="numeric" min="0" data-g="cnt" data-k="${k}"></td><td data-calc="${k}" data-l="計算"></td>`;
     h+=`<td class="ord" data-l="発注数"><input type="number" inputmode="numeric" min="0" step="${r.it.u}" data-g="ov" data-k="${k}"><button class="rs" type="button" data-g="ov" data-k="${k}" hidden>↺</button></td></tr>`;}
   h+="</tbody>";
   document.getElementById("lnTable").innerHTML=h;
@@ -1129,7 +1132,7 @@ function updLinen(all,persist){ // 入力中の欄はさわらずに数字だけ
       setIn("come",k,r.come,r.comeAuto?"auto":"");
       setIn("cnt",k,r.cnt,"");
       const cc=document.querySelector(`#p-linen [data-calc="${k}"]`);
-      if(cc)cc.innerHTML=r.calc==null?'<span class="bad">カウント未入力</span>':r.calc;
+      if(cc)cc.innerHTML=r.calc==null?'<span class="bad">在庫未入力</span>':r.calc;
     }
     setIn("ov",k,r.ord,r.ov?"ov":"");}
   document.querySelectorAll("#p-linen [data-wipe]").forEach(b=>b.classList.toggle("on",+b.dataset.wipe===c.wipe));
@@ -1499,7 +1502,7 @@ function applyTms(t){
   t.v=v;save();render();renderTabs();showTms(t,true);
 }
 // バージョン（変えたら CHANGELOG.md にも書く）。拡張のバージョンは content.js が入れる
-const APP_VER="3.7";
+const APP_VER="3.8";
 (function(){const ev=document.documentElement.dataset.tmsExtVer||(document.documentElement.dataset.tmsExt?"2.2以前":"");
   document.getElementById("ver").textContent=`メイク表 v${APP_VER}　・　TMS拡張 ${ev?"v"+ev:"なし"}`;})();
 if(jumpAtStart)gotoDate(autoDay()); // 部屋のボタンを作ったあとで
