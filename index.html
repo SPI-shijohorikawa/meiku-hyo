@@ -165,7 +165,14 @@ nav.tabs #btnTms.busy svg{animation:spin 1s linear infinite}
 .pnl .act{font:inherit;font-size:15px;padding:9px 16px;border-radius:8px;border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
 .pnl .act.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
 .two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:12px;align-items:start}
-#p-linen .two{grid-template-columns:auto minmax(0,auto);justify-content:start}
+#p-linen .two{grid-template-columns:auto minmax(0,auto) minmax(300px,1fr);justify-content:start}
+#lnHist select{font:inherit;font-size:15px;width:100%;padding:7px 8px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink)}
+#lnHist .hmeta{margin:10px 0 4px;font-size:14px}
+#lnHist .hnone{color:var(--sub);font-size:14px;margin:6px 0}
+#lnHist table.hist{font-size:14px}
+#lnHist table.hist td.ord{font-size:16px;font-weight:800}
+#lnHist .act{margin-top:12px;width:100%;border:1px solid var(--accent);color:var(--accent);background:var(--paper);font-weight:700}
+@media (max-width:1300px){#p-linen .two{grid-template-columns:auto minmax(0,auto)} #p-linen .hbox{grid-column:1/-1;max-width:560px}}
 #lnTable{width:auto}
 #lnTable th,#lnTable td{padding:5px 9px}
 @media (max-width:900px){.two,#p-linen .two{grid-template-columns:minmax(0,1fr)}}
@@ -454,6 +461,10 @@ table.om td.miss{color:#c3c8c5}
     <div class="box">
       <h3>発注数</h3>
       <div style="overflow-x:auto"><table class="lt" id="lnTable"></table></div>
+    </div>
+    <div class="box hbox">
+      <h3>発注履歴</h3>
+      <div id="lnHist"></div>
     </div>
   </div>
 </div></div>
@@ -911,7 +922,7 @@ function saveTmsDays(t){
   if(t.mode==="linen")lnDateVal=t.d;else if(t.mode!=="out")lnDateVal="";
   // リネン発注の古い記録を消す（60日より前）。連泊清掃の記録（fullc・hist）はあとで見るので消さない
   const old=addD(today(),-60);
-  for(const d in X2.lin)if(d<old)delete X2.lin[d];
+  for(const d in X2.lin)if(d<old&&!X2.lin[d].snap)delete X2.lin[d]; // 印刷した発注書（snap）は消さない
   saveX();
 }
 function rowType(x){if(x.r&&TYPE_OF[x.r])return TYPE_OF[x.r];const m=(X2.tms&&X2.tms.map)||{};return m[x.t]||guessType(x.t)||"?";}
@@ -1017,11 +1028,33 @@ function buildLinen(){
   h+="</tbody>";
   document.getElementById("lnTable").innerHTML=h;
   updLinen(true);
+  renderLnHist();
 }
 // 発注履歴（次の夜勤の「X+1日に届く」に使う）は、その日の欄を手で直したとき・印刷したときだけ保存する。
 // 前の日を見ただけでは保存し直さない（TMSのデータが変わって、保存した発注数が書きかわるのを防ぐ）
+// 印刷したときは発注書をまるごと snap に残す（発注履歴で見る・同じものをもう一度印刷する）。同じ日は最後の印刷で上書き
 function lnPersist(X,printed){const c=lnCalc(X),rec=linRec(X);rec.ord={};
-  for(const r of c.rows)if(r.ord!=null)rec.ord[r.it.k]=r.ord;if(printed)rec.printed=Date.now();saveX();}
+  for(const r of c.rows)if(r.ord!=null)rec.ord[r.it.k]=r.ord;
+  if(printed){rec.printed=Date.now();
+    rec.snap={at:rec.printed,deliv:c.deliv,typ:{...c.typ},rows:c.rows.map(r=>({k:r.it.k,nm:r.it.nm,u:r.it.u,need:r.need,come:r.come==null?null:r.come,cnt:r.cnt==null?null:r.cnt,ord:r.ord==null?null:r.ord}))};
+    lnHistSel=X;}
+  saveX();}
+// ---- 発注履歴（右の欄）
+let lnHistSel="";
+const hm=ts=>{const d=new Date(ts);return `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;};
+function renderLnHist(){
+  const el=document.getElementById("lnHist");if(!el)return;
+  const ds=Object.keys(X2.lin).filter(d=>X2.lin[d].snap).sort().reverse();
+  if(!ds.length){el.innerHTML='<p class="hnone">まだありません。<br>「発注書を印刷」を押すと、ここに保存されます。</p>';return;}
+  if(!ds.includes(lnHistSel))lnHistSel=ds[0];
+  const s=X2.lin[lnHistSel].snap,X1=addD(lnHistSel,1);
+  let h=`<select id="lnHistSel" aria-label="発注履歴を選ぶ">${ds.map(d=>`<option value="${d}"${d===lnHistSel?" selected":""}>${mdw(addD(d,1))} 発注（${hm(X2.lin[d].snap.at)} 印刷）</option>`).join("")}</select>`;
+  h+=`<p class="hmeta">発注 <b>${mdw(X1)}</b> → 納品 <b>${mdw(s.deliv)}</b></p>`;
+  h+=`<table class="lt hist"><thead><tr><th>種類</th><th>発注数</th></tr></thead><tbody>`; // 見せるのは種類と発注数だけ（保存はほかの数も）
+  for(const r of s.rows)h+=`<tr><td>${r.nm}</td><td class="ord">${r.ord==null?"":r.ord}</td></tr>`;
+  h+=`</tbody></table><button class="act" type="button" id="lnHistPrint">この発注書を印刷</button>`;
+  el.innerHTML=h;
+}
 function updLinen(all,persist){ // 入力中の欄はさわらずに数字だけ入れ直す
   const X=lnDateVal,c=lnCalc(X),L=X2.lin[X]||{typ:{},come:{},cnt:{},ov:{}};
   const setIn=(g,k,v,cls)=>{const el=document.querySelector(`#p-linen input[data-g="${g}"][data-k="${k}"]`);if(!el)return;
@@ -1054,9 +1087,11 @@ function updLinen(all,persist){ // 入力中の欄はさわらずに数字だけ
   document.getElementById("lnDate").addEventListener("change",e=>{if(!e.target.value)return;lnDateVal=addD(e.target.value,-1);buildLinen();}); // 画面の日付は発注日。中では作った夜の日で持つ
 })();
 function ymdJa(s){const a=s.split("-");return `　${+a[0]}年　${+a[1]}月　${+a[2]}日`;}
-function renderOrderPrint(){ // 発注書.docx と同じ見た目
+function renderOrderPrint(hx){ // 発注書.docx と同じ見た目。hx＝発注履歴の日（保存した版をそのまま）
   if(!lnDateVal)lnDateVal=lnDefaultDate();
-  const c=lnCalc(lnDateVal);
+  let c;
+  if(hx){const s=X2.lin[hx].snap;c={X:hx,deliv:s.deliv,rows:s.rows.map(r=>({it:{nm:r.nm,u:r.u},ord:r.ord}))};}
+  else c=lnCalc(lnDateVal);
   const row=(a,b,v)=>`<tr><td>${a}</td><td>${b}</td><td class="n">${v}</td></tr>`;
   let t=`<tr><td>種類</td><td>発注単位</td><td>発注枚数</td></tr>`;
   for(const r of c.rows)t+=row(r.it.nm,r.it.u+"枚",r.ord==null?"":r.ord);
@@ -1191,7 +1226,10 @@ document.querySelector("nav.tabs").addEventListener("keydown",e=>{ // ←→・H
   e.preventDefault();showTab(TABS[j]);document.getElementById("t-"+TABS[j]).focus();});
 document.getElementById("btnPrintOrder").addEventListener("click",()=>{
   if(!lnDateVal)lnDateVal=lnDefaultDate();
-  lnPersist(lnDateVal,true);buildLinen();doPrint("order");}); // 印刷したときの発注数を保存（次の日の「届く数」になる）
+  lnPersist(lnDateVal,true);buildLinen();doPrint("order");}); // 印刷したときの発注数を保存（次の日の「届く数」になる）。発注書は発注履歴にも残る
+document.getElementById("lnHist").addEventListener("change",e=>{if(e.target.id==="lnHistSel"){lnHistSel=e.target.value;renderLnHist();}});
+document.getElementById("lnHist").addEventListener("click",e=>{if(e.target.id!=="lnHistPrint"||!X2.lin[lnHistSel])return;
+  renderOrderPrint(lnHistSel);doPrint("order");renderOrderPrint();}); // 保存した版をそのまま印刷（保存し直さない）
 document.getElementById("btnPrintOut").addEventListener("click",()=>{if(!outRows().some(r=>r.o)){alert("この月はまだ読み込んでいません。先に右上の↻で読み込んでください。");return;}renderOutPrint();doPrint("out");});
 
 // =====================================================================
@@ -1378,7 +1416,7 @@ function applyTms(t){
   t.v=v;save();render();renderTabs();showTms(t,true);
 }
 // バージョン（変えたら CHANGELOG.md にも書く）。拡張のバージョンは content.js が入れる
-const APP_VER="3.3";
+const APP_VER="3.4";
 (function(){const ev=document.documentElement.dataset.tmsExtVer||(document.documentElement.dataset.tmsExt?"2.2以前":"");
   document.getElementById("ver").textContent=`メイク表 v${APP_VER}　・　TMS拡張 ${ev?"v"+ev:"なし"}`;})();
 render();showTab(X2.tab);importTms();cloudStart();
