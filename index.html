@@ -272,6 +272,7 @@ table.om td.miss{color:#c3c8c5}
   /* タブ：4つを1行に等分（長い名前は2行に） */
   nav.tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0 4px;align-items:end}
   nav.tabs .tb{font-size:13.5px;line-height:1.3;padding:8px 0 12px;word-break:keep-all;min-height:44px}
+  nav.tabs:has(#t-linen[hidden]){grid-template-columns:repeat(3,minmax(0,1fr))}
   nav.tabs .tmsw{grid-column:1/-1;justify-content:flex-end;padding:6px 0 8px;border-top:1px solid rgba(0,0,0,.05)}
   header.top h1{font-size:20px}
   .legend{margin-left:0}
@@ -452,7 +453,7 @@ table.om td.miss{color:#c3c8c5}
 <body>
 <nav class="tabs" role="tablist">
   <button class="tb" type="button" role="tab" id="t-make" aria-controls="p-make" data-tab="make">連泊表</button>
-  <button class="tb" type="button" role="tab" id="t-linen" aria-controls="p-linen" data-tab="linen">リネン発注</button>
+  <button class="tb" type="button" role="tab" id="t-linen" aria-controls="p-linen" data-tab="linen" hidden>リネン発注</button>
   <button class="tb" type="button" role="tab" id="t-full" aria-controls="p-full" data-tab="full">連泊清掃<wbr>カレンダー</button>
   <button class="tb" type="button" role="tab" id="t-out" aria-controls="p-out" data-tab="out">OUT数<wbr>（60日）</button>
   <div class="tmsw"><button id="cloudSt" class="cst" type="button" title="クラウドと同期"></button><span class="tmsat" id="tmsAt"></span><button id="btnTms" type="button"></button></div>
@@ -1029,7 +1030,9 @@ function dayView(d){const st=staysOn(d);
   const h=X2.hist&&X2.hist[d];return h?{st:h.st||{},o:h.o||[],n:h.n||0}:null;}
 
 // ---- タブ
-const TABS=["make","linen","full","out"];
+// 2026-11-24 リネン発注は一時的に隠す（直すまで同僚がさわらないように）。戻すときは HIDE_LINEN=false と上のボタンの hidden を消す
+const HIDE_LINEN=true;
+const TABS=HIDE_LINEN?["make","full","out"]:["make","linen","full","out"];
 function showTab(k){if(!TABS.includes(k))k="make";X2.tab=k;saveX();if(typeof fov!=="undefined")closeFov();
   document.querySelectorAll("nav.tabs .tb").forEach(b=>{const on=b.dataset.tab===k;b.setAttribute("aria-selected",on?"true":"false");b.tabIndex=on?0:-1;});
   for(const t of TABS)document.getElementById("p-"+t).hidden=t!==k;
@@ -1562,7 +1565,7 @@ function applyTms(t){
   t.v=v;save();render();renderTabs();showTms(t,true);
 }
 // バージョン（変えたら CHANGELOG.md にも書く）。拡張のバージョンは content.js が入れる
-const APP_VER="3.12";
+const APP_VER="3.12.1";
 (function(){const ev=document.documentElement.dataset.tmsExtVer||(document.documentElement.dataset.tmsExt?"2.2以前":"");
   document.getElementById("ver").textContent=`メイク表 v${APP_VER}　・　TMS拡張 ${ev?"v"+ev:"なし"}`;})();
 if(jumpAtStart)gotoDate(autoDay()); // 部屋のボタンを作ったあとで
