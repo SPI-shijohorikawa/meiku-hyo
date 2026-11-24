@@ -149,9 +149,10 @@ nav.tabs .cst.bad{color:#fff;background:var(--danger);border-color:var(--danger)
 nav.tabs .cst.wait{color:#8a6d1f;border-color:#e3cf8f;background:#fff8e6}
 nav.tabs #btnTms{font:inherit;font-size:15px;font-weight:700;padding:9px 18px;border-radius:20px;border:1px solid var(--accent);background:var(--paper);color:var(--accent);cursor:pointer}
 nav.tabs #btnTms:disabled{opacity:.6;cursor:default}
-nav.tabs #btnTms{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;min-width:46px;justify-content:center}
+nav.tabs #btnTms{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;min-width:46px;justify-content:center}
 nav.tabs #btnTms svg{width:22px;height:22px;display:block}
-nav.tabs #btnTms .n{font-size:13px;font-variant-numeric:tabular-nums}
+nav.tabs #btnTms .n{font-size:14px;font-variant-numeric:tabular-nums;white-space:nowrap}
+nav.tabs #btnTms svg{width:18px;height:18px}
 nav.tabs #btnTms.busy svg{animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){nav.tabs #btnTms.busy svg{animation:none}}
@@ -189,6 +190,8 @@ table.lt small.sub{display:block;font-size:11px;color:var(--sub);font-weight:400
 table.lt thead th{line-height:1.25}
 table.lt .rs{font:inherit;font-size:12px;border:1px solid var(--line);background:var(--paper);border-radius:6px;padding:2px 6px;margin-left:4px;cursor:pointer;color:var(--sub)}
 table.lt td.z{color:#c3c8c5}
+#lnTypes td.tv{font-size:17px;font-weight:700;padding-right:10px}
+.auto-note{margin:8px 0 0;font-size:12px;color:var(--sub)}
 .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
 .seg button{font:inherit;font-size:14px;padding:4px 12px;border:0;background:var(--paper);color:var(--ink);cursor:pointer}
 .seg button.on{background:var(--ink);color:#fff;font-weight:700}
@@ -446,7 +449,7 @@ table.om td.miss{color:#c3c8c5}
   <button class="tb" type="button" role="tab" id="t-linen" aria-controls="p-linen" data-tab="linen">リネン発注</button>
   <button class="tb" type="button" role="tab" id="t-full" aria-controls="p-full" data-tab="full">連泊清掃<wbr>カレンダー</button>
   <button class="tb" type="button" role="tab" id="t-out" aria-controls="p-out" data-tab="out">OUT数<wbr>（月別）</button>
-  <div class="tmsw"><button id="cloudSt" class="cst" type="button" title="クラウドと同期"></button><span class="tmsat" id="tmsAt"></span><button id="btnTms" type="button" title="TMS取込" aria-label="TMS取込"></button></div>
+  <div class="tmsw"><button id="cloudSt" class="cst" type="button" title="クラウドと同期"></button><span class="tmsat" id="tmsAt"></span><button id="btnTms" type="button"></button></div>
 </nav>
 <dialog class="fov" id="pwaDlg" aria-labelledby="pwaH"><div class="fbox pwa">
   <h3 id="pwaH">印刷はパソコンでしてください</h3>
@@ -513,6 +516,7 @@ table.om td.miss{color:#c3c8c5}
     <div class="box">
       <h3><span id="lnTgt"></span></h3>
       <table class="lt" id="lnTypes"></table>
+      <p class="auto-note">TMSデータ読み取り自動入力</p>
     </div>
     <div class="box">
       <h3>発注数</h3>
@@ -1053,7 +1057,7 @@ function lnCalc(X){
   const oset=new Set(o?o.rooms:[]);
   for(const no of fs)if(!oset.has(no))full[TYPE_OF[no]]++;
   for(const t of LN_ORDER)auto[t]=out[t]+full[t];
-  const typ={};for(const t of LN_ORDER)typ[t]=L.typ&&L.typ[t]!=null?L.typ[t]:auto[t];
+  const typ={};for(const t of LN_ORDER)typ[t]=auto[t]; // TMSのデータから自動（手では変えない）
   const {D,W,TA,TB,Q}=typ;
   const SS=W*2+TA*3+TB+Q*4, SW=D+TB*2, PC=D*2+W*2+TA*3+TB*3+Q*4, BT=PC*1.3;
   const need={SS,SW,DS:SS,DW:SW,PC,BT,FT:BT,BM:D+W+TA+TB+Q,GW:60,WP:null};
@@ -1082,14 +1086,14 @@ function buildLinen(){
   const X1=addD(X,1);
   document.getElementById("lnFlow").innerHTML=`<b>${mdw(X)}</b>夜 作成 → <b>${mdw(X1)}</b> 発注（ドライバーへ） →<b>${mdw(c.T)}</b> 納品`;
   const info=[];
-  if(!c.o)info.push(`<span class="bad">${mdw(c.T)}のOUTのデータがありません。右上の↻で読み込んでください（左の表に手で入れても計算できます）。</span>`);
-  if(c.unk.length)info.push(`<span class="bad">部屋タイプが分からないOUTが${c.unk.length}室あります（${esc([...new Set(c.unk)].join("、"))}）。左の表に手で足してください。</span>`);
+  if(!c.o)info.push(`<span class="bad">${mdw(c.T)}のOUTのデータがありません。右上の「TMSデータ更新」で読み込んでください。</span>`);
+  if(c.unk.length)info.push(`<span class="bad">部屋タイプが分からないOUTが${c.unk.length}室あります（${esc([...new Set(c.unk)].join("、"))}）。発注数を手で直してください。</span>`);
   const pr=X2.lin[X]&&X2.lin[X].printed;
   if(pr){const d=new Date(pr);info.push(`${d.getMonth()+1}月${d.getDate()}日 ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")} 印刷済み`);}
   document.getElementById("lnInfo").innerHTML=info.join("<br>");
   // タイプ別
   let h=`<thead><tr><th>タイプ</th><th>室数</th></tr></thead><tbody>`; // OUT＋連泊清掃
-  for(const t of LN_ORDER)h+=`<tr><td>${TNAME[t]}</td><td><input type="number" inputmode="numeric" min="0" data-g="typ" data-k="${t}"><button class="rs" type="button" data-g="typ" data-k="${t}" hidden>↺</button></td></tr>`;
+  for(const t of LN_ORDER)h+=`<tr><td>${TNAME[t]}</td><td class="tv" data-typ="${t}"></td></tr>`;
   h+=`<tr class="sum"><td>合計</td><td id="lnTypSum"></td></tr></tbody>`;
   document.getElementById("lnTypes").innerHTML=h;
   // 発注数
@@ -1134,7 +1138,7 @@ function updLinen(all,persist){ // 入力中の欄はさわらずに数字だけ
   const setIn=(g,k,v,cls)=>{const el=document.querySelector(`#p-linen input[data-g="${g}"][data-k="${k}"]`);if(!el)return;
     if(all||document.activeElement!==el)el.value=v==null?"":v;el.className=cls||"";
     const b=document.querySelector(`#p-linen button.rs[data-g="${g}"][data-k="${k}"]`);if(b)b.hidden=cls!=="ov";};
-  for(const t of LN_ORDER)setIn("typ",t,c.typ[t],L.typ&&L.typ[t]!=null?"ov":"");
+  for(const t of LN_ORDER){const e=document.querySelector(`#lnTypes [data-typ="${t}"]`);if(e)e.textContent=c.typ[t];}
   document.getElementById("lnTypSum").textContent=LN_ORDER.reduce((a,t)=>a+c.typ[t],0);
   for(const r of c.rows){const k=r.it.k;
     const nd=document.querySelector(`#p-linen [data-need="${k}"]`);if(nd)nd.textContent=r.need==null?"":fmtN(r.need);
@@ -1259,7 +1263,7 @@ function renderOut(){
   document.getElementById("outPrev").disabled=outYM<=curYM();
   document.getElementById("outNext").disabled=outYM>=shiftYM(curYM(),11);
   const miss=rows.filter(r=>!r.o).length;
-  info.innerHTML=!rows.length?"":miss===rows.length?`${m}月はまだ読み込んでいません。右上の↻で${m}月のTMSを読みます。`:miss?`読み込んでいない日があります（―）。右上の↻で${m}月をもう一度読みます。`:"";
+  info.innerHTML=!rows.length?"":miss===rows.length?`${m}月はまだ読み込んでいません。右上の「TMSデータ更新」で${m}月のTMSを読みます。`:miss?`読み込んでいない日があります（―）。右上の「TMSデータ更新」で${m}月をもう一度読みます。`:"";
   tb.innerHTML=outGrid(rows,"",false);
 }
 // 1日1行の表。合計＝OUT＋連泊清掃（OUTの部屋と重なる連泊清掃は数えない）
@@ -1304,7 +1308,7 @@ document.getElementById("btnPrintOrder").addEventListener("click",()=>{
 document.getElementById("lnHist").addEventListener("change",e=>{if(e.target.id==="lnHistSel"){lnHistSel=e.target.value;renderLnHist();}});
 document.getElementById("lnHist").addEventListener("click",e=>{if(e.target.id!=="lnHistPrint"||!X2.lin[lnHistSel])return;
   renderOrderPrint(lnHistSel);doPrint("order");renderOrderPrint();}); // 保存した版をそのまま印刷（保存し直さない）
-document.getElementById("btnPrintOut").addEventListener("click",()=>{if(!outRows().some(r=>r.o)){alert("この月はまだ読み込んでいません。先に右上の↻で読み込んでください。");return;}renderOutPrint();doPrint("out");});
+document.getElementById("btnPrintOut").addEventListener("click",()=>{if(!outRows().some(r=>r.o)){alert("この月はまだ読み込んでいません。先に右上の「TMSデータ更新」で読み込んでください。");return;}renderOutPrint();doPrint("out");});
 
 // =====================================================================
 // クラウド保存（Google スプレッドシート＋Apps Script。cloud/apps-script.gs）
@@ -1466,7 +1470,7 @@ function gotoDate(v){
   const dr=X2.dr[v];let note="";
   if(dr){const c=JSON.parse(JSON.stringify(dr));state=c.state||{};assign=c.assign||{};sheets=c.sheets||[];auto=c.auto||{};}
   else{const ts=tmsState(v);sheets=sheets.map(s=>({name:s.name}));assign={};auto={};
-    if(ts)state=ts;else{state={};note=`${mdw(v)}のTMSのデータがまだありません。右上の↻でこの日を読み込んでください。`;}}
+    if(ts)state=ts;else{state={};note=`${mdw(v)}のTMSのデータがまだありません。右上の「TMSデータ更新」でこの日を読み込んでください。`;}}
   dateVal=v;dEl.value=v;syncSc();save();buildStaffs();render();renderTabs();
   const el=document.getElementById("tmsr");
   if(note){el.innerHTML=`<button class="x" type="button">閉じる</button><b>${note}</b>`;el.hidden=false;el.querySelector(".x").addEventListener("click",()=>{el.hidden=true;});}
@@ -1539,7 +1543,7 @@ function applyTms(t){
   t.v=v;save();render();renderTabs();showTms(t,true);
 }
 // バージョン（変えたら CHANGELOG.md にも書く）。拡張のバージョンは content.js が入れる
-const APP_VER="3.10";
+const APP_VER="3.11";
 (function(){const ev=document.documentElement.dataset.tmsExtVer||(document.documentElement.dataset.tmsExt?"2.2以前":"");
   document.getElementById("ver").textContent=`メイク表 v${APP_VER}　・　TMS拡張 ${ev?"v"+ev:"なし"}`;})();
 if(jumpAtStart)gotoDate(autoDay()); // 部屋のボタンを作ったあとで
@@ -1553,7 +1557,7 @@ setInterval(autoTick,60000);document.addEventListener("visibilitychange",()=>{if
 // 拡張機能（tms-ext）があれば、ボタン1つでTMSから読む
 const bt=document.getElementById("btnTms");
 let tmsBusy=false,tmsTimer=null;
-const TMS_FAIL="TMSから読み込めませんでした。\nChromeでTMSにログインしてから、もう一度右上の↻を押してください。";
+const TMS_FAIL="TMSから読み込めませんでした。\nChromeでTMSにログインしてから、もう一度右上の「TMSデータ更新」を押してください。";
 // 読む日数はタブで変える（一覧の日 k を読むと k+1 のOUTが分かる）
 //   連泊表：明日の表だけ → 1日 ／ リネン発注：納品日（作る夜＋2）のOUT → 作る夜から2日
 //   連泊清掃カレンダー：先の連泊 → 32日 ／ OUT数：選んだ月（今月なら明日から）
@@ -1568,7 +1572,7 @@ function tmsPlan(){const bt=bizToday(),k=X2.tab;
   return {mode:"make",start:s>bt?s:bt,days:1};}
 // 「TMS取込」ボタンは更新アイコン。読込中は回って「n/32」を出す
 const TMS_ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/></svg>';
-function tmsBtn(busy,txt){bt.classList.toggle("busy",!!busy);bt.innerHTML=TMS_ICON+(txt?`<span class="n">${txt}</span>`:"");}
+function tmsBtn(busy,txt){bt.classList.toggle("busy",!!busy);bt.innerHTML=TMS_ICON+`<span class="n">${txt||(busy?"読込中":"TMSデータ更新")}</span>`;}
 function tmsDone(){tmsBusy=false;clearTimeout(tmsTimer);bt.disabled=false;tmsBtn(false);}
 tmsBtn(false);
 function tmsArm(){clearTimeout(tmsTimer);tmsTimer=setTimeout(()=>{if(tmsBusy){tmsDone();alert(TMS_FAIL);}},90000);} // 90秒なにも来なければ失敗
