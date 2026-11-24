@@ -56,6 +56,8 @@ header.top h1{font-size:22px;margin:0;letter-spacing:.05em}
 .staffhead h3{margin:0;font-size:15px}
 .staffhead button{font:inherit;font-size:13px;padding:5px 12px;border-radius:16px;border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
 .staffhead #autoAs{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+.staffhead #btnPrintSt{border-color:var(--accent);color:var(--accent);font-weight:700}
+.staffhead button:disabled{opacity:.4;cursor:default}
 .staffhead #clrAs.armed{background:var(--danger);border-color:var(--danger);color:#fff}
 .staffhead .un{font-size:13px;color:var(--sub)} .staffhead .un.bad{color:var(--danger);font-weight:700}
 .staffs{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
@@ -123,6 +125,14 @@ table.ln thead th{color:var(--sub);font-weight:600;font-size:13px}
 table.ln tr.sum td{font-weight:800;border-top:2px solid var(--line)}
 table.ln td.z{color:#c3c8c5}
 .hint{font-size:12px;color:var(--sub);line-height:1.6;margin:0}
+/* 過去の日付の連泊表（見るだけ） */
+.pastbar{flex-basis:100%;display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--accent-bg);color:var(--ink);border-radius:10px;padding:8px 12px;font-size:14px;line-height:1.5}
+.pastbar b{font-weight:800}
+.pastbar button{margin-left:auto;font:inherit;font-size:14px;font-weight:700;padding:6px 14px;border-radius:8px;border:1px solid var(--accent);background:var(--paper);color:var(--accent);cursor:pointer}
+body.ro #floors,body.ro .staffwrap{opacity:.92}
+body.ro #btnReset,body.ro #addStaff,body.ro #autoAs,body.ro #clrAs{opacity:.4}
+.btns button:disabled{opacity:.4;cursor:default}
+.ver{max-width:1280px;margin:18px auto 0;font-size:12px;color:var(--sub);text-align:right}
 .warn{font-size:13px;line-height:1.6;margin:0;padding:10px 12px;border-radius:8px;background:#fdecea;color:#8a2a1f;border:1px solid #f1b5ab}
 
 /* ---------- タブ ---------- */
@@ -209,9 +219,6 @@ table.lt td.z{color:#c3c8c5}
 .cal .ept{min-height:0}
 .fbox .fhd .rob{font-size:12px;font-weight:700;background:var(--gray);color:var(--sub);border-radius:6px;padding:2px 8px}
 .fgrid.ro .room{cursor:default}
-.fpr .row{gap:8px}
-.fpr .chk{gap:4px;font-size:14px}
-.fpr .chk input{width:18px;height:18px;accent-color:var(--accent)}
 .calhd{display:flex;align-items:center;gap:10px}
 .calhd b{font-size:17px;min-width:7em;text-align:center}
 .calhd button{font:inherit;font-size:16px;width:38px;height:34px;border-radius:8px;border:1px solid var(--line);background:var(--paper);cursor:pointer;color:var(--ink)}
@@ -333,27 +340,10 @@ table.om tr.otot td{font-size:16px;border-bottom:2px solid var(--line)}
   table.pbd th{font-weight:600}
   table.pbd td:first-child,table.pbd th:first-child{text-align:left}
   /* 印刷するもの：main/staff=メイク表、order=発注書、out=1か月のOUT数 */
-  nav.tabs,.tmsbar,.panel{display:none!important}
+  nav.tabs,.tmsbar,.panel,.ver{display:none!important}
   body[data-pm="order"] #print,body[data-pm="out"] #print{display:none}
   body:not([data-pm="order"]) #printOrder{display:none}
   body:not([data-pm="out"]) #printOut{display:none}
-  body[data-pm="full"] #print{display:none}
-  body:not([data-pm="full"]) #printFull{display:none}
-  /* 連泊清掃の表：A4 1枚に6日（2列×3段）。連泊清掃＝グレー＋太枠、連泊＝n/N、連泊でない部屋＝うすい番号 */
-  .pfp{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(3,86mm);gap:4mm 5mm;break-after:page;page-break-after:always;font-family:"Yu Gothic","游ゴシック","Hiragino Sans",sans-serif}
-  .pfp:last-child{break-after:auto;page-break-after:auto}
-  .pfd{border:.3mm solid #000;padding:2mm 2.5mm;display:flex;flex-direction:column;gap:1.8mm;break-inside:avoid}
-  .pfh{display:flex;justify-content:space-between;align-items:baseline;font-size:10.5pt}
-  .pfh b{font-size:13pt}
-  .pfg{display:grid;grid-template-columns:8mm repeat(6,minmax(0,1fr));grid-auto-rows:8.4mm}
-  .pff{grid-row:span 2;font-weight:700;font-size:10pt;display:flex;align-items:center;justify-content:center}
-  .pfc{border:.25mm solid #888;margin:0 -.25mm -.25mm 0;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .pfc b{font-size:10.5pt}
-  .pfc small{font-size:6.8pt;min-height:1.1em}
-  .pfc.on{background:#c8c8c8;border:.6mm solid #000;position:relative;z-index:1}
-  .pfc.on small{font-weight:700}
-  .pfc.x b{color:#aaa;font-weight:400}
-  .pfc.e{border:0}
   /* 発注書（発注書.docx と同じ並び・大きさ） */
   /* 発注書.docx は B5（余白 上35・左右30mm）を A4 の真ん中に印刷したもの → 左右44mm・上35mm・文字幅122mm */
   .po{height:230mm;width:156mm;display:flex;flex-direction:column;padding:25mm 0 0 34mm;font-family:"Yu Mincho","游明朝","YuMincho","Hiragino Mincho ProN","Noto Serif JP",serif;font-size:10.5pt;line-height:18pt;color:#000}
@@ -404,11 +394,12 @@ table.om tr.otot td{font-size:16px;border-bottom:2px solid var(--line)}
       <span class="chip"><span class="sw vac"></span>空室</span>
       <span>タップ：連泊 → OUT清掃 → 連泊清掃 → 空室 → 連泊</span>
     </div>
+    <div class="pastbar" id="pastBar" hidden></div>
   </header>
 
   <div class="floors" id="floors"></div>
   <div class="staffwrap">
-    <div class="staffhead"><h3>メイクスタッフ用</h3><button type="button" id="addStaff">＋スタッフ追加</button><button type="button" id="autoAs">自動割当</button><button type="button" id="clrAs">割当クリア</button><span class="un" id="unas"></span><span class="un" id="cpTot"></span></div>
+    <div class="staffhead"><h3>メイクスタッフ用</h3><button type="button" id="addStaff">＋スタッフ追加</button><button type="button" id="autoAs">自動割当</button><button type="button" id="clrAs">割当クリア</button><button type="button" id="btnPrintSt" class="pst">メイクスタッフ用印刷</button><span class="un" id="unas"></span><span class="un" id="cpTot"></span></div>
     <div class="staffs" id="staffs"></div>
   </div>
 
@@ -432,11 +423,9 @@ table.om tr.otot td{font-size:16px;border-bottom:2px solid var(--line)}
     </div>
     <div class="btns">
       <button class="primary" id="btnPrint" type="button">印刷</button>
-      <button id="btnPrintSt" type="button">メイクスタッフ用印刷</button>
       <button id="btnReset" type="button">リセット</button>
     </div>
     <p class="warn" id="pwaWarn" hidden>ホーム画面から開いたアプリ表示では印刷できません。Safariでこのページを開いて印刷してください。</p>
-    <p class="hint">何も押していない部屋は「連泊」です。下の「メイクスタッフ用」の表で、清掃する部屋をタップするとその人に割り当てます（階の数字をタップするとその階の未割当をまとめて割当）。リセットは1回押すと赤くなり、もう1回押すと全部消えます（メイクスタッフ用の表も消えます）。入力はこの端末のブラウザに自動保存されます。</p>
   </aside>
 </div>
 </div>
@@ -445,7 +434,6 @@ table.om tr.otot td{font-size:16px;border-bottom:2px solid var(--line)}
 <div class="panel" id="p-linen" hidden><div class="pnl">
   <div class="row"><h2>リネン発注</h2>
     <label>発注日 <input type="date" id="lnDate"></label>
-    <label>納品日 <input type="date" id="lnDeliv"></label>
     <button class="act primary" type="button" id="btnPrintOrder">発注書を印刷</button></div>
   <p class="note" id="lnFlow" style="font-size:14px;color:var(--ink)"></p>
   <p class="note" id="lnInfo"></p>
@@ -464,18 +452,8 @@ table.om tr.otot td{font-size:16px;border-bottom:2px solid var(--line)}
 <!-- ② 連泊清掃 -->
 <div class="panel" id="p-full" hidden><div class="pnl">
   <div class="row"><h2>連泊清掃カレンダー</h2>
-    <div class="calhd"><button type="button" id="calPrev" aria-label="前の月">‹</button><b id="calTitle"></b><button type="button" id="calNext" aria-label="次の月">›</button></div>
-    <label>日付を選ぶ <input type="date" id="fDate"></label></div>
-  <p class="note">日をタップ（または日付を選ぶ）と部屋表が出ます。部屋をタップ＝その日その部屋は連泊清掃（もう一度タップで取消）。タップすると部屋表は自動で閉じます。右上の数字＝その日のOUT数（TMS）。連泊表の「連泊清掃」と自動でつながります。今日（夜勤の日）より前の日は見るだけで、変更できません。</p>
-  <div class="box fpr">
-    <h3>連泊清掃の表を印刷</h3>
-    <div class="row">
-      <label><input type="date" id="fpFrom"></label><span>〜</span><label><input type="date" id="fpTo"></label>
-      <label class="chk"><input type="checkbox" id="fpOnly" checked> 連泊清掃がある日だけ</label>
-      <button class="act primary" type="button" id="btnPrintFull">印刷</button>
-    </div>
-    <p class="note" id="fpInfo"></p>
-  </div>
+    <div class="calhd"><button type="button" id="calPrev" aria-label="前の月">‹</button><b id="calTitle"></b><button type="button" id="calNext" aria-label="次の月">›</button></div></div>
+  <p class="note">日をタップすると部屋表が出ます。部屋をタップ＝その日その部屋は連泊清掃（もう一度タップで取消）。タップすると部屋表は自動で閉じます。右上の数字＝その日のOUT数（TMS）。連泊表の「連泊清掃」と自動でつながります。今日（夜勤の日）より前の日は見るだけで、変更できません。</p>
   <div class="box"><div class="cal" id="cal"></div></div>
   <dialog class="fov" id="fov" aria-label="連泊清掃の部屋表"><div class="fbox" id="fday"></div></dialog>
 </div></div>
@@ -487,10 +465,11 @@ table.om tr.otot td{font-size:16px;border-bottom:2px solid var(--line)}
   <div class="box" style="overflow-x:auto"><table class="lt om" id="outTable"></table></div>
 </div></div>
 
+<p class="ver" id="ver"></p>
+
 <div class="print" id="print"></div>
 <div class="print" id="printOrder"></div>
 <div class="print" id="printOut"></div>
-<div class="print" id="printFull"></div>
 
 <script>
 const TYPES={
@@ -546,11 +525,14 @@ const BEDS={D:1,W:2,TA:3,TB:3,Q:4};
 function tomorrow(){const d=new Date();d.setDate(d.getDate()+1);
   return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
 function load(){try{const s=JSON.parse(localStorage.getItem(KEY)||"null");if(s){state=s.state||{};dateVal=s.date||"";assign=s.assign||{};sheets=s.sheets||[];auto=s.auto||{};}}catch(e){}}
-function save(){try{localStorage.setItem(KEY,JSON.stringify({state,date:dateVal,assign,sheets,auto}));}catch(e){}cloudKick();}
+// 過去の日付を見ているあいだ（pastView）は、画面の表＝保存した版。今の表は pastView.live に置いておき、保存・クラウドはそちらを使う
+let pastView=null;
+function liveData(){return pastView?pastView.live:{state,date:dateVal,assign,sheets,auto};}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(liveData()));}catch(e){}cloudKick();}
 
 const FLOOR_SCREEN=["4F","3F","2F","1F"];
 const isClean=no=>{const x=state[no]||"";return x==="out"||x==="sc";};
-function onRoom(no){const old=state[no]||"",nx=NEXT[old];state[no]=nx;
+function onRoom(no){if(pastView)return;const old=state[no]||"",nx=NEXT[old];state[no]=nx;
   if(nx==="sc")fcSet(dateVal,no,true);else if(old==="sc")fcSet(dateVal,no,false); // 連泊清掃タブのカレンダーとつなぐ
   save();render();renderTabs();}
 function buildScreen(){
@@ -871,7 +853,8 @@ function render(){
 // =====================================================================
 const KEY2="makehyo-shijohorikawa-ext-v1";
 //   hist : {日付:{st:{部屋:"n/N"}, o:[OUTの部屋], n:OUT数}}  TMSのデータから外れた日の連泊・OUT（過去の連泊清掃の表用）
-let X2={tms:null,fullc:{},lin:{},hist:{},tab:"make"};
+//   mk   : {日付:{state, assign, sheets, at}}  その日の連泊表を最後に印刷したときの版（過去の日付で見る・印刷する用）
+let X2={tms:null,fullc:{},lin:{},hist:{},mk:{},tab:"make"};
 const ymd=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
 const addD=(s,n)=>{const d=new Date(s+"T00:00:00");d.setDate(d.getDate()+n);return ymd(d);};
 const WD="日月火水木金土";
@@ -887,7 +870,7 @@ function saveX(){try{localStorage.setItem(KEY2,JSON.stringify(X2));}catch(e){}cl
 function fcSet(d,no,on){const a=new Set(X2.fullc[d]||[]);if(on)a.add(no);else a.delete(no);
   if(a.size)X2.fullc[d]=ROOMS.map(r=>r[0]).filter(n=>a.has(n));else delete X2.fullc[d];saveX();}
 // メイク表の「連泊清掃」＝その日の連泊清掃の記録（連泊の部屋だけ。OUT・空室はそのまま）
-function syncSc(){const fs=new Set(X2.fullc[dateVal]||[]);
+function syncSc(){if(pastView)return;const fs=new Set(X2.fullc[dateVal]||[]); // 保存した版はそのまま見せる
   for(const [no] of ROOMS){const s=state[no]||"";if(fs.has(no)){if(s==="")state[no]="sc";}else if(s==="sc")state[no]="";}}
 
 // ---- TMSの1か月分
@@ -989,14 +972,13 @@ function lnCalc(X){
     }
     r.ov=L.ov&&L.ov[it.k]!=null;r.ord=r.ov?L.ov[it.k]:r.calc;
     return r;});
-  return {X,T,o,out,full,auto,typ,rows,wipe,unk:o?o.unk:[],deliv:L.deliv||addD(X,2)};
+  return {X,T,o,out,full,auto,typ,rows,wipe,unk:o?o.unk:[],deliv:addD(X,2)}; // 納品日＝発注日の次の日（画面では変えない）
 }
 const fmtN=v=>v==null?"":(Math.round(v*10)/10).toString();
 function buildLinen(){
   if(!lnDateVal)lnDateVal=lnDefaultDate();
   const X=lnDateVal,c=lnCalc(X);
   document.getElementById("lnDate").value=addD(X,1); // 発注日＝作った夜の次の日（ドライバーに渡す日・納品日の前の日）
-  document.getElementById("lnDeliv").value=c.deliv;
   document.getElementById("lnTgt").textContent=md2(c.T)+"OUT＋連泊清掃数";
   const X1=addD(X,1);
   document.getElementById("lnFlow").innerHTML=`<b>${mdw(X)}</b>夜 作成 → <b>${mdw(X1)}</b> 発注（ドライバーへ） →<b>${mdw(c.T)}</b> 納品`;
@@ -1056,7 +1038,6 @@ function updLinen(all,persist){ // 入力中の欄はさわらずに数字だけ
     if(b.dataset.wipe){linRec(lnDateVal).wipe=+b.dataset.wipe;updLinen(true,true);}
     else if(b.classList.contains("rs")){const L=linRec(lnDateVal);if(L[b.dataset.g])delete L[b.dataset.g][b.dataset.k];updLinen(true,true);}});
   document.getElementById("lnDate").addEventListener("change",e=>{if(!e.target.value)return;lnDateVal=addD(e.target.value,-1);buildLinen();}); // 画面の日付は発注日。中では作った夜の日で持つ
-  document.getElementById("lnDeliv").addEventListener("change",e=>{const L=linRec(lnDateVal);if(e.target.value)L.deliv=e.target.value;else delete L.deliv;saveX();buildLinen();});
 })();
 function ymdJa(s){const a=s.split("-");return `　${+a[0]}年　${+a[1]}月　${+a[2]}日`;}
 function renderOrderPrint(){ // 発注書.docx と同じ見た目
@@ -1095,8 +1076,7 @@ function renderFull(){
     h+=`<button type="button" class="dy${s<td?" past":""}${s===td?" today":""}${s===selDay?" sel":""}" data-d="${s}"><b>${d}</b>`+
       (v?`<span class="oc"><small>OUT</small>${v.n}</span>`:"")+(n?`<span class="fc">${X2.fullc[s].join(" ")}</span>`:"")+`</button>`;}
   document.getElementById("cal").innerHTML=h;
-  document.getElementById("fDate").value=selDay;
-  renderFday();renderFullPrint();
+  renderFday();
 }
 const fRO=d=>d<bizToday(); // 今日（夜勤の日）より前は見るだけ
 function renderFday(){
@@ -1137,29 +1117,7 @@ fov.addEventListener("click",e=>{
 fov.addEventListener("close",()=>clearTimeout(fovT)); // Escで閉じたとき
 document.getElementById("calPrev").addEventListener("click",()=>{const [y,m]=calYM.split("-").map(Number);calYM=ymd(new Date(y,m-2,1)).slice(0,7);renderFull();});
 document.getElementById("calNext").addEventListener("click",()=>{const [y,m]=calYM.split("-").map(Number);calYM=ymd(new Date(y,m,1)).slice(0,7);renderFull();});
-document.getElementById("fDate").addEventListener("change",e=>{const v=e.target.value;if(!v)return;
-  selDay=v;calYM=v.slice(0,7);renderFull();clearTimeout(fovT);if(!fov.open)fov.showModal();});
 
-// ---- 連泊清掃の表をまとめて印刷（A4 1枚に6日）
-const fpF=document.getElementById("fpFrom"),fpT=document.getElementById("fpTo"),fpO=document.getElementById("fpOnly");
-fpF.value=bizToday();fpT.value=addD(bizToday(),6);
-function fullPrintDays(){let a=fpF.value,b=fpT.value;if(!a||!b)return [];if(a>b)[a,b]=[b,a];
-  const r=[];for(let d=a;d<=b&&r.length<366;d=addD(d,1))if(!fpO.checked||(X2.fullc[d]||[]).length)r.push(d);return r;}
-function fullBlock(d){const fs=new Set(X2.fullc[d]||[]),v=dayView(d),st=v?v.st:{};
-  let h=`<div class="pfd"><div class="pfh"><b>${mdw(d)}</b><span>連泊清掃 ${fs.size}室</span></div><div class="pfg">`;
-  for(const f of FLOOR_SCREEN){h+=`<div class="pff">${f}</div>`;
-    for(const e of OR[f]){if(!e){h+='<div class="pfc e"></div>';continue;}
-      const no=e[0],on=fs.has(no);
-      h+=`<div class="pfc${on?" on":""}${v&&!on&&!st[no]?" x":""}"><b>${no}</b><small>${on?"清掃":(st[no]||"")}</small></div>`;}}
-  return h+"</div></div>";}
-function renderFullPrint(){const ds=fullPrintDays(),info=document.getElementById("fpInfo");let h="";
-  for(let i=0;i<ds.length;i+=6)h+=`<div class="pfp">${ds.slice(i,i+6).map(fullBlock).join("")}</div>`;
-  document.getElementById("printFull").innerHTML=h;
-  info.innerHTML=ds.length?`${mdw(ds[0])}〜${mdw(ds[ds.length-1])}：${ds.length}日分（A4 ${Math.ceil(ds.length/6)}枚・1枚に6日）`:
-    `<span class="bad">この期間に${fpO.checked?"連泊清掃がある日が":"日付が"}ありません。</span>`;
-  return ds.length;}
-[fpF,fpT,fpO].forEach(el=>el.addEventListener("change",renderFullPrint));
-document.getElementById("btnPrintFull").addEventListener("click",()=>{if(renderFullPrint())doPrint("full");});
 
 // ---- ③ OUT数（1か月）
 function outRows(){return tmsRange().map(d=>{const o=outsOn(d);return {d,o,f:(X2.fullc[d]||[]).length};});}
@@ -1217,9 +1175,9 @@ var CLOUD_PASS="9"; // 合言葉（Apps Script の PASS と同じにする）。
 var CM={pass:CLOUD_PASS,at:{},snap:{}}, cloudReady=false, cloudApplying=false, cloudBusy=false, cloudAgain=false, cloudT=null, cloudErr="", cloudLast=0;
 function cloudLoadMeta(){try{const s=JSON.parse(localStorage.getItem(KEY3)||"null");if(s)CM=Object.assign(CM,s);}catch(e){}CM.at=CM.at||{};CM.snap=CM.snap||{};CM.pass=CLOUD_PASS;}
 function cloudSaveMeta(){try{localStorage.setItem(KEY3,JSON.stringify(CM));}catch(e){}}
-function makeData(){return {state,date:dateVal,assign,sheets,auto};}
-const EXT_SECS=["fullc","lin","hist"]; // 日付ごとに重ねる部分
-function extData(){return {tms:X2.tms,fullc:X2.fullc,lin:X2.lin,hist:X2.hist};}
+function makeData(){return liveData();}
+const EXT_SECS=["fullc","lin","hist","mk"]; // 日付ごとに重ねる部分
+function extData(){return {tms:X2.tms,fullc:X2.fullc,lin:X2.lin,hist:X2.hist,mk:X2.mk};}
 function cloudData(k){return k==="make"?makeData():extData();}
 function snapOf(k,d){
   if(k==="make")return JSON.stringify(d||null);
@@ -1247,9 +1205,11 @@ function mergeExt(cloud,local,snap){
 function cloudAdopt(k,d){
   cloudApplying=true;
   try{
-    if(k==="make"){d=d||{};state=d.state||{};if(d.date)dateVal=d.date;assign=d.assign||{};sheets=d.sheets||[];auto=d.auto||{};
-      dEl.value=dateVal;save();buildStaffs();}
-    else{d=d||{};X2.tms=d.tms||null;X2.fullc=d.fullc||{};X2.lin=d.lin||{};X2.hist=d.hist||{};saveX();}
+    if(k==="make"){d=d||{};
+      if(pastView){const L=pastView.live;pastView.live={state:d.state||{},date:d.date||L.date,assign:d.assign||{},sheets:d.sheets||[],auto:d.auto||{}};save();} // 過去の表を見ている間は裏の「今の表」だけ入れかえる
+      else{state=d.state||{};if(d.date)dateVal=d.date;assign=d.assign||{};sheets=d.sheets||[];auto=d.auto||{};
+        dEl.value=dateVal;save();buildStaffs();}}
+    else{d=d||{};X2.tms=d.tms||null;X2.fullc=d.fullc||{};X2.lin=d.lin||{};X2.hist=d.hist||{};X2.mk=d.mk||{};saveX();if(pastView)showPastBar();}
     render();renderTabs();
   }finally{cloudApplying=false;}}
 async function cloudApi(b){
@@ -1321,7 +1281,34 @@ function today(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth
 // 前の晩に作った表を翌朝そのまま使えるよう、日付が「今日」以降なら変えない。過去の日付のときだけ「明日」に
 if(!dateVal||dateVal<today())dateVal=tomorrow();
 dEl.value=dateVal;
-dEl.addEventListener("change",()=>{dateVal=dEl.value;save();render();renderTabs();});
+dEl.addEventListener("change",()=>{const v=dEl.value;if(!v)return;
+  if(v<today()){enterPast(v);return;} // 今日より前＝最後に印刷した版を見るだけ
+  if(pastView)leavePast();
+  dateVal=v;save();render();renderTabs();});
+// ---- 過去の日付の連泊表（最後に印刷した版。見る・印刷するだけ）
+const RO_EL=()=>["floors","staffs","addStaff","autoAs","clrAs","btnReset"].map(id=>document.getElementById(id)); // メイクスタッフ用印刷は押せるまま
+function enterPast(d){
+  if(!pastView)pastView={live:{state,date:dateVal,assign,sheets,auto}};
+  const rec=JSON.parse(JSON.stringify((X2.mk||{})[d]||{}));
+  state=rec.state||{};assign=rec.assign||{};sheets=rec.sheets||[];auto={};dateVal=d;dEl.value=d;
+  document.body.classList.add("ro");RO_EL().forEach(el=>el.inert=true);
+  buildStaffs();render();renderTabs();showPastBar();}
+function leavePast(){if(!pastView)return;const L=pastView.live;pastView=null;
+  state=L.state;assign=L.assign;sheets=L.sheets;auto=L.auto;dateVal=L.date;dEl.value=dateVal;
+  document.body.classList.remove("ro");RO_EL().forEach(el=>el.inert=false);
+  document.getElementById("pastBar").hidden=true;
+  document.getElementById("btnPrint").disabled=document.getElementById("btnPrintSt").disabled=false;
+  buildStaffs();}
+function showPastBar(){if(!pastView)return;const d=dateVal,rec=(X2.mk||{})[d],el=document.getElementById("pastBar");
+  let h;
+  if(rec){const t=new Date(rec.at);h=`<span><b>${mdw(d)}</b>の連泊表（${t.getMonth()+1}月${t.getDate()}日 ${String(t.getHours()).padStart(2,"0")}:${String(t.getMinutes()).padStart(2,"0")} に印刷した版）・見るだけ</span>`;}
+  else h=`<span><b>${mdw(d)}</b>の連泊表は保存されていません（印刷したときに保存されます）</span>`;
+  el.innerHTML=h+`<button type="button" id="pastBack">今の表に戻る</button>`;el.hidden=false;
+  document.getElementById("btnPrint").disabled=document.getElementById("btnPrintSt").disabled=!rec;
+  document.getElementById("pastBack").addEventListener("click",()=>{leavePast();save();render();renderTabs();});}
+// 印刷したとき：その日の連泊表を保存（同じ日はあとで印刷した版で上書き）
+function snapMake(){if(pastView)return;const st={};for(const k in state)if(state[k])st[k]=state[k];
+  X2.mk=X2.mk||{};X2.mk[dateVal]=JSON.parse(JSON.stringify({state:st,assign,sheets,at:Date.now()}));saveX();}
 buildScreen();buildStaffs();
 // ---- TMS取込（ブックマークから #tms=... で渡される）
 function showTms(t,applied){
@@ -1343,6 +1330,7 @@ function importTms(){
   applyTms(t);
 }
 function applyTms(t){
+  if(pastView)leavePast(); // 過去の表を見ていたら、今の表に戻してから
   if(t.days)saveTmsDays(t);
   if(!confirm("TMSのデータでメイク表を上書きしますか？\n（OUT清掃・連泊・空室を入れ直します。連泊清掃は連泊清掃タブのカレンダーから入ります）")){renderTabs();showTms(t,false);return;}
   const O=new Set(t.o),S=new Set(t.s);let v=0;state={};
@@ -1353,6 +1341,10 @@ function applyTms(t){
   for(const n in assign)if(!isClean(n)){delete assign[n];delete auto[n];}
   t.v=v;save();render();renderTabs();showTms(t,true);
 }
+// バージョン（変えたら CHANGELOG.md にも書く）。拡張のバージョンは content.js が入れる
+const APP_VER="3.1";
+(function(){const ev=document.documentElement.dataset.tmsExtVer||(document.documentElement.dataset.tmsExt?"2.2以前":"");
+  document.getElementById("ver").textContent=`メイク表 v${APP_VER}　・　TMS拡張 ${ev?"v"+ev:"なし"}`;})();
 render();showTab(X2.tab);importTms();cloudStart();
 // 拡張機能（tms-ext）があれば、ボタン1つでTMSから読む
 const bt=document.getElementById("btnTms");
@@ -1394,7 +1386,7 @@ document.getElementById("addStaff").addEventListener("click",()=>{if(sheets.leng
 const standalone=(window.navigator.standalone===true)||(window.matchMedia&&matchMedia("(display-mode: standalone)").matches);
 function doPrint(pm){
   if(standalone){document.getElementById("pwaWarn").hidden=false;return;}
-  render();document.body.dataset.pm=pm;window.print();
+  render();if(pm==="main"||pm==="staff")snapMake();document.body.dataset.pm=pm;window.print();
 }
 document.getElementById("btnPrint").addEventListener("click",()=>doPrint("main")); // メイク表＋集計
 document.getElementById("btnPrintSt").addEventListener("click",()=>{ // メイクスタッフ用だけ
