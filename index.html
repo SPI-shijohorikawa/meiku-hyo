@@ -446,7 +446,7 @@ table.om td.miss{color:#c3c8c5}
   <button class="tb" type="button" role="tab" id="t-linen" aria-controls="p-linen" data-tab="linen">リネン発注</button>
   <button class="tb" type="button" role="tab" id="t-full" aria-controls="p-full" data-tab="full">連泊清掃<wbr>カレンダー</button>
   <button class="tb" type="button" role="tab" id="t-out" aria-controls="p-out" data-tab="out">OUT数<wbr>（月別）</button>
-  <div class="tmsw"><button id="cloudSt" class="cst" type="button" title="クラウド保存"></button><span class="tmsat" id="tmsAt"></span><button id="btnTms" type="button" title="TMS取込" aria-label="TMS取込"></button></div>
+  <div class="tmsw"><button id="cloudSt" class="cst" type="button" title="クラウドと同期"></button><span class="tmsat" id="tmsAt"></span><button id="btnTms" type="button" title="TMS取込" aria-label="TMS取込"></button></div>
 </nav>
 <dialog class="fov" id="pwaDlg" aria-labelledby="pwaH"><div class="fbox pwa">
   <h3 id="pwaH">印刷はパソコンでしてください</h3>
@@ -1428,10 +1428,10 @@ function cloudShow(busy){
   const hm=t=>{const d=new Date(t);return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");};
   let tx,cl;
   if(cloudErr==="pass"){tx="☁ 設定エラー（合言葉）";cl="bad";} // Apps Script の PASS が "9" になっていない
-  else if(busy==="busy"){tx="☁ 保存中…";cl="";}
-  else if(cloudErr){tx="☁ 未保存（つながりません）";cl="wait";}
-  else if(cloudReady&&(cloudDirty("make")||cloudDirty("ext"))){tx="☁ 保存待ち";cl="";}
-  else if(cloudLast){tx="☁ 保存済み "+hm(cloudLast);cl="ok";}
+  else if(busy==="busy"){tx="☁ 同期中…";cl="";}
+  else if(cloudErr){tx="☁ 未同期（つながりません）";cl="wait";}
+  else if(cloudReady&&(cloudDirty("make")||cloudDirty("ext"))){tx="☁ 同期待ち";cl="";}
+  else if(cloudLast){tx="☁ 同期済み "+hm(cloudLast);cl="ok";}
   else{tx="☁ クラウド";cl="";}
   b.textContent=tx;b.className="cst "+cl;}
 function cloudStart(){
@@ -1539,7 +1539,7 @@ function applyTms(t){
   t.v=v;save();render();renderTabs();showTms(t,true);
 }
 // バージョン（変えたら CHANGELOG.md にも書く）。拡張のバージョンは content.js が入れる
-const APP_VER="3.9";
+const APP_VER="3.10";
 (function(){const ev=document.documentElement.dataset.tmsExtVer||(document.documentElement.dataset.tmsExt?"2.2以前":"");
   document.getElementById("ver").textContent=`メイク表 v${APP_VER}　・　TMS拡張 ${ev?"v"+ev:"なし"}`;})();
 if(jumpAtStart)gotoDate(autoDay()); // 部屋のボタンを作ったあとで
@@ -1605,13 +1605,13 @@ const standalone=(window.navigator.standalone===true)||(window.matchMedia&&match
 // 印刷できないときは、クラウドにすぐ保存して「パソコンで印刷」を案内する
 async function pwaNotice(){
   const dlg=document.getElementById("pwaDlg"),msg=document.getElementById("pwaMsg");
-  msg.textContent="クラウドに保存しています…";if(!dlg.open)dlg.showModal();
+  msg.textContent="クラウドと同期しています…";if(!dlg.open)dlg.showModal();
   if(cloudReady){clearTimeout(cloudT);
     for(let i=0;i<120&&cloudBusy;i++)await new Promise(r=>setTimeout(r,300)); // 保存中なら終わるまで待つ
     await cloudSync();}
   const ok=cloudReady&&!cloudErr&&!cloudDirty("make")&&!cloudDirty("ext");
-  msg.textContent=ok?"この画面からは印刷できません。データはクラウドに保存しました。パソコンでこのページを開くと同じデータが出るので、そこで印刷してください。"
-    :"この画面からは印刷できません。クラウドにまだ保存できていません。ネットにつながる所で右上の「☁」を押して保存してから、パソコンで印刷してください。";}
+  msg.textContent=ok?"この画面からは印刷できません。データはクラウドと同期しました。パソコンでこのページを開くと同じデータが出るので、そこで印刷してください。"
+    :"この画面からは印刷できません。クラウドとまだ同期できていません。ネットにつながる所で右上の「☁」を押して同期してから、パソコンで印刷してください。";}
 document.getElementById("pwaOk").addEventListener("click",()=>document.getElementById("pwaDlg").close());
 function doPrint(pm){
   if(standalone){pwaNotice();return;}
