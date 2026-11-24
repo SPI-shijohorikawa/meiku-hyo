@@ -162,6 +162,11 @@ nav.tabs #btnTms.busy svg{animation:spin 1s linear infinite}
 .pnl h2{margin:0;font-size:20px;letter-spacing:.04em}
 .pnl .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
 .pnl .row label{display:flex;align-items:center;gap:6px}
+.prrange{display:flex;align-items:center;gap:8px 12px;flex-wrap:wrap}
+.prrange .dr{display:flex;align-items:center;gap:6px;min-width:0}
+.prrange .dr input{min-width:0}
+@media (max-width:600px){.prrange .lb{flex-basis:100%;font-weight:700}.prrange .dr{flex:1 1 100%}.prrange .dr input{flex:1 1 0}.prrange .act{flex:1 1 100%}}
+.outttl{font-size:15px;color:var(--sub);font-weight:600}
 .pnl input[type=date]{font:inherit;font-size:16px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--paper);color:var(--ink)}
 .pnl .act{font:inherit;font-size:15px;padding:9px 16px;border-radius:8px;border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
 .pnl .act.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
@@ -439,6 +444,7 @@ table.om td.miss{color:#c3c8c5}
   .pout tr.mon td{border-top:.7mm solid #000}
   .pout td.z{color:#999}
   .pout .bar{display:none}
+  .pout tr{break-inside:avoid}
   .pout .we{background:#e6e6e6;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
 </style>
@@ -448,7 +454,7 @@ table.om td.miss{color:#c3c8c5}
   <button class="tb" type="button" role="tab" id="t-make" aria-controls="p-make" data-tab="make">連泊表</button>
   <button class="tb" type="button" role="tab" id="t-linen" aria-controls="p-linen" data-tab="linen">リネン発注</button>
   <button class="tb" type="button" role="tab" id="t-full" aria-controls="p-full" data-tab="full">連泊清掃<wbr>カレンダー</button>
-  <button class="tb" type="button" role="tab" id="t-out" aria-controls="p-out" data-tab="out">OUT数<wbr>（月別）</button>
+  <button class="tb" type="button" role="tab" id="t-out" aria-controls="p-out" data-tab="out">OUT数<wbr>（60日）</button>
   <div class="tmsw"><button id="cloudSt" class="cst" type="button" title="クラウドと同期"></button><span class="tmsat" id="tmsAt"></span><button id="btnTms" type="button"></button></div>
 </nav>
 <dialog class="fov" id="pwaDlg" aria-labelledby="pwaH"><div class="fbox pwa">
@@ -516,7 +522,7 @@ table.om td.miss{color:#c3c8c5}
     <div class="box">
       <h3><span id="lnTgt"></span></h3>
       <table class="lt" id="lnTypes"></table>
-      <p class="auto-note">TMSデータ読み取り自動入力</p>
+      <p class="auto-note">データ読み取り自動入力</p>
     </div>
     <div class="box">
       <h3>発注数</h3>
@@ -541,7 +547,9 @@ table.om td.miss{color:#c3c8c5}
 <!-- ③ 1か月のOUT数 -->
 <div class="panel" id="p-out" hidden><div class="pnl">
   <div class="row"><h2>OUT数</h2>
-    <div class="calhd"><button type="button" id="outPrev" aria-label="前の月">‹</button><b id="outTitle"></b><button type="button" id="outNext" aria-label="次の月">›</button></div>
+    <b id="outTitle" class="outttl"></b></div>
+  <div class="prrange"><span class="lb">印刷する期間</span>
+    <div class="dr"><input type="date" id="outPrFrom" aria-label="印刷の開始日"><span>〜</span><input type="date" id="outPrTo" aria-label="印刷の終了日"></div>
     <button class="act primary" type="button" id="btnPrintOut">印刷</button></div>
   <p class="note" id="outInfo"></p>
   <div class="box" style="overflow-x:auto;width:fit-content;max-width:100%"><table class="lt om" id="outTable"></table></div>
@@ -1086,7 +1094,7 @@ function buildLinen(){
   const X1=addD(X,1);
   document.getElementById("lnFlow").innerHTML=`<b>${mdw(X)}</b>夜 作成 → <b>${mdw(X1)}</b> 発注（ドライバーへ） →<b>${mdw(c.T)}</b> 納品`;
   const info=[];
-  if(!c.o)info.push(`<span class="bad">${mdw(c.T)}のOUTのデータがありません。右上の「TMSデータ更新」で読み込んでください。</span>`);
+  if(!c.o)info.push(`<span class="bad">${mdw(c.T)}のOUTのデータがありません。右上の「データ更新」で読み込んでください。</span>`);
   if(c.unk.length)info.push(`<span class="bad">部屋タイプが分からないOUTが${c.unk.length}室あります（${esc([...new Set(c.unk)].join("、"))}）。発注数を手で直してください。</span>`);
   const pr=X2.lin[X]&&X2.lin[X].printed;
   if(pr){const d=new Date(pr);info.push(`${d.getMonth()+1}月${d.getDate()}日 ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")} 印刷済み`);}
@@ -1246,24 +1254,31 @@ document.getElementById("calPrev").addEventListener("click",()=>{const [y,m]=cal
 document.getElementById("calNext").addEventListener("click",()=>{const [y,m]=calYM.split("-").map(Number);calYM=ymd(new Date(y,m,1)).slice(0,7);renderFull();});
 
 
-// ---- ③ OUT数（1か月）
-// 月を選ぶ。今月より前には戻れない（OUTが分かるのは明日から）。先は11か月まで
-let outYM="";
-const curYM=()=>addD(bizToday(),1).slice(0,7);
-function shiftYM(ym,n){const [y,m]=ym.split("-").map(Number);return ymd(new Date(y,m-1+n,1)).slice(0,7);}
-function outMonthRange(){if(!outYM||outYM<curYM())outYM=curYM();const [y,m]=outYM.split("-").map(Number);
-  return {first:ymd(new Date(y,m-1,1)),last:ymd(new Date(y,m,0))};}
-function outRows(){const r=outMonthRange(),from=addD(bizToday(),1),out=[];
-  for(let d=r.first>from?r.first:from;d<=r.last;d=addD(d,1)){const o=outsOn(d);out.push({d,o,f:(X2.fullc[d]||[]).length});}
+// ---- ③ OUT数：今日（夜勤の日）から60日
+const OUT_DAYS=60;
+// その日のOUT。今のTMSデータ → なければ残しておいた記録（hist。今日の分など）
+function outsAny(d){const o=outsOn(d);if(o)return o;const h=X2.hist&&X2.hist[d];if(!h)return null;
+  const r={by:{},n:h.n||0,rooms:h.o||[],unk:[]};for(const t of LN_ORDER)r.by[t]=0;
+  for(const no of r.rooms){const t=TYPE_OF[no];if(t)r.by[t]++;}
+  for(let i=r.rooms.length;i<r.n;i++)r.unk.push("（部屋なし）");
+  return r;}
+function outRows(n){const bt=bizToday(),out=[];
+  for(let i=0;i<(n||OUT_DAYS);i++){const d=addD(bt,i);out.push({d,o:outsAny(d),f:(X2.fullc[d]||[]).length});}
   return out;}
+// 印刷する期間（開始日〜終了日）。今日〜60日の中。初期値は今日から31日
+function outPrRange(){const bt=bizToday(),last=addD(bt,OUT_DAYS-1),cl=d=>d<bt?bt:d>last?last:d;
+  const fe=document.getElementById("outPrFrom"),te=document.getElementById("outPrTo");
+  let f=cl(fe.value||(X2.outPr&&X2.outPr.f)||bt),t=cl(te.value||(X2.outPr&&X2.outPr.t)||addD(bt,30));
+  if(t<f)t=f;
+  fe.min=te.min=bt;fe.max=te.max=last;fe.value=f;te.value=t;
+  return {f,t};}
+function outPrRows(){const {f,t}=outPrRange();return outRows().filter(r=>r.d>=f&&r.d<=t);}
 function renderOut(){
   const rows=outRows(),info=document.getElementById("outInfo"),tb=document.getElementById("outTable");
-  const [y,m]=outYM.split("-").map(Number);
-  document.getElementById("outTitle").textContent=`${y}年${m}月`;
-  document.getElementById("outPrev").disabled=outYM<=curYM();
-  document.getElementById("outNext").disabled=outYM>=shiftYM(curYM(),11);
-  const miss=rows.filter(r=>!r.o).length;
-  info.innerHTML=!rows.length?"":miss===rows.length?`${m}月はまだ読み込んでいません。右上の「TMSデータ更新」で${m}月のTMSを読みます。`:miss?`読み込んでいない日があります（―）。右上の「TMSデータ更新」で${m}月をもう一度読みます。`:"";
+  outPrRange();
+  document.getElementById("outTitle").textContent=`${mdw(rows[0].d)}〜${mdw(rows[rows.length-1].d)}`;
+  const miss=rows.filter((r,i)=>i&&!r.o).length; // 今日のOUTは前の日の一覧なので読み直せない。数えない
+  info.innerHTML=!miss?"":miss===rows.length-1?"まだ読み込んでいません。右上の「データ更新」で読み込んでください。":"読み込んでいない日があります（―）。右上の「データ更新」で読み込んでください。";
   tb.innerHTML=outGrid(rows,"",false);
 }
 // 1日1行の表。合計＝OUT＋連泊清掃（OUTの部屋と重なる連泊清掃は数えない）
@@ -1282,18 +1297,19 @@ function outGrid(rows,hl,pr){
   return h+"</tbody>";
 }
 function renderOutPrint(){
-  const rows=outRows(),el=document.getElementById("printOut");
+  const rows=outPrRows(),el=document.getElementById("printOut");
   if(!rows.length){el.innerHTML="";return;}
-  // この月の日を最後に読んだ時刻
+  // この期間の日を最後に読んだ時刻
   const ts=rows.map(r=>{const x=X2.tms&&X2.tms.days[addD(r.d,-1)];return x&&x.at||0;}),at=new Date(Math.max(...ts)||(X2.tms?X2.tms.at:Date.now()));
-  const [y,m]=outYM.split("-").map(Number);
-  let h=`<div class="pout"><div class="hd"><span class="t">OUT数（${y}年${m}月）</span><span>${mdw(rows[0].d)}〜${mdw(rows[rows.length-1].d)}</span><span class="d">TMS取込 ${at.getMonth()+1}/${at.getDate()} ${String(at.getHours()).padStart(2,"0")}:${String(at.getMinutes()).padStart(2,"0")}</span></div>
+  let h=`<div class="pout"><div class="hd"><span class="t">OUT数</span><span>${mdw(rows[0].d)}〜${mdw(rows[rows.length-1].d)}（${rows.length}日）</span><span class="d">取込 ${at.getMonth()+1}/${at.getDate()} ${String(at.getHours()).padStart(2,"0")}:${String(at.getMinutes()).padStart(2,"0")}</span></div>
 `;
-  h+=`<table>${outGrid(rows,"",true)}</table>`; // A4縦1枚に1日1行
+  h+=`<table>${outGrid(rows,"",true)}</table>`; // 1日1行。多いときは次のページへ（見出しの行はくり返す）
   el.innerHTML=h+"</div>";
 }
-document.getElementById("outPrev").addEventListener("click",()=>{outYM=shiftYM(outYM,-1);renderOut();});
-document.getElementById("outNext").addEventListener("click",()=>{outYM=shiftYM(outYM,1);renderOut();});
+for(const id of ["outPrFrom","outPrTo"])document.getElementById(id).addEventListener("change",e=>{
+  const fe=document.getElementById("outPrFrom"),te=document.getElementById("outPrTo");
+  if(fe.value&&te.value&&te.value<fe.value){if(id==="outPrFrom")te.value=fe.value;else fe.value=te.value;} // 終了日が開始日より前にならないように
+  X2.outPr=outPrRange();saveX();});
 
 document.querySelectorAll("nav.tabs .tb").forEach(b=>b.addEventListener("click",()=>showTab(b.dataset.tab)));
 for(const t of TABS){const p=document.getElementById("p-"+t);p.setAttribute("role","tabpanel");p.setAttribute("aria-labelledby","t-"+t);}
@@ -1308,7 +1324,7 @@ document.getElementById("btnPrintOrder").addEventListener("click",()=>{
 document.getElementById("lnHist").addEventListener("change",e=>{if(e.target.id==="lnHistSel"){lnHistSel=e.target.value;renderLnHist();}});
 document.getElementById("lnHist").addEventListener("click",e=>{if(e.target.id!=="lnHistPrint"||!X2.lin[lnHistSel])return;
   renderOrderPrint(lnHistSel);doPrint("order");renderOrderPrint();}); // 保存した版をそのまま印刷（保存し直さない）
-document.getElementById("btnPrintOut").addEventListener("click",()=>{if(!outRows().some(r=>r.o)){alert("この月はまだ読み込んでいません。先に右上の「TMSデータ更新」で読み込んでください。");return;}renderOutPrint();doPrint("out");});
+document.getElementById("btnPrintOut").addEventListener("click",()=>{if(!outPrRows().some(r=>r.o)){alert("まだ読み込んでいません。先に右上の「データ更新」で読み込んでください。");return;}renderOutPrint();doPrint("out");});
 
 // =====================================================================
 // クラウド保存（Google スプレッドシート＋Apps Script。cloud/apps-script.gs）
@@ -1470,7 +1486,7 @@ function gotoDate(v){
   const dr=X2.dr[v];let note="";
   if(dr){const c=JSON.parse(JSON.stringify(dr));state=c.state||{};assign=c.assign||{};sheets=c.sheets||[];auto=c.auto||{};}
   else{const ts=tmsState(v);sheets=sheets.map(s=>({name:s.name}));assign={};auto={};
-    if(ts)state=ts;else{state={};note=`${mdw(v)}のTMSのデータがまだありません。右上の「TMSデータ更新」でこの日を読み込んでください。`;}}
+    if(ts)state=ts;else{state={};note=`${mdw(v)}のTMSのデータがまだありません。右上の「データ更新」でこの日を読み込んでください。`;}}
   dateVal=v;dEl.value=v;syncSc();save();buildStaffs();render();renderTabs();
   const el=document.getElementById("tmsr");
   if(note){el.innerHTML=`<button class="x" type="button">閉じる</button><b>${note}</b>`;el.hidden=false;el.querySelector(".x").addEventListener("click",()=>{el.hidden=true;});}
@@ -1524,10 +1540,13 @@ function importTms(){
 }
 function applyTms(t){
   if(pastView)leavePast(); // 過去の表を見ていたら、今の表に戻してから
-  if(t.days)saveTmsDays(t);
+  if(t.days){if(t.days.length>=60&&t.days.filter(x=>x.ok).length>=55)X2.tms60=bizToday();saveTmsDays(t);}
   // 連泊表のタブで読んだときだけ連泊表を入れ替える。ほかのタブはデータを入れるだけ
   if(t.mode&&t.mode!=="make"){renderTabs();showTms(t,null);return;}
-  const nd=addD(t.d,1); // この表の日付（読んだ一覧の次の日）
+  // この表の日付：今の日付の前の日の一覧を読んでいればその日、なければ読んだ最初の一覧の次の日
+  const pd=dateVal&&t.days?t.days.find(x=>x.d===addD(dateVal,-1)&&x.ok):null;
+  const nd=pd?dateVal:addD(t.d,1);
+  if(pd){t.o=[];t.s=[];for(const x of pd.rows){const q=(x.n||"").split("/").map(Number);if(!x.r||!q[0]||!q[1])continue;(q[0]===q[1]?t.o:t.s).push(x.r);}}
   if(!confirm(`${mdw(nd)}の連泊表をTMSのデータで上書きしますか？\n（OUT清掃・連泊・空室を入れ直します。連泊清掃は連泊清掃タブのカレンダーから入ります）`)){renderTabs();showTms(t,false);return;}
   if(nd!==dateVal){ // 別の日の表：今の表を残して、その日の表（スタッフ・割当）に切り替えてから入れ直す
     if(dateVal)save();const dr=X2.dr[nd];
@@ -1543,7 +1562,7 @@ function applyTms(t){
   t.v=v;save();render();renderTabs();showTms(t,true);
 }
 // バージョン（変えたら CHANGELOG.md にも書く）。拡張のバージョンは content.js が入れる
-const APP_VER="3.11";
+const APP_VER="3.12";
 (function(){const ev=document.documentElement.dataset.tmsExtVer||(document.documentElement.dataset.tmsExt?"2.2以前":"");
   document.getElementById("ver").textContent=`メイク表 v${APP_VER}　・　TMS拡張 ${ev?"v"+ev:"なし"}`;})();
 if(jumpAtStart)gotoDate(autoDay()); // 部屋のボタンを作ったあとで
@@ -1557,22 +1576,20 @@ setInterval(autoTick,60000);document.addEventListener("visibilitychange",()=>{if
 // 拡張機能（tms-ext）があれば、ボタン1つでTMSから読む
 const bt=document.getElementById("btnTms");
 let tmsBusy=false,tmsTimer=null;
-const TMS_FAIL="TMSから読み込めませんでした。\nChromeでTMSにログインしてから、もう一度右上の「TMSデータ更新」を押してください。";
-// 読む日数はタブで変える（一覧の日 k を読むと k+1 のOUTが分かる）
-//   連泊表：明日の表だけ → 1日 ／ リネン発注：納品日（作る夜＋2）のOUT → 作る夜から2日
-//   連泊清掃カレンダー：先の連泊 → 32日 ／ OUT数：選んだ月（今月なら明日から）
+const TMS_FAIL="TMSから読み込めませんでした。\nChromeでTMSにログインしてから、もう一度右上の「データ更新」を押してください。";
+// 読む日数：いつもは今日（夜勤の日）の一覧から5日。その日の最初の1回だけ60日（OUT数の60日分）。
+// 今見ている日（連泊表の日付・リネンの納品日）がその先なら、そこまで読む
 let tmsMode="make";
 function tmsPlan(){const bt=bizToday(),k=X2.tab;
-  if(k==="linen")return {mode:k,start:lnDateVal||lnDefaultDate(),days:2};
-  if(k==="full")return {mode:k,start:bt,days:32};
-  if(k==="out"){const r=outMonthRange();let s=addD(r.first,-1);if(s<bt)s=bt;const e=addD(r.last,-1);
-    return {mode:k,start:s,days:Math.max(1,Math.round((new Date(e)-new Date(s))/864e5)+1)};}
-  // 連泊表：今出している日の表を読む（その日の前の日の一覧）。今の夜勤の日より前は読めないので、そのときは明日の表
-  const s=dateVal?addD(dateVal,-1):bt;
-  return {mode:"make",start:s>bt?s:bt,days:1};}
+  let days=X2.tms60===bt?5:60,need=bt; // need＝読まないといけない一覧の日
+  if(k==="make"&&dateVal)need=addD(dateVal,-1);
+  if(k==="linen")need=addD(lnDateVal||lnDefaultDate(),1);
+  const span=Math.round((new Date(need)-new Date(bt))/864e5)+1;
+  if(span>days)days=Math.min(62,span);
+  return {mode:k,start:bt,days};}
 // 「TMS取込」ボタンは更新アイコン。読込中は回って「n/32」を出す
 const TMS_ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/></svg>';
-function tmsBtn(busy,txt){bt.classList.toggle("busy",!!busy);bt.innerHTML=TMS_ICON+`<span class="n">${txt||(busy?"読込中":"TMSデータ更新")}</span>`;}
+function tmsBtn(busy,txt){bt.classList.toggle("busy",!!busy);bt.innerHTML=TMS_ICON+`<span class="n">${txt||(busy?"読込中":"データ更新")}</span>`;}
 function tmsDone(){tmsBusy=false;clearTimeout(tmsTimer);bt.disabled=false;tmsBtn(false);}
 tmsBtn(false);
 function tmsArm(){clearTimeout(tmsTimer);tmsTimer=setTimeout(()=>{if(tmsBusy){tmsDone();alert(TMS_FAIL);}},90000);} // 90秒なにも来なければ失敗
@@ -1589,7 +1606,7 @@ bt.addEventListener("click",()=>{
   if(!document.documentElement.dataset.tmsExt){alert(TMS_FAIL);return;}
   if(tmsBusy)return;
   const p=tmsPlan(),ev=parseFloat(document.documentElement.dataset.tmsExtVer||"0");
-  if(p.start>bizToday()&&!(ev>=2.5)){alert("拡張機能が古いので、この日付からは読めません。\nchrome://extensions で「メイク表 TMS取込」の「再読み込み」を押してください（v2.5以上）。");return;}
+  if(p.days>40&&!(ev>=2.6)){alert("拡張機能が古いので、60日分は読めません。\nchrome://extensions で「メイク表 TMS取込」の「再読み込み」を押してください（v2.6以上）。");return;}
   tmsMode=p.mode;tmsBusy=true;bt.disabled=true;tmsBtn(true);
   window.postMessage({type:"MAKEHYO_TMS_REQ",days:p.days,start:p.start},"*");
   tmsArm();

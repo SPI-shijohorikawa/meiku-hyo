@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "メイク表 TMS取込（四条堀川）",
-  "version": "2.5",
+  "version": "2.6",
   "description": "メイク表のページの「TMS取込」ボタンから、TMSの予約検索（RESV・C/IN）をページが指定した日数だけ読みます。部屋番号・何泊目/何泊・部屋タイプだけを読みます。",
   "permissions": ["scripting", "tabs", "declarativeNetRequest"],
   "host_permissions": ["https://v4.tms.ninehours.co.jp/*"],
