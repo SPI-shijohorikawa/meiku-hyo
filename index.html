@@ -211,6 +211,10 @@ table.lt td.z{color:#c3c8c5}
 .fov{border:0;padding:0;background:transparent;margin:60px auto auto;width:min(520px,calc(100% - 24px));max-height:calc(100% - 80px);overflow:auto}
 .fov::backdrop{background:rgba(20,25,23,.35)}
 .fbox{background:var(--paper);border-radius:14px;box-shadow:0 0 0 1px rgba(0,0,0,.08);padding:10px 12px}
+.fbox.pwa{padding:16px 18px}
+.fbox.pwa h3{margin:0 0 8px;font-size:17px}
+.fbox.pwa p{margin:0 0 14px;font-size:15px;line-height:1.7}
+.fbox.pwa .act{width:100%;font:inherit;font-size:16px;font-weight:700;padding:11px;border-radius:8px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer}
 .fbox .fhd{display:flex;align-items:center;gap:8px;margin-bottom:6px}
 .fbox .fhd h3{margin:0;font-size:16px;color:var(--ink)}
 .fbox .fhd .x{margin-left:auto;font:inherit;font-size:14px;border:1px solid var(--line);background:var(--paper);border-radius:8px;padding:4px 12px;cursor:pointer;color:var(--ink)}
@@ -251,6 +255,52 @@ table.om .sep{border-left:1px solid var(--line)}
 table.om td.unk{color:var(--danger);font-weight:700}
 table.om td.miss{color:#c3c8c5}
 
+.room .ty .ts{display:none}
+.lnwrap{overflow-x:auto}
+@media (max-width:900px){.lnwrap{container:lnw/inline-size}} /* 1列のとき（幅が決まっているとき）だけ */
+/* ---------- スマホ（幅600px以下） ---------- */
+@media (max-width:600px){
+  body{padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px))}
+  /* タブ：4つを1行に等分（長い名前は2行に） */
+  nav.tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0 4px;align-items:end}
+  nav.tabs .tb{font-size:13.5px;line-height:1.3;padding:8px 0 12px;word-break:keep-all;min-height:44px}
+  nav.tabs .tmsw{grid-column:1/-1;justify-content:flex-end;padding:6px 0 8px;border-top:1px solid rgba(0,0,0,.05)}
+  header.top h1{font-size:20px}
+  .legend{margin-left:0}
+  /* 部屋表：6列を画面の幅に入れる。タイプは短く（TA/Dbl…） */
+  .floors{padding:6px}
+  .floor{grid-template-columns:34px minmax(0,1fr);gap:4px}
+  .floor h2{font-size:14px}
+  .floor h2 small{font-size:9.5px;white-space:normal;text-align:center;line-height:1.25}
+  .grid{gap:3px;grid-auto-rows:46px}
+  .floors .room{padding:2px 1px 2px 4px;border-left-width:4px;border-radius:6px}
+  .floors .room .no{font-size:15px;letter-spacing:-.02em}
+  .floors .room .ty,.floors .room .st{font-size:9.5px}
+  .room .ty .tl{display:none} .room .ty .ts{display:inline}
+  .room .st{overflow:hidden}
+  /* 連泊清掃カレンダー：OUT数は日付の下に（日付と重ならない） */
+  .cal{gap:3px}
+  .cal .dy{padding:3px 3px;min-height:58px}
+  .cal .dy b{font-size:14px}
+  .cal .dy .oc{position:static;align-self:flex-start;font-size:11px;padding:0 3px;line-height:1.4}
+  .cal .dy .oc small{font-size:8px;margin-right:1px}
+  .cal .dy .fc{font-size:11.5px;padding:1px 3px;word-spacing:0}
+}
+/* リネン発注表：狭いときは1品目ずつ縦に（ラベルを各欄の上に） */
+@container lnw (width < 520px){
+  #lnTable,#lnTable tbody{display:block}
+  #lnTable thead{display:none}
+  #lnTable tr{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px 10px;padding:10px 0;border-bottom:1px solid #eceeed}
+  #lnTable tr:last-child{border-bottom:0}
+  #lnTable td{display:block;padding:0;border:0;text-align:left;white-space:normal;min-width:0}
+  #lnTable td.nil{display:none}
+  #lnTable td:first-child{grid-column:1/-1;font-size:16px;font-weight:700}
+  #lnTable td:first-child small.sub{display:inline;margin-left:8px}
+  #lnTable td[data-l]::before{content:attr(data-l);display:block;font-size:11.5px;font-weight:600;color:var(--sub);margin-bottom:2px}
+  #lnTable td.ord{grid-column:3}
+  #lnTable input{width:100%;max-width:6em}
+  #lnTable td.ord input{width:calc(100% - 34px)}
+}
 /* ---------- 印刷用（白黒プリンター前提） ---------- */
 .print{display:none}
 @media print{
@@ -392,10 +442,15 @@ table.om td.miss{color:#c3c8c5}
 <nav class="tabs" role="tablist">
   <button class="tb" type="button" role="tab" id="t-make" aria-controls="p-make" data-tab="make">連泊表</button>
   <button class="tb" type="button" role="tab" id="t-linen" aria-controls="p-linen" data-tab="linen">リネン発注</button>
-  <button class="tb" type="button" role="tab" id="t-full" aria-controls="p-full" data-tab="full">連泊清掃カレンダー</button>
-  <button class="tb" type="button" role="tab" id="t-out" aria-controls="p-out" data-tab="out">OUT数（月別）</button>
+  <button class="tb" type="button" role="tab" id="t-full" aria-controls="p-full" data-tab="full">連泊清掃<wbr>カレンダー</button>
+  <button class="tb" type="button" role="tab" id="t-out" aria-controls="p-out" data-tab="out">OUT数<wbr>（月別）</button>
   <div class="tmsw"><button id="cloudSt" class="cst" type="button" title="クラウド保存"></button><span class="tmsat" id="tmsAt"></span><button id="btnTms" type="button" title="TMS取込" aria-label="TMS取込"></button></div>
 </nav>
+<dialog class="fov" id="pwaDlg" aria-labelledby="pwaH"><div class="fbox pwa">
+  <h3 id="pwaH">印刷はパソコンでしてください</h3>
+  <p id="pwaMsg"></p>
+  <button type="button" class="act primary" id="pwaOk">OK</button>
+</div></dialog>
 <div class="tmsbar"><div class="tmsr" id="tmsr" hidden></div></div>
 
 <div class="panel" id="p-make">
@@ -441,7 +496,6 @@ table.om td.miss{color:#c3c8c5}
       <button class="primary" id="btnPrint" type="button">印刷</button>
       <button id="btnReset" type="button">リセット</button>
     </div>
-    <p class="warn" id="pwaWarn" hidden>ホーム画面から開いたアプリ表示では印刷できません。Safariでこのページを開いて印刷してください。</p>
   </aside>
 </div>
 </div>
@@ -460,7 +514,7 @@ table.om td.miss{color:#c3c8c5}
     </div>
     <div class="box">
       <h3>発注数</h3>
-      <div style="overflow-x:auto"><table class="lt" id="lnTable"></table></div>
+      <div class="lnwrap"><table class="lt" id="lnTable"></table></div>
     </div>
     <div class="box hbox">
       <h3>発注履歴</h3>
@@ -495,11 +549,11 @@ table.om td.miss{color:#c3c8c5}
 
 <script>
 const TYPES={
-  TA:{en:"Triple A",ja:"トリプルA",c:"var(--tA)"},
-  TB:{en:"Triple B",ja:"トリプルB",c:"var(--tB)"},
-  D:{en:"Double",ja:"ダブル",c:"var(--dbl)"},
-  W:{en:"Twin",ja:"ツイン",c:"var(--twn)"},
-  Q:{en:"4 Beds",ja:"4ベッド",c:"var(--q4)"}
+  TA:{en:"Triple A",s:"TA",ja:"トリプルA",c:"var(--tA)"},
+  TB:{en:"Triple B",s:"TB",ja:"トリプルB",c:"var(--tB)"},
+  D:{en:"Double",s:"Dbl",ja:"ダブル",c:"var(--dbl)"},
+  W:{en:"Twin",s:"Twn",ja:"ツイン",c:"var(--twn)"},
+  Q:{en:"4 Beds",s:"4B",ja:"4ベッド",c:"var(--q4)"}
 };
 const TYPE_ORDER=["D","W","TA","TB","Q"];
 // 1部屋あたりのリネン（OUT清掃・連泊清掃とも同じ）
@@ -571,7 +625,7 @@ function buildScreen(){
       const no=e[0],t=TYPE_OF[no];
       const b=document.createElement("button");b.type="button";b.className="room";b.id="r"+no;
       b.style.setProperty("--tc",TYPES[t].c);
-      b.innerHTML=`<span class="no">${no}</span><span class="ty">${TYPES[t].en}</span><span class="st"></span><span class="bd" hidden></span>`;
+      b.innerHTML=`<span class="no">${no}</span><span class="ty"><span class="tl">${TYPES[t].en}</span><span class="ts">${TYPES[t].s}</span></span><span class="st"></span><span class="bd" hidden></span>`;
       b.addEventListener("click",()=>onRoom(no));
       g.appendChild(b);
     }
@@ -1028,10 +1082,10 @@ function buildLinen(){
   // 発注数
   h=`<thead><tr><th>種類</th><th>${md2(c.T)}<br>に必要</th><th>${md2(X1)}<br>に届く</th><th>カウント</th><th>計算</th><th>発注数</th></tr></thead><tbody>`;
   for(const r of c.rows){const k=r.it.k;
-    h+=`<tr><td>${r.it.nm}<small class="sub">${r.it.u}枚単位</small></td><td data-need="${k}"></td>`;
-    if(r.it.fix!=null)h+=`<td></td><td></td><td>${k==="WP"?`<span class="seg"><button type="button" data-wipe="40">40</button><button type="button" data-wipe="20">20</button></span>`:"固定"}</td>`;
-    else h+=`<td><input type="number" inputmode="numeric" min="0" data-g="come" data-k="${k}"></td><td><input type="number" inputmode="numeric" min="0" data-g="cnt" data-k="${k}"></td><td data-calc="${k}"></td>`;
-    h+=`<td class="ord"><input type="number" inputmode="numeric" min="0" step="${r.it.u}" data-g="ov" data-k="${k}"><button class="rs" type="button" data-g="ov" data-k="${k}" hidden>↺</button></td></tr>`;}
+    h+=`<tr><td>${r.it.nm}<small class="sub">${r.it.u}枚単位</small></td><td data-need="${k}" data-l="${md2(c.T)}に必要"></td>`;
+    if(r.it.fix!=null)h+=`<td class="nil"></td><td class="nil"></td><td>${k==="WP"?`<span class="seg"><button type="button" data-wipe="40">40</button><button type="button" data-wipe="20">20</button></span>`:"固定"}</td>`;
+    else h+=`<td data-l="${md2(X1)}に届く"><input type="number" inputmode="numeric" min="0" data-g="come" data-k="${k}"></td><td data-l="カウント"><input type="number" inputmode="numeric" min="0" data-g="cnt" data-k="${k}"></td><td data-calc="${k}" data-l="計算"></td>`;
+    h+=`<td class="ord" data-l="発注数"><input type="number" inputmode="numeric" min="0" step="${r.it.u}" data-g="ov" data-k="${k}"><button class="rs" type="button" data-g="ov" data-k="${k}" hidden>↺</button></td></tr>`;}
   h+="</tbody>";
   document.getElementById("lnTable").innerHTML=h;
   updLinen(true);
@@ -1154,7 +1208,7 @@ function renderFday(){
       else if(oset.has(no)){lab="OUT";cls=" o";}
       else if(st)cls=" o";
       if(on&&st&&st[no])lab="清掃 "+st[no];
-      h+=`<button type="button" class="room${on?" fs":cls}" data-no="${no}"${ro?' aria-disabled="true"':""} style="--tc:${TYPES[t].c}"><span class="no">${no}</span><span class="ty">${TYPES[t].en}</span><span class="st">${lab}</span></button>`;}
+      h+=`<button type="button" class="room${on?" fs":cls}" data-no="${no}"${ro?' aria-disabled="true"':""} style="--tc:${TYPES[t].c}"><span class="no">${no}</span><span class="ty"><span class="tl">${TYPES[t].en}</span><span class="ts">${TYPES[t].s}</span></span><span class="st">${lab}</span></button>`;}
     h+="</div></section>";}
   h+="</div>";
   document.getElementById("fday").innerHTML=h;
@@ -1445,7 +1499,7 @@ function applyTms(t){
   t.v=v;save();render();renderTabs();showTms(t,true);
 }
 // バージョン（変えたら CHANGELOG.md にも書く）。拡張のバージョンは content.js が入れる
-const APP_VER="3.6";
+const APP_VER="3.7";
 (function(){const ev=document.documentElement.dataset.tmsExtVer||(document.documentElement.dataset.tmsExt?"2.2以前":"");
   document.getElementById("ver").textContent=`メイク表 v${APP_VER}　・　TMS拡張 ${ev?"v"+ev:"なし"}`;})();
 if(jumpAtStart)gotoDate(autoDay()); // 部屋のボタンを作ったあとで
@@ -1508,8 +1562,19 @@ document.getElementById("addStaff").addEventListener("click",()=>{if(sheets.leng
 
 // iPhone/iPad のホーム画面アプリ表示では window.print() が動かないので案内を出す
 const standalone=(window.navigator.standalone===true)||(window.matchMedia&&matchMedia("(display-mode: standalone)").matches);
+// 印刷できないときは、クラウドにすぐ保存して「パソコンで印刷」を案内する
+async function pwaNotice(){
+  const dlg=document.getElementById("pwaDlg"),msg=document.getElementById("pwaMsg");
+  msg.textContent="クラウドに保存しています…";if(!dlg.open)dlg.showModal();
+  if(cloudReady){clearTimeout(cloudT);
+    for(let i=0;i<120&&cloudBusy;i++)await new Promise(r=>setTimeout(r,300)); // 保存中なら終わるまで待つ
+    await cloudSync();}
+  const ok=cloudReady&&!cloudErr&&!cloudDirty("make")&&!cloudDirty("ext");
+  msg.textContent=ok?"この画面からは印刷できません。データはクラウドに保存しました。パソコンでこのページを開くと同じデータが出るので、そこで印刷してください。"
+    :"この画面からは印刷できません。クラウドにまだ保存できていません。ネットにつながる所で右上の「☁」を押して保存してから、パソコンで印刷してください。";}
+document.getElementById("pwaOk").addEventListener("click",()=>document.getElementById("pwaDlg").close());
 function doPrint(pm){
-  if(standalone){document.getElementById("pwaWarn").hidden=false;return;}
+  if(standalone){pwaNotice();return;}
   render();if(pm==="main"||pm==="staff")snapMake();document.body.dataset.pm=pm;window.print();
 }
 document.getElementById("btnPrint").addEventListener("click",()=>doPrint("main")); // メイク表＋集計
