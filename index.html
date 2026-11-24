@@ -228,15 +228,21 @@ table.lt td.z{color:#c3c8c5}
 .fgrid .room.o{background:#eceeed}
 .fgrid .room.o .no,.fgrid .room.o .ty{color:#9aa19e}
 /* OUT数 */
+/* OUT数：1日1行 */
 table.om{width:auto;font-size:14px}
-table.om th,table.om td{text-align:center;padding:5px 4px;min-width:42px;border-left:1px solid #f0f1f0}
-table.om tbody th{text-align:left;position:sticky;left:0;background:var(--paper);z-index:1;font-weight:700;padding-right:10px;color:var(--ink);font-size:13px}
-table.om thead th:first-child{position:sticky;left:0;background:var(--paper);z-index:1}
-table.om thead th{line-height:1.25}
-table.om .we0{color:var(--danger)} table.om .we6{color:#2f6fb0}
+table.om th,table.om td{padding:5px 10px;border-bottom:0}
+table.om thead th{font-size:12px;border-bottom:2px solid var(--line);position:sticky;top:0;background:var(--paper);z-index:1}
+table.om td.d .w{display:inline-block;width:1.4em;text-align:center;color:var(--sub)}
+table.om tr.we6 td.d,table.om tr.we6 td.d .w{color:#2f6fb0}
+table.om tr.we0 td.d,table.om tr.we0 td.d .w{color:var(--danger)}
+table.om tr.we6,table.om tr.we0{background:#FAF8F5}
+table.om tr.mon td{border-top:2px solid var(--line)}
+table.om td.tot{font-weight:700;font-size:16px;text-align:left;width:150px}
+table.om td.tot .n{display:inline-block;width:2em;text-align:right}
+table.om td.tot .bar{display:inline-block;height:9px;border-radius:5px;background:var(--accent);opacity:.75;vertical-align:middle;margin-left:8px}
+table.om .sep{border-left:1px solid var(--line)}
+table.om td.unk{color:var(--danger);font-weight:700}
 table.om td.miss{color:#c3c8c5}
-table.om .hl{background:#fff8e6}
-table.om tr.otot td{font-size:16px;border-bottom:2px solid var(--line)}
 
 /* ---------- 印刷用（白黒プリンター前提） ---------- */
 .print{display:none}
@@ -366,8 +372,11 @@ table.om tr.otot td{font-size:16px;border-bottom:2px solid var(--line)}
   .pout table{border-collapse:collapse;width:100%;table-layout:fixed;font-size:10pt;font-variant-numeric:tabular-nums}
   .pout th,.pout td{border:.3mm solid #000;padding:1.2mm .5mm;text-align:center;white-space:nowrap}
   .pout thead th{font-weight:600;font-size:8.5pt;line-height:1.2}
-  .pout th:first-child{width:17mm;text-align:left;padding-left:1.5mm;font-size:8.5pt}
-  .pout tr.otot td{font-weight:800;font-size:11pt}
+  .pout th:first-child,.pout td:first-child{width:22mm;text-align:left;padding-left:2mm}
+  .pout td.tot{font-weight:800;font-size:11pt}
+  .pout tr.mon td{border-top:.7mm solid #000}
+  .pout td.z{color:#999}
+  .pout .bar{display:none}
   .pout .we{background:#e6e6e6;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
 </style>
@@ -462,7 +471,7 @@ table.om tr.otot td{font-size:16px;border-bottom:2px solid var(--line)}
 <div class="panel" id="p-out" hidden><div class="pnl">
   <div class="row"><h2>OUT数（今から1か月分）</h2><button class="act primary" type="button" id="btnPrintOut">印刷</button></div>
   <p class="note" id="outInfo"></p>
-  <div class="box" style="overflow-x:auto"><table class="lt om" id="outTable"></table></div>
+  <div class="box" style="overflow-x:auto;width:fit-content;max-width:100%"><table class="lt om" id="outTable"></table></div>
 </div></div>
 
 <p class="ver" id="ver"></p>
@@ -1127,15 +1136,19 @@ function renderOut(){
   info.innerHTML="";
   tb.innerHTML=outGrid(rows,"",false);
 }
-// 日付を左から右へ並べた表。行＝OUT計・タイプ別・不明・連泊清掃
+// 1日1行の表。合計＝OUT＋連泊清掃（OUTの部屋と重なる連泊清掃は数えない）
+function outTotal(r){const os=new Set(r.o?r.o.rooms:[]);return (r.o?r.o.n:0)+(X2.fullc[r.d]||[]).filter(no=>!os.has(no)).length;}
 function outGrid(rows,hl,pr){
-  const lines=[["OUT計",r=>r.o.n,1]].concat(LN_ORDER.map(t=>[TNAME[t],r=>r.o.by[t]]),[["不明",r=>r.o.unk.length],["連泊清掃",r=>r.f,0,1]]);
-  const cls=r=>{const w=wdOf(r.d);return (w===0?"we0":w===6?"we6":"")+(r.d===hl?" hl":"")+(!r.o?" miss":"")+(pr&&(w===0||w===6)?" we":"");};
-  let h=`<thead><tr><th>${pr?"":"日付"}</th>${rows.map(r=>{const a=r.d.split("-");return `<th class="${cls(r)}">${+a[1]}/${+a[2]}<br>${WD[wdOf(r.d)]}</th>`;}).join("")}</tr></thead><tbody>`;
-  for(const [nm,f,bold,always] of lines){
-    h+=`<tr${bold?' class="otot"':""}><th>${nm}</th>`+rows.map(r=>{
-      if(!r.o&&!always)return `<td class="${cls(r)}">${pr?"―":"―"}</td>`;
-      const v=f(r);return `<td class="${cls(r)}${v?"":" z"}">${v?(bold?`<b>${v}</b>`:v):(pr?"":0)}</td>`;}).join("")+"</tr>";}
+  const max=Math.max(1,...rows.map(outTotal));
+  let h=`<thead><tr><th>日付</th><th${pr?"":' style="text-align:left"'}>合計<br><small>OUT＋連泊清掃</small></th><th class="sep">OUT</th>${LN_ORDER.map(t=>`<th>${TNAME[t]}</th>`).join("")}<th class="sep">不明</th><th class="sep">連泊清掃</th></tr></thead><tbody>`;
+  rows.forEach((r,i)=>{const w=wdOf(r.d),a=r.d.split("-"),t=outTotal(r);
+    const c=(v,x="")=>r.o?`<td class="${x}${v?"":" z"}">${v}</td>`:`<td class="${x} miss">―</td>`;
+    h+=`<tr class="${w===6?"we6":w===0?"we0":""}${w===1&&i?" mon":""}${pr&&(w===0||w===6)?" we":""}${r.d===hl?" hl":""}">`+
+      `<td class="d">${+a[1]}/${+a[2]}${pr?`（${WD[w]}）`:` <span class="w">${WD[w]}</span>`}</td>`+
+      `<td class="tot"><span class="n">${t}</span><span class="bar" style="width:${Math.round(t/max*90)}px"></span></td>`+
+      c(r.o?r.o.n:0,"sep")+LN_ORDER.map(k=>c(r.o?r.o.by[k]:0)).join("")+
+      (r.o?`<td class="sep ${r.o.unk.length?"unk":"z"}">${r.o.unk.length}</td>`:`<td class="sep miss">―</td>`)+
+      `<td class="sep${r.f?"":" z"}">${r.f}</td></tr>`;});
   return h+"</tbody>";
 }
 function renderOutPrint(){
@@ -1144,7 +1157,7 @@ function renderOutPrint(){
   const at=new Date(X2.tms.at);
   let h=`<div class="pout"><div class="hd"><span class="t">OUT数（1か月）</span><span>${mdw(rows[0].d)}〜${mdw(rows[rows.length-1].d)}</span><span class="d">TMS取込 ${at.getMonth()+1}/${at.getDate()} ${String(at.getHours()).padStart(2,"0")}:${String(at.getMinutes()).padStart(2,"0")}</span></div>
 `;
-  for(let i=0;i<rows.length;i+=16)h+=`<table>${outGrid(rows.slice(i,i+16),"",true)}</table>`; // A4縦に16日ずつ
+  h+=`<table>${outGrid(rows,"",true)}</table>`; // A4縦1枚に1日1行
   el.innerHTML=h+"</div>";
 }
 
@@ -1342,7 +1355,7 @@ function applyTms(t){
   t.v=v;save();render();renderTabs();showTms(t,true);
 }
 // バージョン（変えたら CHANGELOG.md にも書く）。拡張のバージョンは content.js が入れる
-const APP_VER="3.1";
+const APP_VER="3.2";
 (function(){const ev=document.documentElement.dataset.tmsExtVer||(document.documentElement.dataset.tmsExt?"2.2以前":"");
   document.getElementById("ver").textContent=`メイク表 v${APP_VER}　・　TMS拡張 ${ev?"v"+ev:"なし"}`;})();
 render();showTab(X2.tab);importTms();cloudStart();
