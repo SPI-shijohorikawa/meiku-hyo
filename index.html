@@ -540,7 +540,7 @@ table.om td.miss{color:#c3c8c5}
 <div class="panel" id="p-full" hidden><div class="pnl">
   <div class="row"><h2>連泊清掃カレンダー</h2>
     <div class="calhd"><button type="button" id="calPrev" aria-label="前の月">‹</button><b id="calTitle"></b><button type="button" id="calNext" aria-label="次の月">›</button></div></div>
-  <p class="note">日をタップすると部屋表が出ます。部屋をタップ＝その日その部屋は連泊清掃（もう一度タップで取消）。タップすると部屋表は自動で閉じます。右上の数字＝その日のOUT数（TMS）。連泊表の「連泊清掃」と自動でつながります。今日（夜勤の日）より前の日は見るだけで、変更できません。</p>
+  <p class="note">日をタップすると部屋表が出ます。部屋をタップ＝その日その部屋は連泊清掃（もう一度タップで取消）。続けて何室でも選べます。終わったら「閉じる」を押してください。右上の数字＝その日のOUT数（TMS）。連泊表の「連泊清掃」と自動でつながります。今日（夜勤の日）より前の日は見るだけで、変更できません。</p>
   <div class="box"><div class="cal" id="cal"></div></div>
   <dialog class="fov" id="fov" aria-label="連泊清掃の部屋表"><div class="fbox" id="fday"></div></dialog>
 </div></div>
@@ -1006,7 +1006,8 @@ function saveTmsDays(t){
   const cnt={};
   for(const d in days)for(const r of days[d].rows)if(r.r&&TYPE_OF[r.r]&&r.t){(cnt[r.t]=cnt[r.t]||{})[TYPE_OF[r.r]]=(cnt[r.t][TYPE_OF[r.r]]||0)+1;}
   const map={};for(const k in cnt)map[k]=Object.keys(cnt[k]).sort((a,b)=>cnt[k][b]-cnt[k][a])[0];
-  X2.tms={at:Date.now(),base:bt,days,map};
+  X2.tms={at:Date.now(),base:bt,days,map,f60:(X2.tms&&X2.tms.f60)||""};
+  if(t.days.length>=60&&t.days.filter(x=>x.ok).length>=55)X2.tms.f60=bt; // 60日読んだ夜勤の日（ほかの端末にも同期）
   if(t.mode==="linen")lnDateVal=t.d;else if(t.mode!=="out")lnDateVal="";
   // リネン発注の古い記録を消す（60日より前）。連泊清掃の記録（fullc・hist）はあとで見るので消さない
   const old=addD(today(),-60);
@@ -1250,8 +1251,7 @@ fov.addEventListener("click",e=>{
   const no=b.dataset.no,on=!(X2.fullc[selDay]||[]).includes(no);
   fcSet(selDay,no,on);
   if(selDay===dateVal){save();render();}
-  renderFull();
-  fovT=setTimeout(closeFov,450);}); // タップしたら少し見せてから自動で閉じる
+  renderFull();}); // 何室も続けて入れられるように、自動では閉じない（「閉じる」・外側・Escで閉じる）
 fov.addEventListener("close",()=>clearTimeout(fovT)); // Escで閉じたとき
 document.getElementById("calPrev").addEventListener("click",()=>{const [y,m]=calYM.split("-").map(Number);calYM=ymd(new Date(y,m-2,1)).slice(0,7);renderFull();});
 document.getElementById("calNext").addEventListener("click",()=>{const [y,m]=calYM.split("-").map(Number);calYM=ymd(new Date(y,m,1)).slice(0,7);renderFull();});
@@ -1530,7 +1530,8 @@ function showTms(t,applied){
   let h=`<button class="x" type="button">閉じる</button><b>読み込みました</b>`;
   if(applied){if(t.cf&&t.cf.length)h+=`<br><span style="color:var(--danger)">連泊清掃の記録があるのにOUT・空室になった部屋：${esc(t.cf.join("、"))}（連泊清掃カレンダーで確認してください）</span>`;}
   else if(applied===false)h+="<br>連泊表は変えていません。";
-  if(t.days){const miss=t.days.filter(x=>!x.ok).map(x=>md(x.d));
+  if(t.remote){}
+  else if(t.days){const miss=t.days.filter(x=>!x.ok).map(x=>md(x.d));
     if(miss.length)h+=`<br><span style="color:var(--danger)">読めなかった日：${miss.join("、")}（もう一度読み込んでください）</span>`;}
   else h+=`<br><span style="color:var(--danger)">拡張機能が古いので、1か月分（リネン発注・OUT数）は読めませんでした。拡張機能を新しくして、chrome://extensions で「再読み込み」してください。</span>`;
   el.innerHTML=h;el.hidden=false;el.querySelector(".x").addEventListener("click",()=>{el.hidden=true;});
@@ -1565,11 +1566,12 @@ function applyTms(t){
   t.v=v;save();render();renderTabs();showTms(t,true);
 }
 // バージョン（変えたら CHANGELOG.md にも書く）。拡張のバージョンは content.js が入れる
-const APP_VER="3.12.1";
+const APP_VER="3.14";
 (function(){const ev=document.documentElement.dataset.tmsExtVer||(document.documentElement.dataset.tmsExt?"2.2以前":"");
   document.getElementById("ver").textContent=`メイク表 v${APP_VER}　・　TMS拡張 ${ev?"v"+ev:"なし"}`;})();
 if(jumpAtStart)gotoDate(autoDay()); // 部屋のボタンを作ったあとで
 render();showTab(X2.tab);importTms();cloudStart();
+setTimeout(()=>{const m=location.hash.match(/^#remote=(\w+)$/);if(m)remoteRun(m[1]);else autoDaily();},0); // 下の関数ができてから
 // 開いたまま正午をまたいだら、連泊表・リネン発注の日付を進める（1分ごとに確認）
 let lastAuto=autoDay();
 function autoTick(){const a=autoDay();if(a===lastAuto)return;lastAuto=a;
@@ -1584,7 +1586,7 @@ const TMS_FAIL="TMSから読み込めませんでした。\nChromeでTMSにロ�
 // 今見ている日（連泊表の日付・リネンの納品日）がその先なら、そこまで読む
 let tmsMode="make";
 function tmsPlan(){const bt=bizToday(),k=X2.tab;
-  let days=X2.tms60===bt?5:60,need=bt; // need＝読まないといけない一覧の日
+  let days=(X2.tms60===bt||(X2.tms&&X2.tms.f60===bt))?5:60,need=bt; // need＝読まないといけない一覧の日
   if(k==="make"&&dateVal)need=addD(dateVal,-1);
   if(k==="linen")need=addD(lnDateVal||lnDefaultDate(),1);
   const span=Math.round((new Date(need)-new Date(bt))/864e5)+1;
@@ -1595,19 +1597,21 @@ const TMS_ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strok
 function tmsBtn(busy,txt){bt.classList.toggle("busy",!!busy);bt.innerHTML=TMS_ICON+`<span class="n">${txt||(busy?"読込中":"データ更新")}</span>`;}
 function tmsDone(){tmsBusy=false;clearTimeout(tmsTimer);bt.disabled=false;tmsBtn(false);}
 tmsBtn(false);
-function tmsArm(){clearTimeout(tmsTimer);tmsTimer=setTimeout(()=>{if(tmsBusy){tmsDone();alert(TMS_FAIL);}},90000);} // 90秒なにも来なければ失敗
+function tmsArm(){clearTimeout(tmsTimer);tmsTimer=setTimeout(()=>{if(!tmsBusy)return;tmsDone();if(remoteWait){const w=remoteWait;remoteWait=null;w({ok:false,error:"timeout"});}else alert(TMS_FAIL);},90000);} // 90秒なにも来なければ失敗
 window.addEventListener("message",e=>{
   if(e.source!==window||!e.data)return;
   if(e.data.type==="MAKEHYO_TMS_PROG"){if(tmsBusy){tmsBtn(true,`${e.data.i}/${e.data.n}`);tmsArm();}return;}
   if(e.data.type!=="MAKEHYO_TMS_RES")return;
   tmsDone();
   const r=e.data.res||{};
-  if(r.ok){r.data.mode=tmsMode;applyTms(r.data);}
+  if(remoteWait){const w=remoteWait;remoteWait=null;if(r.ok){r.data.mode="remote";applyTms(r.data);}w(r);return;} // スマホからの依頼で読んだ
+  if(r.ok){r.data.mode=tmsMode;applyTms(r.data);if(tmsMode==="auto")autoDone();}
+  else if(tmsMode==="auto")tmsNote(TMS_FAIL);
   else alert(TMS_FAIL);
 });
 bt.addEventListener("click",()=>{
-  if(!document.documentElement.dataset.tmsExt){alert(TMS_FAIL);return;}
   if(tmsBusy)return;
+  if(!document.documentElement.dataset.tmsExt){remoteReq();return;} // 拡張機能がない（スマホなど）：パソコンに頼む
   const p=tmsPlan(),ev=parseFloat(document.documentElement.dataset.tmsExtVer||"0");
   if(p.days>40&&!(ev>=2.6)){alert("拡張機能が古いので、60日分は読めません。\nchrome://extensions で「メイク表 TMS取込」の「再読み込み」を押してください（v2.6以上）。");return;}
   tmsMode=p.mode;tmsBusy=true;bt.disabled=true;tmsBtn(true);
@@ -1615,6 +1619,82 @@ bt.addEventListener("click",()=>{
   tmsArm();
 });
 window.addEventListener("hashchange",importTms);
+
+// =====================================================================
+// スマホから「データ更新」：クラウドの req に依頼を書く → パソコンの拡張機能が見つけて、このページを裏で開いて読む
+//   req = {ask:{id,at,plan:{days,start}}, res:{id,st:"busy"|"done"|"login"|"fail",at,msg}}
+let remoteWait=null;
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+async function reqGet(){const g=await cloudApi({action:"get",keys:["req"]});if(!g.ok)throw new Error(g.error||"get");return (g.res&&g.res.req)||{at:0,data:null};}
+async function reqPut(fn){
+  for(let i=0;i<4;i++){const cur=await reqGet();
+    const r=await cloudApi({action:"put",key:"req",data:fn(cur.data||{}),base:cur.at||0});
+    if(r.ok)return;if(r.error!=="conflict")throw new Error(r.error||"put");}
+  throw new Error("conflict");}
+async function cloudSettle(){ // クラウドとの同期を終わらせる（保存できていない分も送る）
+  clearTimeout(cloudT);
+  for(let k=0;k<3;k++){for(let i=0;i<100&&cloudBusy;i++)await sleep(300);await cloudSync();if(!cloudErr&&!cloudDirty("make")&&!cloudDirty("ext"))return true;}
+  return false;}
+async function remoteReq(auto){
+  const p=tmsPlan(),id=Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  tmsBusy=true;bt.disabled=true;tmsBtn(true,"パソコンに依頼中");
+  const end=m=>{tmsBusy=false;bt.disabled=false;tmsBtn(false);if(m){if(auto)tmsNote(m);else alert(m);}}; // 自動のときは画面の上に出すだけ
+  try{await reqPut(d=>({ask:{id,at:Date.now(),plan:{days:p.days,start:p.start}},res:d.res||null}));}
+  catch(e){end(String(e.message)==="bad request"?"クラウドの設定が古いので、パソコンに頼めません。\ncloud/设置步骤.md の「手机远程」の手順で Apps Script を新しくしてください。":"クラウドにつながりません。ネットにつながる所でもう一度押してください。");return;}
+  const t0=Date.now();let picked=false;
+  for(;;){await sleep(4000);
+    let r=null;try{const d=(await reqGet()).data||{};r=d.res&&d.res.id===id?d.res:null;}catch(e){}
+    if(r&&r.st==="busy"){if(!picked){picked=true;tmsBtn(true,"パソコンで読込中");}}
+    else if(r&&r.st==="done"){tmsBtn(true,"同期中");await cloudSettle();end();if(auto)autoDone();else remoteApplied();return;}
+    else if(r&&r.st==="login"){end("パソコンのTMSがログアウトしています。\nパソコンのChromeでTMSにログインしてから、もう一度押してください。");return;}
+    else if(r){end("パソコンでTMSを読めませんでした。もう一度押してください。"+(r.msg?"\n（"+r.msg+"）":""));return;}
+    if(!picked&&Date.now()-t0>120000){end("パソコンが応答しません。\nホテルのパソコンの電源が入っていて、Chromeが開いているか確かめてください。");return;}
+    if(Date.now()-t0>480000){end("時間がかかりすぎています。パソコンで確かめてください。");return;}}}
+// 上の黄色い欄に1行だけ出す（自動の更新でうまくいかなかったとき。alert で止めない）
+function tmsNote(m){const el=document.getElementById("tmsr");
+  el.innerHTML=`<button class="x" type="button">閉じる</button><span style="color:var(--danger)">${esc(m).replace(/\n/g,"<br>")}</span>`;
+  el.hidden=false;el.querySelector(".x").addEventListener("click",()=>{el.hidden=true;});}
+// その日（夜勤の日）に初めて開いたとき：60日分を自動で読む（どの端末かで60日を読んでいれば読まない）。
+// 読んだら連泊清掃カレンダーへ（新しく入った連泊清掃を先に入れてもらう）
+const isRemotePage=/^#remote=/.test(location.hash);
+async function autoDaily(){
+  if(isRemotePage)return;
+  for(let i=0;i<60&&(!cloudReady||cloudBusy||(!cloudLast&&!cloudErr));i++)await sleep(300); // まずクラウドからほかの端末の分を受け取る
+  const bt=bizToday();
+  if((X2.tms&&X2.tms.f60===bt)||X2.tms60===bt||X2.autoTry===bt||tmsBusy)return;
+  X2.autoTry=bt;saveX(); // 失敗しても、この端末では1日1回だけ
+  if(!document.documentElement.dataset.tmsExt){remoteReq(true);return;}
+  const p=tmsPlan(),ev=parseFloat(document.documentElement.dataset.tmsExtVer||"0");
+  if(p.days>40&&!(ev>=2.6))return;
+  tmsMode="auto";tmsBusy=true;bt2().disabled=true;tmsBtn(true);
+  window.postMessage({type:"MAKEHYO_TMS_REQ",days:p.days,start:p.start},"*");
+  tmsArm();}
+const bt2=()=>document.getElementById("btnTms");
+function autoDone(){renderTabs();showTab("full");
+  const el=document.getElementById("tmsr");
+  el.innerHTML=`<button class="x" type="button">閉じる</button><b>60日分を読み込みました</b><br>新しく入った連泊清掃があれば、カレンダーに入れてください。`;
+  el.hidden=false;el.querySelector(".x").addEventListener("click",()=>{el.hidden=true;});}
+// パソコンが読んだデータが届いた：連泊表のタブなら、今の日付の表を入れ直すか聞く
+function remoteApplied(){
+  renderTabs();
+  if(X2.tab==="make"&&dateVal&&!pastView){const day=X2.tms&&X2.tms.days[addD(dateVal,-1)];
+    if(day&&day.ok){const o=[],st=[];for(const x of day.rows){const q=(x.n||"").split("/").map(Number);if(!x.r||!q[0]||!q[1])continue;(q[0]===q[1]?o:st).push(x.r);}
+      applyTms({d:addD(dateVal,-1),o,s:st,u:[],mode:"make",remote:true});return;}}
+  showTms({remote:true});}
+// パソコン側：拡張機能が「#remote=依頼のid」でこのページを開いたとき
+async function remoteRun(id){
+  history.replaceState(null,"",location.pathname+location.search);
+  const done=()=>window.postMessage({type:"MAKEHYO_REMOTE_DONE"},"*"); // 拡張機能がこのウィンドウを閉じる
+  const fin=async(st,msg)=>{try{await reqPut(d=>({ask:d.ask||null,res:{id,st,at:Date.now(),msg:msg||""}}));}catch(e){}done();};
+  for(let i=0;i<100&&(!cloudReady||cloudBusy);i++)await sleep(300); // 最初の同期が終わるまで待つ
+  let d;try{d=(await reqGet()).data||{};}catch(e){done();return;}
+  if(!d.ask||d.ask.id!==id||(d.res&&d.res.id===id)){done();return;} // もう古い依頼
+  if(!document.documentElement.dataset.tmsExt){await fin("fail","拡張機能がありません");return;}
+  try{await reqPut(x=>({ask:x.ask,res:{id,st:"busy",at:Date.now()}}));}catch(e){}
+  const pl=d.ask.plan||{},r=await new Promise(ok=>{remoteWait=ok;tmsMode="remote";tmsBusy=true;bt.disabled=true;tmsBtn(true);
+    window.postMessage({type:"MAKEHYO_TMS_REQ",days:Math.min(62,pl.days||5),start:pl.start},"*");tmsArm();});
+  if(!r.ok){await fin(r.error==="login"?"login":"fail",String(r.error||""));return;}
+  if(await cloudSettle())await fin("done");else await fin("fail","クラウドに保存できませんでした");}
 document.getElementById("autoAs").addEventListener("click",()=>{
   if(!sheets.length){alert("先に「＋スタッフ追加」で表を作ってください。");return;}
   autoAssign();save();render();});
