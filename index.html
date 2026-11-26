@@ -205,13 +205,14 @@ table.lt td.z{color:#c3c8c5}
 .bad{color:var(--danger);font-weight:700}
 /* 朝食券 */
 .bfin{display:flex;flex-direction:column;gap:10px}
-.bfkid{display:flex;align-items:center;gap:6px;font-size:15px}
-.bfkid input{width:20px;height:20px}
-.bflb{font-size:13px;color:var(--sub)}
-#bfPaste{font:inherit;font-size:14px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);resize:vertical}
+.bfbd .rm{display:inline-flex;align-items:center;gap:3px;margin:2px 10px 2px 0;white-space:nowrap}
+.bfbd input{font:inherit;font-size:15px;width:3em;text-align:right;padding:2px 4px;border:1px solid #d9c98f;border-radius:5px;background:#fffbe6;color:var(--ink)}
+.bfbd input.unk{border-color:var(--danger);background:#fdecea}
+.bfbd input.man{font-weight:700}
+.bfbd .dd{font-weight:700;margin-right:6px}
 .bfmail{margin:0 0 10px;padding:10px 12px;background:#FAF8F5;border:1px solid var(--line);border-radius:8px;font:inherit;font-size:15px;line-height:1.7;white-space:pre-wrap;word-break:break-all}
 .bfbd{font-size:13px;line-height:1.7;font-variant-numeric:tabular-nums}
-.bfbd div{padding:2px 0;border-bottom:1px solid #eceeed}
+.bfbd>div{padding:4px 0;border-bottom:1px solid #eceeed}
 #bfChk ul,#bfDiff ul{margin:4px 0 0;padding-left:20px;font-size:14px;line-height:1.7}
 #bfChk .ok{color:var(--ok);font-weight:700}
 #bfChk h3,#bfDiff h3{margin-bottom:2px}
@@ -569,23 +570,21 @@ table.om td.miss{color:#c3c8c5}
   <div class="box" style="overflow-x:auto;width:fit-content;max-width:100%"><table class="lt om" id="outTable"></table></div>
 </div></div>
 
-<!-- ④ 朝食券（手間いらず.NET の予約者検索の一覧を貼って、朝食店へのメール本文を作る） -->
+<!-- ④ 朝食券（TMS のデータから：プラン名に「朝食」がある部屋。人数は予約の編集ページから読む） -->
 <div class="panel" id="p-bf" hidden><div class="pnl">
   <div class="row"><h2>朝食券</h2></div>
   <div class="box bfin">
     <div class="prrange"><span class="lb">集計する期間</span>
       <div class="dr"><input type="date" id="bfFrom" aria-label="集計の開始日"><span>〜</span><input type="date" id="bfTo" aria-label="集計の終了日"></div>
       <span class="seg"><button type="button" data-bfwk="0">今週</button><button type="button" data-bfwk="1">来週</button></span></div>
-    <label class="bfkid"><input type="checkbox" id="bfKids" checked> 子供も数える（オフ＝大人だけ）</label>
-    <label class="bflb" for="bfPaste">手間いらず.NET の「予約者検索」の一覧を貼り付け（2ページ目以降・じゃらん/楽天の一覧も続けて貼れます）</label>
-    <textarea id="bfPaste" rows="6" autocomplete="off" spellcheck="false" placeholder="一覧の表を「検索結果件数」の行から最後の行まで選んでコピーし、ここに貼り付けます"></textarea>
-    <div class="row"><button class="act" type="button" id="bfClear">貼り付けを消す</button><span class="note">貼り付けた内容は保存しません。氏名は読みません（予約番号で表示します）。</span></div>
+    <p class="note">プラン名に「朝食」がある部屋を、1部屋＝1組で数えます。朝食はチェックインの次の日からチェックアウトの日まで。人数は「データ更新」のあと、パソコンが予約ページから読みます（読んでいる間はパソコンでTMSをさわらないでください）。</p>
+    <div class="row" id="bfPRow"><button class="act" type="button" id="bfReadP">人数を読み込む</button><button class="act" type="button" id="bfReadAll">人数を全部読み直す</button></div>
   </div>
   <div class="box" id="bfChk"></div>
   <div class="box"><h3>メール本文</h3><pre class="bfmail" id="bfMail"></pre>
     <div class="row"><button class="act primary" type="button" id="bfCopy">本文をコピー</button><button class="act" type="button" id="bfMailto">メールを開く</button><span class="note" id="bfCopied"></span></div></div>
   <div class="box" id="bfDiff"></div>
-  <div class="box"><h3>内訳（確認用・予約番号 人数）</h3><div class="bfbd" id="bfBd"></div></div>
+  <div class="box"><h3>内訳（部屋・人数。人数は直せます）</h3><div class="bfbd" id="bfBd"></div></div>
 </div></div>
 
 <p class="ver" id="ver"></p>
@@ -1033,12 +1032,15 @@ function saveTmsDays(t){
   const days={};
   for(const k in prevDays)if(k>=bt)days[k]=prevDays[k];
   for(const x of t.days){if(!x.ok&&days[x.d]&&days[x.d].ok)continue;
-    days[x.d]={ok:!!x.ok,at:Date.now(),rows:(x.rows||[]).map(r=>({r:r.r||"",n:r.n||"",t:r.t||""}))};}
+    days[x.d]={ok:!!x.ok,at:Date.now(),rows:(x.rows||[]).map(r=>({r:r.r||"",n:r.n||"",t:r.t||"",b:r.b?1:0,i:r.i||"",v:r.v||"",g:r.g||""}))};}
   // 部屋が決まっている予約から「プランの[ ]の文字 → 部屋タイプ」を覚える（部屋未割当の予約に使う）
   const cnt={};
   for(const d in days)for(const r of days[d].rows)if(r.r&&TYPE_OF[r.r]&&r.t){(cnt[r.t]=cnt[r.t]||{})[TYPE_OF[r.r]]=(cnt[r.t][TYPE_OF[r.r]]||0)+1;}
   const map={};for(const k in cnt)map[k]=Object.keys(cnt[k]).sort((a,b)=>cnt[k][b]-cnt[k][a])[0];
   X2.tms={at:Date.now(),base:bt,days,map,f60:(X2.tms&&X2.tms.f60)||""};
+  { // 朝食券の人数：今のデータにない予約で、30日より前に読んだものは消す
+    const ids=new Set();for(const d in days)for(const r of days[d].rows)if(r.i)ids.add(r.i);
+    X2.bfp=X2.bfp||{};for(const i in X2.bfp)if(!ids.has(i)&&Date.now()-(X2.bfp[i].at||0)>30*864e5)delete X2.bfp[i];}
   if(t.days.length>=60&&t.days.filter(x=>x.ok).length>=55)X2.tms.f60=day60(); // 60日読んだ日（午後3時区切り。ほかの端末にも同期）
   if(t.mode==="linen")lnDateVal=t.d;else if(t.mode!=="out")lnDateVal="";
   // リネン発注の古い記録を消す（60日より前）。連泊清掃の記録（fullc・hist）はあとで見るので消さない
@@ -1348,42 +1350,21 @@ for(const id of ["outPrFrom","outPrTo"])document.getElementById(id).addEventList
   X2.outPr=outPrRange();saveX();});
 
 // =====================================================================
-// ④ 朝食券：手間いらず.NET の予約者検索の一覧（コピーして貼り付け）から、朝食店へのメール本文を作る。
-// 集計ルール（変えない）：朝食は IN の翌日〜OUT の日（IN < d ≤ OUT）。人数＝大人＋子供（スイッチで大人だけ）。
-// 1予約＝1組（2室でも分けない）。キャンセルは数えない。期間外の日は無視。
-// 氏名は読まない・保存しない（内訳・警告は予約番号）。貼り付けた文字も保存しない。前回との比較用に予約番号と日付・人数だけ保存する
-const BF_ST=/^(予約|変更|キャンセル)$/;
-function bfParse(text){
-  const toks=text.split(/[\t\r\n]+/).map(x=>x.trim()).filter(Boolean);
-  let total=0,hasTotal=false;
-  for(const m of text.matchAll(/検索結果件数[:：]?\s*(\d+)\s*件/g)){total+=+m[1];hasTotal=true;}
-  const recs=[];let cur=null;
-  for(const t of toks){if(BF_ST.test(t)){cur={st:t,toks:[]};recs.push(cur);}else if(cur)cur.toks.push(t);}
-  const rows=[],bad=[];
-  recs.forEach((r,i)=>{
-    const id=(r.toks.find(x=>/^\d{6,}$/.test(x))||"");
-    const ds=[...r.toks.join(" ").matchAll(/(\d{4})[-/](\d{1,2})[-/](\d{1,2})/g)].map(m=>`${m[1]}-${m[2].padStart(2,"0")}-${m[3].padStart(2,"0")}`);
-    const ri=r.toks.findIndex(x=>/^\d+\s*室$/.test(x));
-    const nm=ri<0?[]:r.toks.slice(ri+1).filter(x=>/^\d+\s*名$/.test(x)).slice(0,2).map(x=>parseInt(x,10));
-    if(ds.length<2||ri<0||nm.length<2){bad.push({n:i+1,id,st:r.st});return;}
-    rows.push({n:i+1,id,st:r.st,in:ds[ds.length-2],out:ds[ds.length-1],room:parseInt(r.toks[ri],10),ad:nm[0],ch:nm[1]});});
-  return {rows,bad,total,hasTotal,recs:recs.length};}
-function bfDays(f,t){const r=[];for(let d=f;d<=t&&r.length<62;d=addD(d,1))r.push(d);return r;}
+// ④ 朝食券：TMS のデータ（一覧のプラン名に「朝食」がある部屋）から、朝食店へのメール本文を作る。
+// ルール：日付 d の朝食＝d の前の日の一覧（その夜に泊まっている部屋）。1部屋＝1組。人数＝予約の編集ページの persons（X2.bfp[予約ID]）。
+// 氏名は読まない。人数は手でも直せる（m:1 は手で直した印。読み直しでは上書きしない）
 const bfMD=d=>{const a=d.split("-");return `${+a[1]}/${+a[2]}`;};
-function bfCalc(rows,f,t,kids){
-  const days=bfDays(f,t),use=rows.filter(r=>r.st!=="キャンセル"),ppl=r=>r.ad+(kids?r.ch:0);
-  // ①日ごとに拾う
-  const by={};for(const d of days){by[d]=[];for(const r of use)if(r.in<d&&d<=r.out&&ppl(r)>0)by[d].push(r);}
-  // ②予約ごとに朝食の日を出して足す（①と合うか検算）
-  const by2={};for(const d of days)by2[d]=0;
-  for(const r of use)for(let d=addD(r.in,1);d<=r.out;d=addD(d,1))if(d in by2&&ppl(r)>0)by2[d]+=ppl(r);
-  const out=days.map(d=>{const g={};for(const r of by[d])g[ppl(r)]=(g[ppl(r)]||0)+1;
-    const sum=by[d].reduce((a,r)=>a+ppl(r),0),chk=Object.keys(g).reduce((a,k)=>a+k*g[k],0);
-    return {d,sum,g,list:by[d],ok:sum===by2[d]&&sum===chk};});
-  return {days:out,use};}
-function bfMailText(res,f,t){
+function bfDays(f,t){const r=[];for(let d=f;d<=t&&r.length<62;d=addD(d,1))r.push(d);return r;}
+const bfP=r=>{const x=X2.bfp&&X2.bfp[r.i];return x&&x.p>=0?x.p:null;};
+function bfCalc(f,t){
+  return bfDays(f,t).map(d=>{const day=X2.tms&&X2.tms.days[addD(d,-1)];
+    if(!day||!day.ok)return {d,none:true,sum:0,g:{},list:[],unk:[]};
+    const list=day.rows.filter(r=>r.b),g={},unk=[];let sum=0;
+    for(const r of list){const p=bfP(r);if(p==null){unk.push(r);continue;}if(!p)continue;g[p]=(g[p]||0)+1;sum+=p;}
+    return {d,sum,g,list,unk,ok:sum===Object.keys(g).reduce((a,k)=>a+k*g[k],0)};});}
+function bfMailText(days,f,t){
   let h=`いつもお世話になっております。\n${bfMD(f)}～${bfMD(t)}分の朝食券利用予定枚数と各日程の利用人数でございます。\n\n`;
-  for(const x of res.days){const ks=Object.keys(x.g).map(Number).sort((a,b)=>a-b);
+  for(const x of days){const ks=Object.keys(x.g).map(Number).sort((a,b)=>a-b);
     h+=`・${bfMD(x.d)}…${x.sum}枚`+(ks.length?`（${ks.map(k=>`${k}名${x.g[k]}組`).join("、")}）`:"")+"\n";}
   return h.trimEnd();}
 function bfWeek(n){const d=new Date(bizToday()+"T00:00:00");d.setDate(d.getDate()-d.getDay()+7*n);const f=ymd(d);return {f,t:addD(f,6)};}
@@ -1392,55 +1373,76 @@ function bfRange(){const fe=document.getElementById("bfFrom"),te=document.getEle
   if(te.value<fe.value)te.value=fe.value;
   if(bfDays(fe.value,te.value).length>=62)te.value=addD(fe.value,61);
   return {f:fe.value,t:te.value};}
+const bfRoom=r=>r.r||"部屋未定";
 let bfLast=null;
 function renderBf(){
-  const {f,t}=bfRange(),kids=document.getElementById("bfKids").checked,P=bfParse(document.getElementById("bfPaste").value);
+  const {f,t}=bfRange(),days=bfCalc(f,t);bfLast={f,t,days};
   const chk=document.getElementById("bfChk"),mail=document.getElementById("bfMail"),bd=document.getElementById("bfBd"),df=document.getElementById("bfDiff");
-  if(!P.recs){chk.innerHTML=`<h3>確認</h3><p class="note">一覧を貼り付けると、ここに確認の結果が出ます。</p>`;mail.textContent="";bd.innerHTML="";df.hidden=true;bfLast=null;return;}
-  const res=bfCalc(P.rows,f,t,kids);bfLast={f,t,kids,res,rows:P.rows};
+  document.getElementById("bfPRow").hidden=!document.documentElement.dataset.tmsExt; // 人数を読むのは拡張機能のあるパソコンだけ
   const W=[],I=[];
-  // 件数の検算
-  if(!P.hasTotal)W.push("「検索結果件数」の行が貼り付けに入っていません。件数での確認ができません。");
-  else if(P.recs!==P.total)W.push(`読み取った行は${P.recs}件、検索結果件数は合計${P.total}件で、合いません。貼り付けもれ・2ページ目以降を確かめてください。`);
-  else I.push(`読み取った行 ${P.recs}件＝検索結果件数 ${P.total}件`);
-  if(P.bad.length)W.push(`読み取れなかった行：${P.bad.map(b=>`${b.n}行目${b.id?`（${b.id}）`:""}`).join("、")}（数えていません）`);
-  const seen={},dup=new Set();for(const r of P.rows){if(r.id&&seen[r.id])dup.add(r.id);seen[r.id]=1;}
-  if(dup.size)W.push(`同じ予約番号が2回あります（貼り付けの重なりかも）：${[...dup].join("、")}`);
-  if(res.days.some(x=>!x.ok))W.push("日ごとの合計と予約ごとの合計が合わない日があります（"+res.days.filter(x=>!x.ok).map(x=>bfMD(x.d)).join("、")+"）。");
-  else I.push("日ごと・予約ごとの2通りで集計して一致");
-  const use=res.use;
-  if(use.length&&!use.some(r=>r.out===f)){const mo=use.reduce((a,r)=>r.out<a?r.out:a,use[0].out);if(mo>f)W.push(`${bfMD(f)}にOUTする予約が1件もありません。初日に退房する客が絞り込みから抜けていないか確かめてください。`);}
-  const multi=use.filter(r=>r.room>=2&&res.days.some(x=>x.list.includes(r)));
-  if(multi.length)I.push("複数室の予約："+multi.map(r=>`${r.id}（${r.room}室${r.ad+(kids?r.ch:0)}名）→${r.ad+(kids?r.ch:0)}名1組`).join("、"));
-  const kd=use.filter(r=>r.ch>0&&res.days.some(x=>x.list.includes(r)));
-  if(kd.length)W.push(`子供のいる予約があります（今は${kids?"子供も数えています":"大人だけ数えています"}。朝食券を使うか確かめてください）：`+kd.map(r=>`${r.id}（大人${r.ad}・子供${r.ch}）`).join("、"));
+  const none=days.filter(x=>x.none);
+  if(none.length)W.push(`データがない日：${none.map(x=>bfMD(x.d)).join("、")}（右上の「データ更新」で読み込んでください。今日より前の日は読めません）`);
+  const unk=days.flatMap(x=>x.unk.map(r=>`${bfMD(x.d)} ${bfRoom(r)}`));
+  if(unk.length)W.push(`人数が分からない部屋：${unk.join("、")}（数えていません。「人数を読み込む」か、下の内訳で人数を入れてください）`);
+  const legs=new Set();for(const x of days)for(const r of x.list)if(r.v&&(+r.g>1||x.list.some(y=>y!==r&&y.v===r.v)))legs.add(r.v);
+  if(legs.size)W.push(`複数室の予約（予約番号 ${[...legs].join("、")}）：人数が予約全体の人数か、部屋ごとの人数か確かめてください。`);
+  if(days.some(x=>!x.none&&!x.ok))W.push("日ごとの合計が合わない日があります。");
+  const nb=days.reduce((a,x)=>a+x.list.length,0);
+  if(!none.length&&!unk.length)I.push(`朝食付きの部屋 延べ${nb}室、全部の人数が分かっています`);
   chk.innerHTML=`<h3>確認</h3><ul>${W.map(x=>`<li class="bad">${esc(x)}</li>`).join("")}${I.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`+(W.length?"":`<p class="ok">問題はありません</p>`);
-  mail.textContent=bfMailText(res,f,t);
-  bd.innerHTML=res.days.map(x=>`<div>${bfMD(x.d)}：${x.list.length?x.list.map(r=>`${esc(r.id||"番号なし")} ${r.ad+(kids?r.ch:0)}`).join("、"):"なし"}</div>`).join("");
+  mail.textContent=X2.tms?bfMailText(days,f,t):"";
+  bd.innerHTML=days.map(x=>`<div><span class="dd">${bfMD(x.d)}</span>`+(x.none?`<span class="note">データなし</span>`:x.list.length?x.list.map(r=>{const p=bfP(r),m=X2.bfp&&X2.bfp[r.i]&&X2.bfp[r.i].m;
+    return `<label class="rm">${esc(bfRoom(r))}<input type="number" inputmode="numeric" min="0" max="9" data-bfi="${esc(r.i)}" value="${p==null?"":p}" class="${p==null?"unk":m?"man":""}" aria-label="${esc(bfRoom(r))}の人数">名</label>`;}).join(""):"なし")+`</div>`).join("");
   // 前回（同じ期間で最後にコピーしたとき）との違い
   const pv=(X2.bf||{})[f+"_"+t];df.hidden=!pv;
-  if(pv){const cnt={};res.days.forEach(x=>cnt[x.d]=x.sum);
+  if(pv){const cnt={};days.forEach(x=>cnt[x.d]=x.sum);
     const ch=Object.keys(pv.days).filter(d=>pv.days[d]!==cnt[d]).map(d=>`${bfMD(d)}：${pv.days[d]}枚 → ${cnt[d]}枚`);
-    const now={};for(const r of use)if(res.days.some(x=>x.list.includes(r)))now[r.id]=`${bfMD(r.in)}〜${bfMD(r.out)} ${r.ad+(kids?r.ch:0)}名`;
-    const add=Object.keys(now).filter(k=>!(k in pv.res)).map(k=>`${k}（${now[k]}）`);
-    const del=Object.keys(pv.res).filter(k=>!(k in now)).map(k=>`${k}（${pv.res[k]}）`);
-    const mod=Object.keys(now).filter(k=>k in pv.res&&pv.res[k]!==now[k]).map(k=>`${k}（${pv.res[k]} → ${now[k]}）`);
+    const now=bfRes(days);
+    const add=Object.keys(now).filter(k=>!(k in pv.res)).map(k=>now[k]);
+    const del=Object.keys(pv.res).filter(k=>!(k in now)).map(k=>pv.res[k]);
+    const mod=Object.keys(now).filter(k=>k in pv.res&&pv.res[k]!==now[k]).map(k=>`${pv.res[k]} → ${now[k]}`);
     const d=new Date(pv.at);
     df.innerHTML=`<h3>前回（${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")} にコピー）との違い</h3>`+
-      (ch.length||add.length||del.length||mod.length?`<ul>${ch.map(x=>`<li>${x}</li>`).join("")}${add.length?`<li>増えた予約：${esc(add.join("、"))}</li>`:""}${del.length?`<li>なくなった予約：${esc(del.join("、"))}</li>`:""}${mod.length?`<li>変わった予約：${esc(mod.join("、"))}</li>`:""}</ul>`:`<p class="note">変わりはありません。</p>`);}
+      (ch.length||add.length||del.length||mod.length?`<ul>${ch.map(x=>`<li>${x}</li>`).join("")}${add.length?`<li>増えた部屋：${esc(add.join("、"))}</li>`:""}${del.length?`<li>なくなった部屋：${esc(del.join("、"))}</li>`:""}${mod.length?`<li>変わった部屋：${esc(mod.join("、"))}</li>`:""}</ul>`:`<p class="note">変わりはありません。</p>`);}
 }
-function bfSave(){if(!bfLast)return;const {f,t,kids,res}=bfLast;X2.bf=X2.bf||{};
-  const r={};for(const x of res.use)if(res.days.some(y=>y.list.includes(x)))r[x.id]=`${bfMD(x.in)}〜${bfMD(x.out)} ${x.ad+(kids?x.ch:0)}名`;
-  const days={};res.days.forEach(x=>days[x.d]=x.sum);
-  X2.bf[f+"_"+t]={at:Date.now(),days,res:r};
+function bfRes(days){const o={};for(const x of days)for(const r of x.list){const k=r.i||(r.r+x.d);const p=bfP(r);
+  if(!o[k])o[k]={r:bfRoom(r),a:x.d,b:x.d,p};else o[k].b=x.d;}
+  const s={};for(const k in o)s[k]=`${o[k].r} ${bfMD(o[k].a)}〜${bfMD(o[k].b)} ${o[k].p==null?"?":o[k].p}名`;return s;}
+function bfSave(){if(!bfLast)return;const {f,t,days}=bfLast;X2.bf=X2.bf||{};
+  const d={};days.forEach(x=>d[x.d]=x.sum);
+  X2.bf[f+"_"+t]={at:Date.now(),days:d,res:bfRes(days)};
   for(const k of Object.keys(X2.bf))if(k.slice(11)<addD(bizToday(),-60))delete X2.bf[k]; // 古い期間は消す
   saveX();}
+// 人数を読む（拡張機能 v2.9 以上）。all=false：まだ分からない部屋だけ。今日から21日分の朝食付きの部屋
+let bfBusy=false,bfWait=null;
+function bfNeed(all){const bt=bizToday(),seen={},out=[];
+  for(let i=0;i<21;i++){const day=X2.tms&&X2.tms.days[addD(bt,i)];if(!day||!day.ok)continue;
+    for(const r of day.rows)if(r.b&&r.i&&!seen[r.i]){seen[r.i]=1;const x=X2.bfp&&X2.bfp[r.i];if(all?!(x&&x.m):!x)out.push({i:r.i,v:r.v});}}
+  return out;}
+async function bfFetch(all){
+  if(bfBusy||!document.documentElement.dataset.tmsExt)return;
+  if(!(parseFloat(document.documentElement.dataset.tmsExtVer||"0")>=2.9))return;
+  const ids=bfNeed(all);if(!ids.length)return;
+  bfBusy=true;tmsBusy=true;bt.disabled=true;tmsBtn(true,`人数 0/${ids.length}`);
+  const r=await new Promise(ok=>{bfWait=ok;window.postMessage({type:"MAKEHYO_PERSONS_REQ",ids},"*");setTimeout(()=>{if(bfWait===ok){bfWait=null;ok({ok:false,error:"timeout"});}},15*60e3);});
+  bfBusy=false;tmsBusy=false;bt.disabled=false;tmsBtn(false);
+  X2.bfp=X2.bfp||{};let bad=0;
+  for(const i in (r.res||{})){const x=r.res[i];if(x&&x.ok)X2.bfp[i]={p:x.p,at:Date.now()};else bad++;}
+  saveX();renderTabs();
+  if(!r.ok)tmsNote(r.error==="editing"?"TMSで予約の編集ページを開いているタブがあるので、朝食券の人数は読みませんでした。編集を閉じてから、朝食券タブの「人数を読み込む」を押してください。":r.error==="login"?TMS_FAIL:"朝食券の人数を読めませんでした。（"+r.error+"）");
+  else if(bad)tmsNote(`朝食券の人数を読めなかった部屋が${bad}室あります。朝食券タブで確かめてください。`);}
+window.addEventListener("message",e=>{if(e.source!==window||!e.data||e.data.type!=="MAKEHYO_PERSONS_RES"||!bfWait)return;const w=bfWait;bfWait=null;w(e.data.res||{ok:false,error:"no response"});});
 (function(){
   const p=document.getElementById("p-bf");
-  p.addEventListener("input",e=>{if(e.target.id==="bfPaste"||e.target.id==="bfKids")renderBf();});
-  p.addEventListener("change",e=>{if(e.target.id==="bfFrom"||e.target.id==="bfTo"){const r=bfRange();X2.bfR=r;saveX();renderBf();}if(e.target.id==="bfKids")renderBf();});
+  p.addEventListener("change",e=>{
+    if(e.target.id==="bfFrom"||e.target.id==="bfTo"){const r=bfRange();X2.bfR=r;saveX();renderBf();}
+    const i=e.target.dataset&&e.target.dataset.bfi;
+    if(i){X2.bfp=X2.bfp||{};const v=e.target.value;
+      if(v==="")delete X2.bfp[i];else X2.bfp[i]={p:Math.max(0,Math.round(+v)||0),at:Date.now(),m:1};saveX();renderBf();}});
   p.addEventListener("click",e=>{const w=e.target.closest("[data-bfwk]");if(w){const r=bfWeek(+w.dataset.bfwk);document.getElementById("bfFrom").value=r.f;document.getElementById("bfTo").value=r.t;X2.bfR=r;saveX();renderBf();}});
-  document.getElementById("bfClear").addEventListener("click",()=>{document.getElementById("bfPaste").value="";renderBf();});
+  document.getElementById("bfReadP").addEventListener("click",()=>{if(!(parseFloat(document.documentElement.dataset.tmsExtVer||"0")>=2.9)){alert("拡張機能が古いので人数を読めません（v2.9以上）。chrome://extensions で「再読み込み」を押してください。");return;}
+    if(!bfNeed(false).length){alert("人数が分からない部屋はありません。");return;}bfFetch(false);});
+  document.getElementById("bfReadAll").addEventListener("click",()=>{if(confirm("朝食付きの部屋の人数を全部読み直しますか？（手で直した人数はそのまま）\n読んでいる間はパソコンでTMSをさわらないでください。"))bfFetch(true);});
   document.getElementById("bfCopy").addEventListener("click",async()=>{const tx=document.getElementById("bfMail").textContent;if(!tx)return;
     let ok=false;try{await navigator.clipboard.writeText(tx);ok=true;}catch(e){const ta=document.createElement("textarea");ta.value=tx;document.body.appendChild(ta);ta.select();try{ok=document.execCommand("copy");}catch(e2){}ta.remove();}
     document.getElementById("bfCopied").textContent=ok?"コピーしました（次回の比較用に保存しました）":"コピーできませんでした。本文を長押しして選んでください。";
@@ -1480,8 +1482,8 @@ var CM={pass:CLOUD_PASS,at:{},snap:{}}, cloudReady=false, cloudApplying=false, c
 function cloudLoadMeta(){try{const s=JSON.parse(localStorage.getItem(KEY3)||"null");if(s)CM=Object.assign(CM,s);}catch(e){}CM.at=CM.at||{};CM.snap=CM.snap||{};CM.pass=CLOUD_PASS;}
 function cloudSaveMeta(){if(!lsOk())return;try{localStorage.setItem(KEY3,JSON.stringify(CM));lsBump();}catch(e){}}
 function makeData(){return liveData();}
-const EXT_SECS=["fullc","lin","hist","mk","dr"]; // 日付ごとに重ねる部分
-function extData(){return {v:APP_VER,tms:X2.tms,fullc:X2.fullc,lin:X2.lin,hist:X2.hist,mk:X2.mk,dr:X2.dr};}
+const EXT_SECS=["fullc","lin","hist","mk","dr","bfp"]; // 日付ごとに重ねる部分
+function extData(){return {v:APP_VER,tms:X2.tms,fullc:X2.fullc,lin:X2.lin,hist:X2.hist,mk:X2.mk,dr:X2.dr,bfp:X2.bfp||{}};}
 function cloudData(k){return k==="make"?makeData():extData();}
 function snapOf(k,d){
   if(k==="make")return JSON.stringify(d||null);
@@ -1532,7 +1534,7 @@ function cloudAdopt(k,d){
       if(pastView){const L=pastView.live;pastView.live={state:d.state||{},date:d.date||L.date,assign:d.assign||{},sheets:d.sheets||[],auto:d.auto||{}};save();} // 過去の表を見ている間は裏の「今の表」だけ入れかえる
       else{state=d.state||{};if(d.date)dateVal=d.date;assign=d.assign||{};sheets=d.sheets||[];auto=d.auto||{};
         dEl.value=dateVal;save();buildStaffs();}}
-    else{d=d||{};X2.tms=d.tms||null;X2.fullc=d.fullc||{};X2.lin=d.lin||{};X2.hist=d.hist||{};X2.mk=d.mk||{};X2.dr=d.dr||{};saveX();if(pastView)showPastBar();}
+    else{d=d||{};X2.tms=d.tms||null;X2.fullc=d.fullc||{};X2.lin=d.lin||{};X2.hist=d.hist||{};X2.mk=d.mk||{};X2.dr=d.dr||{};X2.bfp=d.bfp||{};saveX();if(pastView)showPastBar();}
     render();renderTabs();
   }finally{cloudApplying=false;}}
 async function cloudApi(b){
@@ -1701,7 +1703,7 @@ function applyTms(t){
   t.v=v;save();render();renderTabs();showTms(t,true);
 }
 // バージョン（変えたら CHANGELOG.md にも書く）。拡張のバージョンは content.js が入れる
-const APP_VER="3.15";
+const APP_VER="3.16";
 (function(){const ev=document.documentElement.dataset.tmsExtVer||(document.documentElement.dataset.tmsExt?"2.2以前":"");
   document.getElementById("ver").textContent=`メイク表 v${APP_VER}　・　TMS拡張 ${ev?"v"+ev:"なし"}`;})();
 if(jumpAtStart)gotoDate(autoDay()); // 部屋のボタンを作ったあとで
@@ -1736,12 +1738,12 @@ tmsBtn(false);
 function tmsArm(){clearTimeout(tmsTimer);tmsTimer=setTimeout(()=>{if(!tmsBusy)return;tmsDone();if(remoteWait){const w=remoteWait;remoteWait=null;w({ok:false,error:"timeout"});}else alert(TMS_FAIL);},90000);} // 90秒なにも来なければ失敗
 window.addEventListener("message",e=>{
   if(e.source!==window||!e.data)return;
-  if(e.data.type==="MAKEHYO_TMS_PROG"){if(tmsBusy){tmsBtn(true,`${e.data.i}/${e.data.n}`);tmsArm();}return;}
+  if(e.data.type==="MAKEHYO_TMS_PROG"){if(bfBusy){tmsBtn(true,`人数 ${e.data.i}/${e.data.n}`);return;}if(tmsBusy){tmsBtn(true,`${e.data.i}/${e.data.n}`);tmsArm();}return;}
   if(e.data.type!=="MAKEHYO_TMS_RES")return;
   tmsDone();
   const r=e.data.res||{};
   if(remoteWait){const w=remoteWait;remoteWait=null;if(r.ok){r.data.mode="remote";applyTms(r.data);}w(r);return;} // スマホからの依頼で読んだ
-  if(r.ok){r.data.mode=tmsMode;applyTms(r.data);if(tmsMode==="auto")autoDone();}
+  if(r.ok){r.data.mode=tmsMode;applyTms(r.data);if(tmsMode==="auto")autoDone();bfFetch(false);} // 続けて朝食券の人数（新しい部屋だけ）
   else if(tmsMode==="auto")tmsNote(TMS_FAIL);
   else alert(TMS_FAIL);
 });
@@ -1832,6 +1834,7 @@ async function remoteRun(id){
   const pl=d.ask.plan||{},r=await new Promise(ok=>{remoteWait=ok;tmsMode="remote";tmsBusy=true;bt.disabled=true;tmsBtn(true);
     window.postMessage({type:"MAKEHYO_TMS_REQ",days:Math.min(62,pl.days||5),start:pl.start},"*");tmsArm();});
   if(!r.ok){await fin(r.error==="login"?"login":"fail",String(r.error||""));return;}
+  await bfFetch(false); // 朝食券の人数（新しい部屋だけ）も読んでから
   if(await cloudSettle())await fin("done");else await fin("fail","クラウドに保存できませんでした");}
 document.getElementById("autoAs").addEventListener("click",()=>{
   if(!sheets.length){alert("先に「＋スタッフ追加」で表を作ってください。");return;}
