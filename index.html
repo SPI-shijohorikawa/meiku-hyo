@@ -203,6 +203,18 @@ table.lt td.z{color:#c3c8c5}
 .note{font-size:13px;color:var(--sub);line-height:1.6;margin:0}
 .note:empty{display:none}
 .bad{color:var(--danger);font-weight:700}
+/* 朝食券 */
+.bfin{display:flex;flex-direction:column;gap:10px}
+.bfkid{display:flex;align-items:center;gap:6px;font-size:15px}
+.bfkid input{width:20px;height:20px}
+.bflb{font-size:13px;color:var(--sub)}
+#bfPaste{font:inherit;font-size:14px;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);resize:vertical}
+.bfmail{margin:0 0 10px;padding:10px 12px;background:#FAF8F5;border:1px solid var(--line);border-radius:8px;font:inherit;font-size:15px;line-height:1.7;white-space:pre-wrap;word-break:break-all}
+.bfbd{font-size:13px;line-height:1.7;font-variant-numeric:tabular-nums}
+.bfbd div{padding:2px 0;border-bottom:1px solid #eceeed}
+#bfChk ul,#bfDiff ul{margin:4px 0 0;padding-left:20px;font-size:14px;line-height:1.7}
+#bfChk .ok{color:var(--ok);font-weight:700}
+#bfChk h3,#bfDiff h3{margin-bottom:2px}
 /* カレンダー */
 .cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
 .cal .dw{font-size:12px;color:var(--sub);text-align:center;font-weight:700}
@@ -270,9 +282,9 @@ table.om td.miss{color:#c3c8c5}
 @media (max-width:600px){
   body{padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px))}
   /* タブ：4つを1行に等分（長い名前は2行に） */
-  nav.tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0 4px;align-items:end}
+  nav.tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0 4px;align-items:end}
   nav.tabs .tb{font-size:13.5px;line-height:1.3;padding:8px 0 12px;word-break:keep-all;min-height:44px}
-  nav.tabs:has(#t-linen[hidden]){grid-template-columns:repeat(3,minmax(0,1fr))}
+  nav.tabs:has(#t-linen[hidden]){grid-template-columns:repeat(4,minmax(0,1fr))}
   nav.tabs .tmsw{grid-column:1/-1;justify-content:flex-end;padding:6px 0 8px;border-top:1px solid rgba(0,0,0,.05)}
   header.top h1{font-size:20px}
   .legend{margin-left:0}
@@ -456,6 +468,7 @@ table.om td.miss{color:#c3c8c5}
   <button class="tb" type="button" role="tab" id="t-linen" aria-controls="p-linen" data-tab="linen" hidden>リネン発注</button>
   <button class="tb" type="button" role="tab" id="t-full" aria-controls="p-full" data-tab="full">連泊清掃<wbr>カレンダー</button>
   <button class="tb" type="button" role="tab" id="t-out" aria-controls="p-out" data-tab="out">OUT数<wbr>（60日）</button>
+  <button class="tb" type="button" role="tab" id="t-bf" aria-controls="p-bf" data-tab="bf">朝食券</button>
   <div class="tmsw"><button id="cloudSt" class="cst" type="button" title="クラウドと同期"></button><span class="tmsat" id="tmsAt"></span><button id="btnTms" type="button"></button></div>
 </nav>
 <dialog class="fov" id="pwaDlg" aria-labelledby="pwaH"><div class="fbox pwa">
@@ -554,6 +567,25 @@ table.om td.miss{color:#c3c8c5}
     <button class="act primary" type="button" id="btnPrintOut">印刷</button></div>
   <p class="note" id="outInfo"></p>
   <div class="box" style="overflow-x:auto;width:fit-content;max-width:100%"><table class="lt om" id="outTable"></table></div>
+</div></div>
+
+<!-- ④ 朝食券（手間いらず.NET の予約者検索の一覧を貼って、朝食店へのメール本文を作る） -->
+<div class="panel" id="p-bf" hidden><div class="pnl">
+  <div class="row"><h2>朝食券</h2></div>
+  <div class="box bfin">
+    <div class="prrange"><span class="lb">集計する期間</span>
+      <div class="dr"><input type="date" id="bfFrom" aria-label="集計の開始日"><span>〜</span><input type="date" id="bfTo" aria-label="集計の終了日"></div>
+      <span class="seg"><button type="button" data-bfwk="0">今週</button><button type="button" data-bfwk="1">来週</button></span></div>
+    <label class="bfkid"><input type="checkbox" id="bfKids" checked> 子供も数える（オフ＝大人だけ）</label>
+    <label class="bflb" for="bfPaste">手間いらず.NET の「予約者検索」の一覧を貼り付け（2ページ目以降・じゃらん/楽天の一覧も続けて貼れます）</label>
+    <textarea id="bfPaste" rows="6" autocomplete="off" spellcheck="false" placeholder="一覧の表を「検索結果件数」の行から最後の行まで選んでコピーし、ここに貼り付けます"></textarea>
+    <div class="row"><button class="act" type="button" id="bfClear">貼り付けを消す</button><span class="note">貼り付けた内容は保存しません。氏名は読みません（予約番号で表示します）。</span></div>
+  </div>
+  <div class="box" id="bfChk"></div>
+  <div class="box"><h3>メール本文</h3><pre class="bfmail" id="bfMail"></pre>
+    <div class="row"><button class="act primary" type="button" id="bfCopy">本文をコピー</button><button class="act" type="button" id="bfMailto">メールを開く</button><span class="note" id="bfCopied"></span></div></div>
+  <div class="box" id="bfDiff"></div>
+  <div class="box"><h3>内訳（確認用・予約番号 人数）</h3><div class="bfbd" id="bfBd"></div></div>
 </div></div>
 
 <p class="ver" id="ver"></p>
@@ -1033,7 +1065,7 @@ function dayView(d){const st=staysOn(d);
 // ---- タブ
 // 2026-11-24 リネン発注は一時的に隠す（直すまで同僚がさわらないように）。戻すときは HIDE_LINEN=false と上のボタンの hidden を消す
 const HIDE_LINEN=true;
-const TABS=HIDE_LINEN?["make","full","out"]:["make","linen","full","out"];
+const TABS=HIDE_LINEN?["make","full","out","bf"]:["make","linen","full","out","bf"];
 function showTab(k){if(!TABS.includes(k))k="make";X2.tab=k;saveX();if(typeof fov!=="undefined")closeFov();
   document.querySelectorAll("nav.tabs .tb").forEach(b=>{const on=b.dataset.tab===k;b.setAttribute("aria-selected",on?"true":"false");b.tabIndex=on?0:-1;});
   for(const t of TABS)document.getElementById("p-"+t).hidden=t!==k;
@@ -1044,6 +1076,7 @@ function renderTabs(){
   if(X2.tab==="linen")buildLinen();
   if(X2.tab==="full")renderFull();
   if(X2.tab==="out")renderOut();
+  if(X2.tab==="bf")renderBf();
   renderOrderPrint();renderOutPrint();
 }
 
@@ -1314,6 +1347,108 @@ for(const id of ["outPrFrom","outPrTo"])document.getElementById(id).addEventList
   if(fe.value&&te.value&&te.value<fe.value){if(id==="outPrFrom")te.value=fe.value;else fe.value=te.value;} // 終了日が開始日より前にならないように
   X2.outPr=outPrRange();saveX();});
 
+// =====================================================================
+// ④ 朝食券：手間いらず.NET の予約者検索の一覧（コピーして貼り付け）から、朝食店へのメール本文を作る。
+// 集計ルール（変えない）：朝食は IN の翌日〜OUT の日（IN < d ≤ OUT）。人数＝大人＋子供（スイッチで大人だけ）。
+// 1予約＝1組（2室でも分けない）。キャンセルは数えない。期間外の日は無視。
+// 氏名は読まない・保存しない（内訳・警告は予約番号）。貼り付けた文字も保存しない。前回との比較用に予約番号と日付・人数だけ保存する
+const BF_ST=/^(予約|変更|キャンセル)$/;
+function bfParse(text){
+  const toks=text.split(/[\t\r\n]+/).map(x=>x.trim()).filter(Boolean);
+  let total=0,hasTotal=false;
+  for(const m of text.matchAll(/検索結果件数[:：]?\s*(\d+)\s*件/g)){total+=+m[1];hasTotal=true;}
+  const recs=[];let cur=null;
+  for(const t of toks){if(BF_ST.test(t)){cur={st:t,toks:[]};recs.push(cur);}else if(cur)cur.toks.push(t);}
+  const rows=[],bad=[];
+  recs.forEach((r,i)=>{
+    const id=(r.toks.find(x=>/^\d{6,}$/.test(x))||"");
+    const ds=[...r.toks.join(" ").matchAll(/(\d{4})[-/](\d{1,2})[-/](\d{1,2})/g)].map(m=>`${m[1]}-${m[2].padStart(2,"0")}-${m[3].padStart(2,"0")}`);
+    const ri=r.toks.findIndex(x=>/^\d+\s*室$/.test(x));
+    const nm=ri<0?[]:r.toks.slice(ri+1).filter(x=>/^\d+\s*名$/.test(x)).slice(0,2).map(x=>parseInt(x,10));
+    if(ds.length<2||ri<0||nm.length<2){bad.push({n:i+1,id,st:r.st});return;}
+    rows.push({n:i+1,id,st:r.st,in:ds[ds.length-2],out:ds[ds.length-1],room:parseInt(r.toks[ri],10),ad:nm[0],ch:nm[1]});});
+  return {rows,bad,total,hasTotal,recs:recs.length};}
+function bfDays(f,t){const r=[];for(let d=f;d<=t&&r.length<62;d=addD(d,1))r.push(d);return r;}
+const bfMD=d=>{const a=d.split("-");return `${+a[1]}/${+a[2]}`;};
+function bfCalc(rows,f,t,kids){
+  const days=bfDays(f,t),use=rows.filter(r=>r.st!=="キャンセル"),ppl=r=>r.ad+(kids?r.ch:0);
+  // ①日ごとに拾う
+  const by={};for(const d of days){by[d]=[];for(const r of use)if(r.in<d&&d<=r.out&&ppl(r)>0)by[d].push(r);}
+  // ②予約ごとに朝食の日を出して足す（①と合うか検算）
+  const by2={};for(const d of days)by2[d]=0;
+  for(const r of use)for(let d=addD(r.in,1);d<=r.out;d=addD(d,1))if(d in by2&&ppl(r)>0)by2[d]+=ppl(r);
+  const out=days.map(d=>{const g={};for(const r of by[d])g[ppl(r)]=(g[ppl(r)]||0)+1;
+    const sum=by[d].reduce((a,r)=>a+ppl(r),0),chk=Object.keys(g).reduce((a,k)=>a+k*g[k],0);
+    return {d,sum,g,list:by[d],ok:sum===by2[d]&&sum===chk};});
+  return {days:out,use};}
+function bfMailText(res,f,t){
+  let h=`いつもお世話になっております。\n${bfMD(f)}～${bfMD(t)}分の朝食券利用予定枚数と各日程の利用人数でございます。\n\n`;
+  for(const x of res.days){const ks=Object.keys(x.g).map(Number).sort((a,b)=>a-b);
+    h+=`・${bfMD(x.d)}…${x.sum}枚`+(ks.length?`（${ks.map(k=>`${k}名${x.g[k]}組`).join("、")}）`:"")+"\n";}
+  return h.trimEnd();}
+function bfWeek(n){const d=new Date(bizToday()+"T00:00:00");d.setDate(d.getDate()-d.getDay()+7*n);const f=ymd(d);return {f,t:addD(f,6)};}
+function bfRange(){const fe=document.getElementById("bfFrom"),te=document.getElementById("bfTo");
+  if(!fe.value||!te.value){const w=X2.bfR||bfWeek(1);fe.value=w.f;te.value=w.t;}
+  if(te.value<fe.value)te.value=fe.value;
+  if(bfDays(fe.value,te.value).length>=62)te.value=addD(fe.value,61);
+  return {f:fe.value,t:te.value};}
+let bfLast=null;
+function renderBf(){
+  const {f,t}=bfRange(),kids=document.getElementById("bfKids").checked,P=bfParse(document.getElementById("bfPaste").value);
+  const chk=document.getElementById("bfChk"),mail=document.getElementById("bfMail"),bd=document.getElementById("bfBd"),df=document.getElementById("bfDiff");
+  if(!P.recs){chk.innerHTML=`<h3>確認</h3><p class="note">一覧を貼り付けると、ここに確認の結果が出ます。</p>`;mail.textContent="";bd.innerHTML="";df.hidden=true;bfLast=null;return;}
+  const res=bfCalc(P.rows,f,t,kids);bfLast={f,t,kids,res,rows:P.rows};
+  const W=[],I=[];
+  // 件数の検算
+  if(!P.hasTotal)W.push("「検索結果件数」の行が貼り付けに入っていません。件数での確認ができません。");
+  else if(P.recs!==P.total)W.push(`読み取った行は${P.recs}件、検索結果件数は合計${P.total}件で、合いません。貼り付けもれ・2ページ目以降を確かめてください。`);
+  else I.push(`読み取った行 ${P.recs}件＝検索結果件数 ${P.total}件`);
+  if(P.bad.length)W.push(`読み取れなかった行：${P.bad.map(b=>`${b.n}行目${b.id?`（${b.id}）`:""}`).join("、")}（数えていません）`);
+  const seen={},dup=new Set();for(const r of P.rows){if(r.id&&seen[r.id])dup.add(r.id);seen[r.id]=1;}
+  if(dup.size)W.push(`同じ予約番号が2回あります（貼り付けの重なりかも）：${[...dup].join("、")}`);
+  if(res.days.some(x=>!x.ok))W.push("日ごとの合計と予約ごとの合計が合わない日があります（"+res.days.filter(x=>!x.ok).map(x=>bfMD(x.d)).join("、")+"）。");
+  else I.push("日ごと・予約ごとの2通りで集計して一致");
+  const use=res.use;
+  if(use.length&&!use.some(r=>r.out===f)){const mo=use.reduce((a,r)=>r.out<a?r.out:a,use[0].out);if(mo>f)W.push(`${bfMD(f)}にOUTする予約が1件もありません。初日に退房する客が絞り込みから抜けていないか確かめてください。`);}
+  const multi=use.filter(r=>r.room>=2&&res.days.some(x=>x.list.includes(r)));
+  if(multi.length)I.push("複数室の予約："+multi.map(r=>`${r.id}（${r.room}室${r.ad+(kids?r.ch:0)}名）→${r.ad+(kids?r.ch:0)}名1組`).join("、"));
+  const kd=use.filter(r=>r.ch>0&&res.days.some(x=>x.list.includes(r)));
+  if(kd.length)W.push(`子供のいる予約があります（今は${kids?"子供も数えています":"大人だけ数えています"}。朝食券を使うか確かめてください）：`+kd.map(r=>`${r.id}（大人${r.ad}・子供${r.ch}）`).join("、"));
+  chk.innerHTML=`<h3>確認</h3><ul>${W.map(x=>`<li class="bad">${esc(x)}</li>`).join("")}${I.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`+(W.length?"":`<p class="ok">問題はありません</p>`);
+  mail.textContent=bfMailText(res,f,t);
+  bd.innerHTML=res.days.map(x=>`<div>${bfMD(x.d)}：${x.list.length?x.list.map(r=>`${esc(r.id||"番号なし")} ${r.ad+(kids?r.ch:0)}`).join("、"):"なし"}</div>`).join("");
+  // 前回（同じ期間で最後にコピーしたとき）との違い
+  const pv=(X2.bf||{})[f+"_"+t];df.hidden=!pv;
+  if(pv){const cnt={};res.days.forEach(x=>cnt[x.d]=x.sum);
+    const ch=Object.keys(pv.days).filter(d=>pv.days[d]!==cnt[d]).map(d=>`${bfMD(d)}：${pv.days[d]}枚 → ${cnt[d]}枚`);
+    const now={};for(const r of use)if(res.days.some(x=>x.list.includes(r)))now[r.id]=`${bfMD(r.in)}〜${bfMD(r.out)} ${r.ad+(kids?r.ch:0)}名`;
+    const add=Object.keys(now).filter(k=>!(k in pv.res)).map(k=>`${k}（${now[k]}）`);
+    const del=Object.keys(pv.res).filter(k=>!(k in now)).map(k=>`${k}（${pv.res[k]}）`);
+    const mod=Object.keys(now).filter(k=>k in pv.res&&pv.res[k]!==now[k]).map(k=>`${k}（${pv.res[k]} → ${now[k]}）`);
+    const d=new Date(pv.at);
+    df.innerHTML=`<h3>前回（${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")} にコピー）との違い</h3>`+
+      (ch.length||add.length||del.length||mod.length?`<ul>${ch.map(x=>`<li>${x}</li>`).join("")}${add.length?`<li>増えた予約：${esc(add.join("、"))}</li>`:""}${del.length?`<li>なくなった予約：${esc(del.join("、"))}</li>`:""}${mod.length?`<li>変わった予約：${esc(mod.join("、"))}</li>`:""}</ul>`:`<p class="note">変わりはありません。</p>`);}
+}
+function bfSave(){if(!bfLast)return;const {f,t,kids,res}=bfLast;X2.bf=X2.bf||{};
+  const r={};for(const x of res.use)if(res.days.some(y=>y.list.includes(x)))r[x.id]=`${bfMD(x.in)}〜${bfMD(x.out)} ${x.ad+(kids?x.ch:0)}名`;
+  const days={};res.days.forEach(x=>days[x.d]=x.sum);
+  X2.bf[f+"_"+t]={at:Date.now(),days,res:r};
+  for(const k of Object.keys(X2.bf))if(k.slice(11)<addD(bizToday(),-60))delete X2.bf[k]; // 古い期間は消す
+  saveX();}
+(function(){
+  const p=document.getElementById("p-bf");
+  p.addEventListener("input",e=>{if(e.target.id==="bfPaste"||e.target.id==="bfKids")renderBf();});
+  p.addEventListener("change",e=>{if(e.target.id==="bfFrom"||e.target.id==="bfTo"){const r=bfRange();X2.bfR=r;saveX();renderBf();}if(e.target.id==="bfKids")renderBf();});
+  p.addEventListener("click",e=>{const w=e.target.closest("[data-bfwk]");if(w){const r=bfWeek(+w.dataset.bfwk);document.getElementById("bfFrom").value=r.f;document.getElementById("bfTo").value=r.t;X2.bfR=r;saveX();renderBf();}});
+  document.getElementById("bfClear").addEventListener("click",()=>{document.getElementById("bfPaste").value="";renderBf();});
+  document.getElementById("bfCopy").addEventListener("click",async()=>{const tx=document.getElementById("bfMail").textContent;if(!tx)return;
+    let ok=false;try{await navigator.clipboard.writeText(tx);ok=true;}catch(e){const ta=document.createElement("textarea");ta.value=tx;document.body.appendChild(ta);ta.select();try{ok=document.execCommand("copy");}catch(e2){}ta.remove();}
+    document.getElementById("bfCopied").textContent=ok?"コピーしました（次回の比較用に保存しました）":"コピーできませんでした。本文を長押しして選んでください。";
+    if(ok)bfSave();});
+  document.getElementById("bfMailto").addEventListener("click",()=>{const tx=document.getElementById("bfMail").textContent;if(!tx||!bfLast)return;
+    bfSave();location.href=`mailto:?subject=${encodeURIComponent(`朝食券利用予定枚数（${bfMD(bfLast.f)}～${bfMD(bfLast.t)}）`)}&body=${encodeURIComponent(tx)}`;});
+})();
+
 document.querySelectorAll("nav.tabs .tb").forEach(b=>b.addEventListener("click",()=>showTab(b.dataset.tab)));
 for(const t of TABS){const p=document.getElementById("p-"+t);p.setAttribute("role","tabpanel");p.setAttribute("aria-labelledby","t-"+t);}
 document.querySelector("nav.tabs").addEventListener("keydown",e=>{ // ←→・Home・End でタブを切り替え
@@ -1566,7 +1701,7 @@ function applyTms(t){
   t.v=v;save();render();renderTabs();showTms(t,true);
 }
 // バージョン（変えたら CHANGELOG.md にも書く）。拡張のバージョンは content.js が入れる
-const APP_VER="3.14";
+const APP_VER="3.15";
 (function(){const ev=document.documentElement.dataset.tmsExtVer||(document.documentElement.dataset.tmsExt?"2.2以前":"");
   document.getElementById("ver").textContent=`メイク表 v${APP_VER}　・　TMS拡張 ${ev?"v"+ev:"なし"}`;})();
 if(jumpAtStart)gotoDate(autoDay()); // 部屋のボタンを作ったあとで
