@@ -99,6 +99,7 @@ index に**タブ切替**を付け、次の3つをそれぞれ別タブで追加
 - v3.13・拡張 v2.7：スマホから「データ更新」＝クラウドの key `req`（{ask:{id,at,plan},res:{id,st,at,msg}}）に依頼（`remoteReq`）。拡張の background が30秒ごと（chrome.alarms）に head を見て、新しい依頼なら `PAGE#remote=id` を最小化ウィンドウで開く。ページの `remoteRun` が読む→`cloudSettle`→res を書いて `MAKEHYO_REMOTE_DONE`→拡張が閉じる。Apps Script の KEYS に "req" が必要（再デプロイ）。60日読んだ日は `X2.tms.f60`（同期される）。
 - v3.14：その日初めて開いたとき `autoDaily()`（クラウド同期を待ってから、`X2.tms.f60` が `day60()`（午後3時区切りの日付）でなければ60日を読む。手動の「データ更新」の60日/5日も day60 で判定。拡張なし→`remoteReq(true)`）。読んだら `autoDone()` で連泊清掃カレンダーへ。端末ごとに1日1回（`X2.autoTry`）。`#remote=` で開いたページは自動では読まない。連泊清掃カレンダーの部屋表は自動で閉じない。リネン発注は v3.12.1 から隠したまま（`HIDE_LINEN`）。
 - 拡張 v2.8：Windows では `windows.create` の minimized が効かない（11/26 ホテルPCで IsIconic により確認）→ `keepMin(id)` で作ったあと・0.4秒・1.5秒・4秒に `windows.update(minimized)`。ログイン画面を見せるウィンドウは `shown` に入れて最小化しない。11/26 17:22 スマホからの遠隔データ更新は成功（約10秒で開く・60日を約48秒）。
+- v3.17・拡張 v2.10：朝食券タブ（v3.15・v3.16・拡張 v2.9）はユーザーの希望でやめた（git revert。中身は v3.14・拡張 v2.8 と同じ）。クラウドに残っている `bfp` は使わない（害はない）。
 - バージョン：index の `APP_VER`、拡張の manifest `version`。ページの右下に両方を出す（拡張は content.js が `data-tms-ext-ver` で渡す）。変えたら CHANGELOG.md に書く。
 - 読み込みのお知らせは「読み込みました」だけ（直すことがあるときだけ赤の1行）。リネン発注の説明は「X夜 作成 → X+1 ドライバーへ → X+2 納品」の1行。OUT数の黄色（リネンで使う日）と説明文は削除。
 - タブ名と各ページの見出し：連泊表／リネン発注／連泊清掃カレンダー／OUT数（今から1か月分）。印刷の見出し（原本どおりの「メイク表」、OUT数の印刷）はそのまま。
