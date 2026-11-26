@@ -1007,7 +1007,7 @@ function saveTmsDays(t){
   for(const d in days)for(const r of days[d].rows)if(r.r&&TYPE_OF[r.r]&&r.t){(cnt[r.t]=cnt[r.t]||{})[TYPE_OF[r.r]]=(cnt[r.t][TYPE_OF[r.r]]||0)+1;}
   const map={};for(const k in cnt)map[k]=Object.keys(cnt[k]).sort((a,b)=>cnt[k][b]-cnt[k][a])[0];
   X2.tms={at:Date.now(),base:bt,days,map,f60:(X2.tms&&X2.tms.f60)||""};
-  if(t.days.length>=60&&t.days.filter(x=>x.ok).length>=55)X2.tms.f60=bt; // 60日読んだ夜勤の日（ほかの端末にも同期）
+  if(t.days.length>=60&&t.days.filter(x=>x.ok).length>=55)X2.tms.f60=day60(); // 60日読んだ日（午後3時区切り。ほかの端末にも同期）
   if(t.mode==="linen")lnDateVal=t.d;else if(t.mode!=="out")lnDateVal="";
   // リネン発注の古い記録を消す（60日より前）。連泊清掃の記録（fullc・hist）はあとで見るので消さない
   const old=addD(today(),-60);
@@ -1544,7 +1544,7 @@ function importTms(){
 }
 function applyTms(t){
   if(pastView)leavePast(); // 過去の表を見ていたら、今の表に戻してから
-  if(t.days){if(t.days.length>=60&&t.days.filter(x=>x.ok).length>=55)X2.tms60=bizToday();saveTmsDays(t);}
+  if(t.days){if(t.days.length>=60&&t.days.filter(x=>x.ok).length>=55)X2.tms60=day60();saveTmsDays(t);}
   // 連泊表のタブで読んだときだけ連泊表を入れ替える。ほかのタブはデータを入れるだけ
   if(t.mode&&t.mode!=="make"){renderTabs();showTms(t,null);return;}
   // この表の日付：今の日付の前の日の一覧を読んでいればその日、なければ読んだ最初の一覧の次の日
@@ -1586,7 +1586,8 @@ const TMS_FAIL="TMSから読み込めませんでした。\nChromeでTMSにロ�
 // 今見ている日（連泊表の日付・リネンの納品日）がその先なら、そこまで読む
 let tmsMode="make";
 function tmsPlan(){const bt=bizToday(),k=X2.tab;
-  let days=(X2.tms60===bt||(X2.tms&&X2.tms.f60===bt))?5:60,need=bt; // need＝読まないといけない一覧の日
+  const k60=day60();
+  let days=(X2.tms60===k60||(X2.tms&&X2.tms.f60===k60))?5:60,need=bt; // need＝読まないといけない一覧の日
   if(k==="make"&&dateVal)need=addD(dateVal,-1);
   if(k==="linen")need=addD(lnDateVal||lnDefaultDate(),1);
   const span=Math.round((new Date(need)-new Date(bt))/864e5)+1;
@@ -1654,15 +1655,17 @@ async function remoteReq(auto){
 function tmsNote(m){const el=document.getElementById("tmsr");
   el.innerHTML=`<button class="x" type="button">閉じる</button><span style="color:var(--danger)">${esc(m).replace(/\n/g,"<br>")}</span>`;
   el.hidden=false;el.querySelector(".x").addEventListener("click",()=>{el.hidden=true;});}
-// その日（夜勤の日）に初めて開いたとき：60日分を自動で読む（どの端末かで60日を読んでいれば読まない）。
+// 「1日」は午後3時で区切る（day60：15時より前は前の日）。その日に初めて開いたとき：60日分を自動で読む（どの端末かで60日を読んでいれば読まない）。
 // 読んだら連泊清掃カレンダーへ（新しく入った連泊清掃を先に入れてもらう）
+const DAY60_H=15;
+function day60(){const d=new Date(Date.now()-DAY60_H*3600e3);return ymd(d);}
 const isRemotePage=/^#remote=/.test(location.hash);
 async function autoDaily(){
   if(isRemotePage)return;
   for(let i=0;i<60&&(!cloudReady||cloudBusy||(!cloudLast&&!cloudErr));i++)await sleep(300); // まずクラウドからほかの端末の分を受け取る
-  const bt=bizToday();
-  if((X2.tms&&X2.tms.f60===bt)||X2.tms60===bt||X2.autoTry===bt||tmsBusy)return;
-  X2.autoTry=bt;saveX(); // 失敗しても、この端末では1日1回だけ
+  const k=day60();
+  if((X2.tms&&X2.tms.f60===k)||X2.tms60===k||X2.autoTry===k||tmsBusy)return;
+  X2.autoTry=k;saveX(); // 失敗しても、この端末では1日1回だけ
   if(!document.documentElement.dataset.tmsExt){remoteReq(true);return;}
   const p=tmsPlan(),ev=parseFloat(document.documentElement.dataset.tmsExtVer||"0");
   if(p.days>40&&!(ev>=2.6))return;
