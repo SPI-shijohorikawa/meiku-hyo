@@ -12,3 +12,7 @@ window.addEventListener("message", (e) => {
 chrome.runtime.onMessage.addListener((m) => {
   if (m && m.type === "TMS_PROGRESS") window.postMessage({ type: "MAKEHYO_TMS_PROG", i: m.i, n: m.n }, "*");
 });
+// スマホからの依頼で開いたページが読み終わった → 拡張機能がこのウィンドウを閉じる
+window.addEventListener("message", (e) => {
+  if (e.source === window && e.data && e.data.type === "MAKEHYO_REMOTE_DONE") chrome.runtime.sendMessage({ type: "REMOTE_DONE" });
+});
