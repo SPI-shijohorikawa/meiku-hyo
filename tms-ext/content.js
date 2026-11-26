@@ -16,3 +16,11 @@ chrome.runtime.onMessage.addListener((m) => {
 window.addEventListener("message", (e) => {
   if (e.source === window && e.data && e.data.type === "MAKEHYO_REMOTE_DONE") chrome.runtime.sendMessage({ type: "REMOTE_DONE" });
 });
+// 朝食券の人数（予約の編集ページの persons）を読む
+window.addEventListener("message", (e) => {
+  if (e.source !== window || !e.data || e.data.type !== "MAKEHYO_PERSONS_REQ") return;
+  chrome.runtime.sendMessage({ type: "READ_PERSONS", ids: e.data.ids || [] }, (res) => {
+    if (chrome.runtime.lastError) res = { ok: false, error: chrome.runtime.lastError.message };
+    window.postMessage({ type: "MAKEHYO_PERSONS_RES", res }, "*");
+  });
+});

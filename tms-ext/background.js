@@ -47,7 +47,12 @@ async function readInPage(want) {
     return {
       r: c.find((x) => /^\d{3}$/.test(x)) || "",
       n: c.find((x) => /^\d+\/\d+$/.test(x)) || "",
-      t: ((c.find((x) => /\[.+?\]/.test(x)) || "").match(/\[(.+?)\]/) || [])[1] || ""
+      t: ((c.find((x) => /\[.+?\]/.test(x)) || "").match(/\[(.+?)\]/) || [])[1] || "",
+      // 朝食券用：プラン名に「朝食」があるか・予約ID（tr の id）・予約番号と何室目（メモの欄の data-*）。氏名は読まない
+      b: /朝食/.test(c.find((x) => /\[.+?\]/.test(x)) || "") ? 1 : 0,
+      i: tr.id || "",
+      v: (tr.querySelector("td.reservation_memorandums") || { dataset: {} }).dataset.resvNo || "",
+      g: (tr.querySelector("td.reservation_memorandums") || { dataset: {} }).dataset.resvLegNo || ""
     };
   });
   if (location.pathname.indexOf("/lgn") === 0) return { ok: false, error: "login" };
@@ -245,4 +250,69 @@ chrome.runtime.onMessage.addListener((msg, sender) => {
 chrome.windows.onRemoved.addListener(async (id) => {
   const st = await chrome.storage.local.get(["rmWin"]);
   if (st.rmWin === id) await chrome.storage.local.remove(["rmWin", "rmAt", "rmTab"]);
+});
+
+
+// =====================================================================
+// 朝食券の人数：一覧には人数がないので、予約の編集ページ（/rsv/mn/）の隠し欄 input[name="persons"] だけを読む。
+// 編集ページは TMS のサーバーが覚える「今の予約」で開く（go_to_mn_edit(予約ID) → /rsv/mn/）ので、1件ずつ順に読む。
+// 安全のため：①このPCで予約の編集ページを開いているタブがあれば読まない ②フォームは送らない（読むだけ）
+// ③編集ページにその予約番号が出ていなければ、その人数は使わない
+async function waitUrl(tabId, re, ms) {
+  const t0 = Date.now();
+  while (Date.now() - t0 < ms) {
+    try { const t = await chrome.tabs.get(tabId); if (t.status === "complete" && re.test(t.url || "")) return true; } catch (e) { return false; }
+    await new Promise((r) => setTimeout(r, 250));
+  }
+  return false;
+}
+function openEditInPage(id) { // 一覧のページの中で（TMS の関数で）編集ページへ
+  if (location.pathname.indexOf("/lgn") === 0) return "login";
+  if (typeof window.go_to_mn_edit !== "function") return "nofunc";
+  window.go_to_mn_edit(id);
+  return "ok";
+}
+function readPersonsInPage(no) {
+  if (location.pathname.indexOf("/lgn") === 0) return { ok: false, error: "login" };
+  const el = document.querySelector('input[name="persons"]');
+  if (!el) return { ok: false, error: "persons がありません" };
+  const p = parseInt(el.value, 10);
+  const same = !no || document.documentElement.innerHTML.indexOf(no) >= 0; // 違う予約を読んでいないか
+  return { ok: same && p >= 0, p, error: same ? "" : "予約番号が合いません" };
+}
+chrome.runtime.onMessage.addListener((msg, sender, reply) => {
+  if (!msg || msg.type !== "READ_PERSONS") return;
+  const from = sender.tab && sender.tab.id;
+  const prog = (i, n) => { if (from != null) chrome.tabs.sendMessage(from, { type: "TMS_PROGRESS", i, n }).catch(() => {}); };
+  (async () => {
+    const list = (msg.ids || []).slice(0, 200);
+    if (!list.length) { reply({ ok: true, res: {} }); return; }
+    const editing = await chrome.tabs.query({ url: TMS + "/rsv/mn/*" });
+    if (editing.length) { reply({ ok: false, error: "editing" }); return; }
+    let winId = null, tab;
+    try { const w = await chrome.windows.create({ url: "about:blank", state: "minimized", focused: false }); winId = w.id; tab = w.tabs[0]; keepMin(winId).catch(() => {}); }
+    catch (e) { tab = await chrome.tabs.create({ url: "about:blank", active: false }); }
+    const close = () => { unblockExtras(); if (winId != null) chrome.windows.remove(winId).catch(() => {}); else chrome.tabs.remove(tab.id).catch(() => {}); };
+    const res = {};
+    try {
+      await blockExtras([tab.id]);
+      const list0 = listUrl(bizToday());
+      let k = 0;
+      for (const x of list) {
+        prog(++k, list.length);
+        await go(tab.id, list0);
+        const [a] = await chrome.scripting.executeScript({ target: { tabId: tab.id }, world: "MAIN", func: openEditInPage, args: [x.i] });
+        const st = a && a.result;
+        if (st === "login") { close(); reply({ ok: false, error: "login" }); return; }
+        if (st !== "ok") { res[x.i] = { ok: false, error: String(st) }; continue; }
+        if (!(await waitUrl(tab.id, /\/rsv\/mn\//, 20000))) { res[x.i] = { ok: false, error: "編集ページが開きません" }; continue; }
+        const [b] = await chrome.scripting.executeScript({ target: { tabId: tab.id }, world: "MAIN", func: readPersonsInPage, args: [x.v || ""] });
+        res[x.i] = (b && b.result) || { ok: false, error: "読めません" };
+      }
+      await go(tab.id, list0).catch(() => {}); // 編集ページのまま残さない
+      close();
+      reply({ ok: true, res });
+    } catch (e) { close(); reply({ ok: false, error: String(e && e.message || e), res }); }
+  })();
+  return true;
 });
