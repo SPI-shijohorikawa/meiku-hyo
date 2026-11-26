@@ -71,6 +71,21 @@ const BIZ_CUTOFF_H = 6;
 const bizToday = () => ymd(new Date(Date.now() - BIZ_CUTOFF_H * 3600e3));
 const WORKERS = 5; // 同時に読むタブの数
 
+// Windows では windows.create の state:"minimized" が効かないことがある（2026-11-26 ホテルのPCで確認）。
+// 作ったあとに windows.update で最小化し直す。少しあとにももう一度（ページを開いたときに戻ることがあるので）。
+// ログイン画面を見せるウィンドウ（shown）は最小化しない
+const shown = new Set();
+async function keepMin(id) {
+  for (const ms of [0, 400, 1500, 4000]) {
+    if (ms) await new Promise((r) => setTimeout(r, ms));
+    if (shown.has(id)) return;
+    try {
+      const w = await chrome.windows.get(id);
+      if (w.state !== "minimized") await chrome.windows.update(id, { state: "minimized" });
+    } catch (e) { return; } // もう閉じた
+  }
+}
+
 // 読むためのタブだけ、TMSの画像・フォント・動画を読み込まない（表を読むのに要らないので速くなる）。
 // tabIds を付けたセッションルールなので、ほかのタブ・ふだん開くTMSには効かない
 const BLOCK_ID = 1;
@@ -109,6 +124,7 @@ chrome.runtime.onMessage.addListener((msg, sender, reply) => {
     try {
       const win = await chrome.windows.create({ url: "about:blank", state: "minimized", focused: false });
       winId = win.id; tab = win.tabs && win.tabs[0];
+      keepMin(winId).catch(() => {}); // 裏で最小化し直す（読み込みは待たせない）
       if (!tab) tab = (await chrome.tabs.query({ windowId: winId }))[0];
     } catch (e) {
       winId = null; tab = await chrome.tabs.create({ url: "about:blank", active: false });
@@ -132,7 +148,7 @@ chrome.runtime.onMessage.addListener((msg, sender, reply) => {
           await unblockExtras();
           for (const id of tabs.slice(1)) chrome.tabs.remove(id).catch(() => {});
           await chrome.tabs.reload(tab.id).catch(() => {});
-          if (winId != null) await chrome.windows.update(winId, { state: "normal", focused: true });
+          if (winId != null) { shown.add(winId); await chrome.windows.update(winId, { state: "normal", focused: true }); }
           await chrome.tabs.update(tab.id, { active: true });
           reply({ ok: false, error: "login" }); return;
         }
@@ -210,7 +226,7 @@ async function poll() {
     await chrome.storage.local.set({ doneId: a.id });
     const url = PAGE + "#remote=" + a.id;
     let winId = null;
-    try { winId = (await chrome.windows.create({ url, state: "minimized", focused: false })).id; }
+    try { winId = (await chrome.windows.create({ url, state: "minimized", focused: false })).id; keepMin(winId).catch(() => {}); }
     catch (e) { const t = await chrome.tabs.create({ url, active: false }); winId = t.windowId; await chrome.storage.local.set({ rmTab: t.id }); }
     await chrome.storage.local.set({ rmWin: winId, rmAt: Date.now() });
   } catch (e) {
