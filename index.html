@@ -223,6 +223,18 @@ table.lt td.z{color:#c3c8c5}
 .fbox.pwa h3{margin:0 0 8px;font-size:17px}
 .fbox.pwa p{margin:0 0 14px;font-size:15px;line-height:1.7}
 .fbox.pwa .act{width:100%;font:inherit;font-size:16px;font-weight:700;padding:11px;border-radius:8px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer}
+.busyDlg{border:0;padding:0;background:transparent;margin:auto;width:min(360px,calc(100% - 32px))}
+.busyDlg::backdrop{background:rgba(20,25,23,.45)}
+.fbox.busy{padding:22px 20px;text-align:center}
+.fbox.busy h3{margin:12px 0 6px;font-size:17px;color:var(--ink)}
+.fbox.busy p{margin:4px 0;font-size:15px;font-variant-numeric:tabular-nums}
+.fbox.busy .spin{width:34px;height:34px;margin:0 auto;border-radius:50%;border:3px solid var(--line);border-top-color:var(--accent);animation:spin 1s linear infinite}
+@media (prefers-reduced-motion:reduce){.fbox.busy .spin{animation:none}}
+/* 開いたときの案内：黄色の枠を10秒点滅 */
+.hilite{outline:3px solid #F2C94C;outline-offset:2px;border-radius:6px;animation:hiblink 1s steps(2,jump-none) infinite}
+@keyframes hiblink{50%{outline-color:transparent}}
+@media (prefers-reduced-motion:reduce){.hilite{animation:none}}
+.fcnote{color:var(--ink);font-size:14px;padding:8px 10px;background:var(--paper);border-radius:8px}
 .fbox .fhd{display:flex;align-items:center;gap:8px;margin-bottom:6px}
 .fbox .fhd h3{margin:0;font-size:16px;color:var(--ink)}
 .fbox .fhd .x{margin-left:auto;font:inherit;font-size:14px;border:1px solid var(--line);background:var(--paper);border-radius:8px;padding:4px 12px;cursor:pointer;color:var(--ink)}
@@ -463,6 +475,12 @@ table.om td.miss{color:#c3c8c5}
   <p id="pwaMsg"></p>
   <button type="button" class="act primary" id="pwaOk">OK</button>
 </div></dialog>
+<dialog class="busyDlg" id="busyDlg" aria-labelledby="busyH"><div class="fbox busy">
+  <div class="spin" aria-hidden="true"></div>
+  <h3 id="busyH">データを読み込んでいます</h3>
+  <p id="busyMsg"></p>
+  <p class="note">終わるまでお待ちください。</p>
+</div></dialog>
 <div class="tmsbar"><div class="tmsr" id="tmsr" hidden></div></div>
 
 <div class="panel" id="p-make">
@@ -540,7 +558,7 @@ table.om td.miss{color:#c3c8c5}
 <div class="panel" id="p-full" hidden><div class="pnl">
   <div class="row"><h2>連泊清掃カレンダー</h2>
     <div class="calhd"><button type="button" id="calPrev" aria-label="前の月">‹</button><b id="calTitle"></b><button type="button" id="calNext" aria-label="次の月">›</button></div></div>
-  <p class="note">日をタップすると部屋表が出ます。部屋をタップ＝その日その部屋は連泊清掃（もう一度タップで取消）。続けて何室でも選べます。終わったら「閉じる」を押してください。右上の数字＝その日のOUT数（TMS）。連泊表の「連泊清掃」と自動でつながります。今日（夜勤の日）より前の日は見るだけで、変更できません。</p>
+  <p class="note fcnote" id="fcNote">新しく入った「連泊清掃」は、ここで入力してください（日付をタップ → 部屋を選ぶ → 「閉じる」）。入力すると、その日の「連泊表」に自動で表示されます。</p>
   <div class="box"><div class="cal" id="cal"></div></div>
   <dialog class="fov" id="fov" aria-label="連泊清掃の部屋表"><div class="fbox" id="fday"></div></dialog>
 </div></div>
@@ -1566,11 +1584,15 @@ function applyTms(t){
   t.v=v;save();render();renderTabs();showTms(t,true);
 }
 // バージョン（変えたら CHANGELOG.md にも書く）。拡張のバージョンは content.js が入れる
-const APP_VER="3.17";
+const APP_VER="3.18";
 (function(){const ev=document.documentElement.dataset.tmsExtVer||(document.documentElement.dataset.tmsExt?"2.2以前":"");
   document.getElementById("ver").textContent=`メイク表 v${APP_VER}　・　TMS拡張 ${ev?"v"+ev:"なし"}`;})();
 if(jumpAtStart)gotoDate(autoDay()); // 部屋のボタンを作ったあとで
-render();showTab(X2.tab);importTms();cloudStart();
+render();showTab(/^#remote=/.test(location.hash)?X2.tab:"full");importTms();cloudStart();
+// 開くたびに連泊清掃カレンダー。説明とタブのボタンを黄色の枠で10秒点滅させる
+if(!/^#remote=/.test(location.hash)){
+  const hs=[document.getElementById("fcNote"),...document.querySelectorAll("nav.tabs .tb:not([hidden])")];
+  hs.forEach(e=>e.classList.add("hilite"));setTimeout(()=>hs.forEach(e=>e.classList.remove("hilite")),10000);}
 setTimeout(()=>{const m=location.hash.match(/^#remote=(\w+)$/);if(m)remoteRun(m[1]);else autoDaily();},0); // 下の関数ができてから
 // 開いたまま正午をまたいだら、連泊表・リネン発注の日付を進める（1分ごとに確認）
 let lastAuto=autoDay();
@@ -1580,6 +1602,7 @@ function autoTick(){const a=autoDay();if(a===lastAuto)return;lastAuto=a;
 setInterval(autoTick,60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")autoTick();});
 // 拡張機能（tms-ext）があれば、ボタン1つでTMSから読む
 const bt=document.getElementById("btnTms");
+const isRemotePage0=/^#remote=/.test(location.hash); // パソコンが遠隔で開いたページ（画面は見えない）
 let tmsBusy=false,tmsTimer=null;
 const TMS_FAIL="TMSから読み込めませんでした。\nChromeでTMSにログインしてから、もう一度右上の「データ更新」を押してください。";
 // 読む日数：いつもは今日（夜勤の日）の一覧から5日。その日の最初の1回だけ60日（OUT数の60日分）。
@@ -1595,7 +1618,13 @@ function tmsPlan(){const bt=bizToday(),k=X2.tab;
   return {mode:k,start:bt,days};}
 // 「TMS取込」ボタンは更新アイコン。読込中は回って「n/32」を出す
 const TMS_ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/></svg>';
-function tmsBtn(busy,txt){bt.classList.toggle("busy",!!busy);bt.innerHTML=TMS_ICON+`<span class="n">${txt||(busy?"読込中":"データ更新")}</span>`;}
+// 読み込み中は画面全体をふさぐ（終わるまでほかの操作をさせない）。Escでも閉じない
+const busyDlg=document.getElementById("busyDlg");
+busyDlg.addEventListener("cancel",e=>e.preventDefault());
+function busyShow(on,txt){
+  if(on){document.getElementById("busyMsg").textContent=txt||"";if(!busyDlg.open)busyDlg.showModal();}
+  else if(busyDlg.open)busyDlg.close();}
+function tmsBtn(busy,txt){if(!isRemotePage0)busyShow(!!busy,txt?(/^\d+\/\d+$/.test(txt)?`${txt.split("/")[0]} / ${txt.split("/")[1]} 日`:txt):"TMSにつないでいます…");bt.classList.toggle("busy",!!busy);bt.innerHTML=TMS_ICON+`<span class="n">${txt||(busy?"読込中":"データ更新")}</span>`;}
 function tmsDone(){tmsBusy=false;clearTimeout(tmsTimer);bt.disabled=false;tmsBtn(false);}
 tmsBtn(false);
 function tmsArm(){clearTimeout(tmsTimer);tmsTimer=setTimeout(()=>{if(!tmsBusy)return;tmsDone();if(remoteWait){const w=remoteWait;remoteWait=null;w({ok:false,error:"timeout"});}else alert(TMS_FAIL);},90000);} // 90秒なにも来なければ失敗
@@ -1613,8 +1642,8 @@ window.addEventListener("message",e=>{
 bt.addEventListener("click",()=>{
   if(tmsBusy)return;
   if(!document.documentElement.dataset.tmsExt){remoteReq();return;} // 拡張機能がない（スマホなど）：パソコンに頼む
-  const p=tmsPlan(),ev=parseFloat(document.documentElement.dataset.tmsExtVer||"0");
-  if(p.days>40&&!(ev>=2.6)){alert("拡張機能が古いので、60日分は読めません。\nchrome://extensions で「メイク表 TMS取込」の「再読み込み」を押してください（v2.6以上）。");return;}
+  const p=tmsPlan(),ev=document.documentElement.dataset.tmsExtVer||"0"; // "2.10" を 2.1 と読まないよう、版は verGt で比べる
+  if(p.days>40&&verGt("2.6",ev)){alert("拡張機能が古いので、60日分は読めません。\nchrome://extensions で「メイク表 TMS取込」の「再読み込み」を押してください（v2.6以上）。");return;}
   tmsMode=p.mode;tmsBusy=true;bt.disabled=true;tmsBtn(true);
   window.postMessage({type:"MAKEHYO_TMS_REQ",days:p.days,start:p.start},"*");
   tmsArm();
@@ -1667,8 +1696,8 @@ async function autoDaily(){
   if((X2.tms&&X2.tms.f60===k)||X2.tms60===k||X2.autoTry===k||tmsBusy)return;
   X2.autoTry=k;saveX(); // 失敗しても、この端末では1日1回だけ
   if(!document.documentElement.dataset.tmsExt){remoteReq(true);return;}
-  const p=tmsPlan(),ev=parseFloat(document.documentElement.dataset.tmsExtVer||"0");
-  if(p.days>40&&!(ev>=2.6))return;
+  const p=tmsPlan(),ev=document.documentElement.dataset.tmsExtVer||"0"; // "2.10" を 2.1 と読まないよう、版は verGt で比べる
+  if(p.days>40&&verGt("2.6",ev))return;
   tmsMode="auto";tmsBusy=true;bt2().disabled=true;tmsBtn(true);
   window.postMessage({type:"MAKEHYO_TMS_REQ",days:p.days,start:p.start},"*");
   tmsArm();}
