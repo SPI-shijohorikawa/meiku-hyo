@@ -195,6 +195,14 @@ table.lt small.sub{display:block;font-size:11px;color:var(--sub);font-weight:400
 table.lt thead th{line-height:1.25}
 table.lt .rs{font:inherit;font-size:12px;border:1px solid var(--line);background:var(--paper);border-radius:6px;padding:2px 6px;margin-left:4px;cursor:pointer;color:var(--sub)}
 table.lt td.z{color:#c3c8c5}
+/* 在庫の ▲▼（1単位ずつ） */
+.stp{display:inline-flex;align-items:stretch;gap:0}
+.stp input{border-top-right-radius:0;border-bottom-right-radius:0}
+.stpb{display:flex;flex-direction:column}
+.stb{font:inherit;font-size:11px;line-height:1;width:30px;flex:1;min-height:0;padding:0;border:1px solid #d9c98f;border-left:0;background:var(--paper);color:var(--accent);cursor:pointer;-webkit-user-select:none;user-select:none}
+.stb:first-child{border-top-right-radius:6px;border-bottom:0}
+.stb:last-child{border-bottom-right-radius:6px}
+.stb:active{background:var(--accent-bg)}
 #lnTypes td.tv{font-size:17px;font-weight:700;padding-right:10px}
 .lnrule{font-size:12.5px;line-height:1.65}
 .lnrule b{font-size:14px;color:var(--ink)}
@@ -319,7 +327,8 @@ table.om td.miss{color:#c3c8c5}
   #lnTable td[data-need]{grid-column:1/-1;display:flex;align-items:baseline;gap:8px;font-size:16px}
   #lnTable td[data-need]::before{display:inline;margin:0;font-size:12.5px}
   #lnTable td.ord{grid-column:3}
-  #lnTable input{width:4.2em}
+  #lnTable input{width:4.2em;height:44px} /* 指で押しやすく、▲▼（各22px）と同じ高さに */
+  #lnTable .stb{width:34px}
 }
 /* ---------- 印刷用（白黒プリンター前提） ---------- */
 .print{display:none}
@@ -1153,7 +1162,7 @@ function buildLinen(){
   for(const r of c.rows){const k=r.it.k;
     h+=`<tr><td>${r.it.nm}<small class="sub">${r.it.u}枚単位</small></td><td data-need="${k}" data-l="必要数"></td>`;
     if(r.it.fix!=null)h+=`<td class="nil"></td><td class="nil"></td>`; // 固定（拭き上げは40。20にするときは発注数を直す）
-    else h+=`<td data-l="${mdS(X1)}納品"><input type="number" inputmode="numeric" min="0" data-g="come" data-k="${k}"></td><td data-l="在庫"><input type="number" inputmode="numeric" min="0" data-g="cnt" data-k="${k}"></td>`;
+    else h+=`<td data-l="${mdS(X1)}納品"><input type="number" inputmode="numeric" min="0" data-g="come" data-k="${k}"></td><td data-l="在庫"><span class="stp"><input type="number" inputmode="numeric" min="0" data-g="cnt" data-k="${k}"><span class="stpb"><button type="button" class="stb" data-stp="1" data-k="${k}" data-u="${r.it.u}" aria-label="${r.it.nm}の在庫を${r.it.u}枚ふやす">▲</button><button type="button" class="stb" data-stp="-1" data-k="${k}" data-u="${r.it.u}" aria-label="${r.it.nm}の在庫を${r.it.u}枚へらす">▼</button></span></span></td>`;
     h+=`<td class="ord" data-l="発注数"><input type="number" inputmode="numeric" min="0" step="${r.it.u}" data-g="ov" data-k="${k}"><button class="rs" type="button" data-g="ov" data-k="${k}" hidden>↺</button></td></tr>`;}
   h+="</tbody>";
   document.getElementById("lnTable").innerHTML=h;
@@ -1212,7 +1221,11 @@ function updLinen(all,persist){ // 入力中の欄はさわらずに数字だけ
     updLinen(false,true);});
   p.addEventListener("change",e=>{if(e.target.dataset&&e.target.dataset.g)updLinen(true);});
   p.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
-    if(b.classList.contains("rs")){const L=linRec(lnDateVal);if(L[b.dataset.g])delete L[b.dataset.g][b.dataset.k];updLinen(true,true);}});
+    if(b.classList.contains("rs")){const L=linRec(lnDateVal);if(L[b.dataset.g])delete L[b.dataset.g][b.dataset.k];updLinen(true,true);}
+    if(b.dataset.stp){ // 在庫の ▲▼：1単位（その品の「n枚単位」）ずつふやす・へらす
+      const el=p.querySelector(`input[data-g="cnt"][data-k="${b.dataset.k}"]`);if(!el)return;
+      const u=+b.dataset.u||1,v=Math.max(0,Math.round(+el.value)||0);
+      el.value=Math.max(0,v+u*(+b.dataset.stp));el.dispatchEvent(new Event("input",{bubbles:true}));}});
   document.getElementById("lnDate").addEventListener("change",e=>{if(!e.target.value)return;lnDateVal=addD(e.target.value,-1);buildLinen();}); // 画面の日付は発注日。中では作った夜の日で持つ
 })();
 function ymdJa(s){const a=s.split("-");return `　${+a[0]}年　${+a[1]}月　${+a[2]}日`;}
@@ -1605,7 +1618,7 @@ function applyTms(t){
   t.v=v;save();render();renderTabs();showTms(t,true);
 }
 // バージョン（変えたら CHANGELOG.md にも書く）。拡張のバージョンは content.js が入れる
-const APP_VER="3.21";
+const APP_VER="3.22";
 (function(){const ev=document.documentElement.dataset.tmsExtVer||(document.documentElement.dataset.tmsExt?"2.2以前":"");
   document.getElementById("ver").textContent=`メイク表 v${APP_VER}　・　TMS拡張 ${ev?"v"+ev:"なし"}`;})();
 if(jumpAtStart)gotoDate(autoDay()); // 部屋のボタンを作ったあとで
