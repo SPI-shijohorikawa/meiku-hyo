@@ -1056,12 +1056,8 @@ function dayView(d){const st=staysOn(d);
 
 // ---- タブ
 // 2026-11-24 リネン発注は一時的に隠す（直すまで同僚がさわらないように）。
-// v3.19：アドレスの最後に ?linen を付けて開いたブラウザのタブだけ表示（sessionStorage。そのタブを閉じると隠れる。?linen=0 で隠す）。
-// 全員に戻すときは HIDE_LINEN=false にする（上のボタンの hidden はここで外す）
-const LINEN_SS="makehyo-linen";
-const HIDE_LINEN=(()=>{try{const q=new URLSearchParams(location.search);
-  if(q.has("linen")){if(q.get("linen")==="0")sessionStorage.removeItem(LINEN_SS);else sessionStorage.setItem(LINEN_SS,"1");}
-  return sessionStorage.getItem(LINEN_SS)!=="1";}catch(e){return true;}})();
+// v3.25：リネン発注は全員に表示（v3.12.1〜v3.24 は隠していた。v3.19〜は ?linen を付けたタブだけ）。また隠すときは true にする
+const HIDE_LINEN=false;
 document.getElementById("t-linen").hidden=HIDE_LINEN;
 const TABS=HIDE_LINEN?["make","full","out"]:["make","linen","full","out"];
 function showTab(k){if(!TABS.includes(k))k="make";X2.tab=k;saveX();if(typeof fov!=="undefined")closeFov();
@@ -1622,7 +1618,7 @@ function applyTms(t){
   t.v=v;save();render();renderTabs();showTms(t,true);
 }
 // バージョン（変えたら CHANGELOG.md にも書く）。拡張のバージョンは content.js が入れる
-const APP_VER="3.24";
+const APP_VER="3.25";
 (function(){const ev=document.documentElement.dataset.tmsExtVer||(document.documentElement.dataset.tmsExt?"2.2以前":"");
   document.getElementById("ver").textContent=`メイク表 v${APP_VER}　・　TMS拡張 ${ev?"v"+ev:"なし"}`;})();
 if(jumpAtStart)gotoDate(autoDay()); // 部屋のボタンを作ったあとで
