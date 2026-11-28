@@ -196,6 +196,9 @@ table.lt thead th{line-height:1.25}
 table.lt .rs{font:inherit;font-size:12px;border:1px solid var(--line);background:var(--paper);border-radius:6px;padding:2px 6px;margin-left:4px;cursor:pointer;color:var(--sub)}
 table.lt td.z{color:#c3c8c5}
 #lnTypes td.tv{font-size:17px;font-weight:700;padding-right:10px}
+#lnTypes tr.stay td{color:var(--sub)}
+.lnrule{font-size:12.5px;line-height:1.65}
+.lnrule b{font-size:14px;color:var(--ink)}
 .auto-note{margin:8px 0 0;font-size:12px;color:var(--sub)}
 .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
 .seg button{font:inherit;font-size:14px;padding:4px 12px;border:0;background:var(--paper);color:var(--ink);cursor:pointer}
@@ -536,6 +539,7 @@ table.om td.miss{color:#c3c8c5}
     <label>発注日 <input type="date" id="lnDate"></label>
     <button class="act primary" type="button" id="btnPrintOrder">発注書を印刷</button></div>
   <p class="note" id="lnFlow" style="font-size:14px;color:var(--ink)"></p>
+  <p class="note lnrule" id="lnRule"></p>
   <p class="note" id="lnInfo"></p>
   <div class="two">
     <div class="box">
@@ -1073,69 +1077,89 @@ function renderTabs(){
 
 // ---- ① リネン発注
 let lnDateVal="";
-// 流れ：X日の夜勤が発注書を作る → X+1日にドライバーへ渡す → X+2日に納品。
-// だから X+2日のOUT＋連泊清掃で計算し、「X+1日に届く数」＝X−1日の夜に作った発注数。
+// 流れ：X日の夜勤が発注書を作る → X+1日にドライバーへ渡す → X+2日の朝に納品。
+// 各階へは前の日の夜に部屋ごとに用意する：X+2日の分はX+1日の夜（今の在庫＋X+1日の納品から）、
+// X+3日の分はX+2日の夜（X+2日の朝に納品された分を使う）。
+// 在庫は、X日の夜に「X+1日の分を各階に分けたあと」第2倉庫だけ数える。
+// だから 発注数＝X+2日分＋X+3日分＋予備−在庫−X+1日納品（＝X−1日の夜に作った発注数）。
+// v3.20（2026-11-29）で変更。前は「X+2日分だけ＋決まった定数（シーツS70・W30、デュベS70・W30、タオル80）」だった。
 function lnDefaultDate(){return addD(autoDay(),-1);} // 発注日＝autoDay()。中で持つのは作った夜（その前の日）
-const LN_ITEMS=[ // 発注書の並び。c=定数、u=発注単位、fix=固定の発注数
-  {k:"SS",nm:"シーツ　S",u:10,c:70},{k:"SW",nm:"シーツ　W",u:10,c:30},
-  {k:"DS",nm:"デュベ　S",u:5,c:70},{k:"DW",nm:"デュベ　W",u:5,c:30},
+const LN_ITEMS=[ // 発注書の並び。u=発注単位、fix=固定の発注数（ピロケース・バスマット・ガウン・拭き上げは計算しない）
+  {k:"SS",nm:"シーツ　S",u:10},{k:"SW",nm:"シーツ　W",u:10},
+  {k:"DS",nm:"デュベ　S",u:5},{k:"DW",nm:"デュベ　W",u:5},
   {k:"PC",nm:"ピロケース",u:50,fix:50},
-  {k:"BT",nm:"バスタオル",u:10,c:80},{k:"FT",nm:"フェイスタオル",u:20,c:80},
+  {k:"BT",nm:"バスタオル",u:10},{k:"FT",nm:"フェイスタオル",u:20},
   {k:"BM",nm:"バスマット",u:20,fix:20},{k:"GW",nm:"ガウン",u:10,fix:20},
   {k:"WP",nm:"拭き上げタオル",u:20,fix:"wipe"}];
+const LN_SPARE=0.1; // 予備＝必要数（2日分）の1割（届いたリネンが汚れている・シミが落ちない分）
+const LN_SWAP=0.5;  // 連泊（清掃なし）の部屋の半分が、毎日タオルを交換しに来る
 function linRec(X){return X2.lin[X]||(X2.lin[X]={typ:{},come:{},cnt:{},ov:{},wipe:40});}
+// その日（T）に掃除する部屋＝OUT＋連泊清掃（タイプ別）と、連泊（清掃なし）の部屋（タイプ別）。データがなければ ok=false
+// 連泊も OUT と同じく、まだ部屋が決まっていない予約はプランからタイプを決めて数える
+function lnDay(T){
+  const o=outsOn(T),fs=new Set(X2.fullc[T]||[]),day=X2.tms&&X2.tms.days[addD(T,-1)];
+  const clean={},stay={};for(const t of LN_ORDER){clean[t]=o?o.by[t]:0;stay[t]=0;}
+  const oset=new Set(o?o.rooms:[]);
+  for(const no of fs)if(!oset.has(no)&&TYPE_OF[no])clean[TYPE_OF[no]]++;
+  if(o)for(const x of day.rows){const q=nN(x);if(!q[0]||q[0]>=q[1]||(x.r&&fs.has(x.r)))continue;
+    const t=rowType(x);if(t!=="?")stay[t]++;}
+  return {T,ok:!!o,clean,stay,unk:o?o.unk:[]};}
+// 1日分の必要数。c＝OUT＋連泊清掃の室数、s＝連泊（清掃なし）の室数（どちらもタイプ別）
+function lnNeed(c,s){
+  const {D,W,TA,TB,Q}=c;
+  const SS=W*2+TA*3+TB+Q*4, SW=D+TB*2, PC=D*2+W*2+TA*3+TB*3+Q*4;
+  const sb=s.D*2+s.W*2+s.TA*3+s.TB*3+s.Q*4; // 連泊（清掃なし）のベッド数
+  const BT=Math.ceil(PC*1.3+sb*1.3*LN_SWAP-1e-9); // タオル＝ベッド数×1.3（連泊（清掃なし）は半分が交換）
+  return {SS,SW,DS:SS,DW:SW,PC,BT,FT:BT,BM:D+W+TA+TB+Q};}
 function lnCalc(X){
   const L=X2.lin[X]||{typ:{},come:{},cnt:{},ov:{},wipe:40};
-  const T=addD(X,2); // audit前の日付の2日後
-  const o=outsOn(T),fs=X2.fullc[T]||[];
-  const auto={},out={},full={};
-  for(const t of LN_ORDER){out[t]=o?o.by[t]:0;full[t]=0;}
-  const oset=new Set(o?o.rooms:[]);
-  for(const no of fs)if(!oset.has(no))full[TYPE_OF[no]]++;
-  for(const t of LN_ORDER)auto[t]=out[t]+full[t];
-  const typ={};for(const t of LN_ORDER)typ[t]=auto[t]; // TMSのデータから自動（手では変えない）
-  const {D,W,TA,TB,Q}=typ;
-  const SS=W*2+TA*3+TB+Q*4, SW=D+TB*2, PC=D*2+W*2+TA*3+TB*3+Q*4, BT=PC*1.3;
-  const need={SS,SW,DS:SS,DW:SW,PC,BT,FT:BT,BM:D+W+TA+TB+Q,GW:60,WP:null};
+  const T1=addD(X,2),T2=addD(X,3); // T1分はX+1日の夜、T2分はX+2日の夜に各階へ用意する
+  const d1=lnDay(T1),d2=lnDay(T2),ok=d1.ok&&d2.ok;
+  const n1=lnNeed(d1.clean,d1.stay),n2=lnNeed(d2.clean,d2.stay);
   const prev=X2.lin[addD(X,-1)];
   const wipe=L.wipe===20?20:40;
-  const rows=LN_ITEMS.map(it=>{
-    const r={it,need:need[it.k]};
-    if(it.fix!=null){r.calc=it.fix==="wipe"?wipe:it.fix;}
+  const rows=LN_ITEMS.map(it=>{const k=it.k;
+    const r={it,n1:n1[k]!=null?n1[k]:null,n2:n2[k]!=null?n2[k]:null,need:null,spare:null};
+    if(it.fix!=null){r.calc=it.fix==="wipe"?wipe:it.fix;if(ok&&r.n1!=null)r.need=r.n1+r.n2;} // 固定：必要数は見るだけ
     else{
-      const pc=prev&&prev.ord&&prev.ord[it.k]!=null?prev.ord[it.k]:null;
-      r.comeAuto=L.come[it.k]==null; r.come=r.comeAuto?pc:L.come[it.k];
-      r.cnt=L.cnt[it.k];
-      if(r.cnt==null)r.calc=null; // カウント未入力
-      else{const raw=it.c-(r.cnt+(r.come||0)-need[it.k]);r.raw=raw;r.calc=Math.max(0,Math.ceil(raw/it.u-1e-9)*it.u);}
+      if(ok){r.spare=Math.ceil((r.n1+r.n2)*LN_SPARE-1e-9);r.need=r.n1+r.n2+r.spare;}
+      const pc=prev&&prev.ord&&prev.ord[k]!=null?prev.ord[k]:null;
+      r.comeAuto=L.come[k]==null; r.come=r.comeAuto?pc:L.come[k];
+      r.cnt=L.cnt[k];
+      if(!ok||r.cnt==null)r.calc=null; // データなし・在庫未入力
+      else{const raw=r.need-(r.cnt+(r.come||0));r.raw=raw;r.calc=Math.max(0,Math.ceil(raw/it.u-1e-9)*it.u);}
     }
-    r.ov=L.ov&&L.ov[it.k]!=null;r.ord=r.ov?L.ov[it.k]:r.calc;
+    r.ov=L.ov&&L.ov[k]!=null;r.ord=r.ov?L.ov[k]:r.calc;
     return r;});
-  return {X,T,o,out,full,auto,typ,rows,wipe,unk:o?o.unk:[],deliv:addD(X,2)}; // 納品日＝発注日の次の日（画面では変えない）
+  return {X,T1,T2,d1,d2,ok,rows,wipe,unk:[...d1.unk,...d2.unk],deliv:addD(X,2)}; // 納品日＝発注日の次の日（画面では変えない）
 }
-const fmtN=v=>v==null?"":(Math.round(v*10)/10).toString();
 function buildLinen(){
   if(!lnDateVal)lnDateVal=lnDefaultDate();
   const X=lnDateVal,c=lnCalc(X);
   document.getElementById("lnDate").value=addD(X,1); // 発注日＝作った夜の次の日（ドライバーに渡す日・納品日の前の日）
-  document.getElementById("lnTgt").textContent=md2(c.T)+"OUT＋連泊清掃数";
-  const X1=addD(X,1);
-  document.getElementById("lnFlow").innerHTML=`<b>${mdw(X)}</b>夜 作成 → <b>${mdw(X1)}</b> 発注（ドライバーへ） →<b>${mdw(c.T)}</b> 納品`;
+  document.getElementById("lnTgt").textContent="OUT＋連泊清掃の室数";
+  const X1=addD(X,1),t1s=mdS(c.T1),t2s=mdS(c.T2),x1s=mdS(X1);
+  document.getElementById("lnFlow").innerHTML=`<b>${mdw(X)}</b>夜 作成 → <b>${mdw(X1)}</b> 発注（ドライバーへ） →<b>${mdw(c.T1)}</b> 納品`;
+  document.getElementById("lnRule").innerHTML=`<b>発注数 ＝ ${t1s}分 ＋ ${t2s}分 ＋ 予備 − 在庫 − ${x1s}納品</b><br>`+
+    `・${t1s}分は${x1s}の夜、${t2s}分は${t1s}の夜（${t1s}に納品された分で）各階に用意する分<br>`+
+    `・在庫は、${x1s}の分を各階に分けたあとで、第2倉庫だけ数える<br>`+
+    `・タオルは、連泊（清掃なし）の部屋の半分が交換に来る分も足す。予備は必要数の1割（汚れ・シミの分）`;
   const info=[];
-  if(!c.o)info.push(`<span class="bad">${mdw(c.T)}のOUTのデータがありません。右上の「データ更新」で読み込んでください。</span>`);
+  for(const d of [c.d1,c.d2])if(!d.ok)info.push(`<span class="bad">${mdw(d.T)}のOUTのデータがありません。右上の「データ更新」で読み込んでください。</span>`);
   if(c.unk.length)info.push(`<span class="bad">部屋タイプが分からないOUTが${c.unk.length}室あります（${esc([...new Set(c.unk)].join("、"))}）。発注数を手で直してください。</span>`);
   const pr=X2.lin[X]&&X2.lin[X].printed;
   if(pr){const d=new Date(pr);info.push(`${d.getMonth()+1}月${d.getDate()}日 ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")} 印刷済み`);}
   document.getElementById("lnInfo").innerHTML=info.join("<br>");
   // タイプ別
-  let h=`<thead><tr><th>タイプ</th><th>室数</th></tr></thead><tbody>`; // OUT＋連泊清掃
-  for(const t of LN_ORDER)h+=`<tr><td>${TNAME[t]}</td><td class="tv" data-typ="${t}"></td></tr>`;
-  h+=`<tr class="sum"><td>合計</td><td id="lnTypSum"></td></tr></tbody>`;
+  let h=`<thead><tr><th>タイプ</th><th>${t1s}</th><th>${t2s}</th></tr></thead><tbody>`; // OUT＋連泊清掃（2日分）
+  for(const t of LN_ORDER)h+=`<tr><td>${TNAME[t]}</td><td class="tv" data-typ="${t}" data-d="1"></td><td class="tv" data-typ="${t}" data-d="2"></td></tr>`;
+  h+=`<tr class="sum"><td>合計</td><td id="lnTypSum1"></td><td id="lnTypSum2"></td></tr>`;
+  h+=`<tr class="stay"><td>連泊（清掃なし）<small class="sub">半分がタオル交換</small></td><td id="lnStay1"></td><td id="lnStay2"></td></tr></tbody>`;
   document.getElementById("lnTypes").innerHTML=h;
   // 発注数
-  h=`<thead><tr><th>種類</th><th>${md2(c.T)}<br>に必要</th><th>${md2(X1)}<br>納品</th><th>在庫</th><th>計算</th><th>発注数</th></tr></thead><tbody>`;
+  h=`<thead><tr><th>種類</th><th>必要数<br>${t1s}＋${t2s}＋予備</th><th>${md2(X1)}<br>納品</th><th>在庫</th><th>計算</th><th>発注数</th></tr></thead><tbody>`;
   for(const r of c.rows){const k=r.it.k;
-    h+=`<tr><td>${r.it.nm}<small class="sub">${r.it.u}枚単位</small></td><td data-need="${k}" data-l="${mdS(c.T)}に必要数"></td>`;
+    h+=`<tr><td>${r.it.nm}<small class="sub">${r.it.u}枚単位</small></td><td data-need="${k}" data-l="必要数（${t1s}＋${t2s}＋予備）"></td>`;
     if(r.it.fix!=null)h+=`<td class="nil"></td><td class="nil"></td><td class="fx">${k==="WP"?`<span class="seg"><button type="button" data-wipe="40">40</button><button type="button" data-wipe="20">20</button></span>`:"固定"}</td>`;
     else h+=`<td data-l="${mdS(X1)}納品"><input type="number" inputmode="numeric" min="0" data-g="come" data-k="${k}"></td><td data-l="在庫"><input type="number" inputmode="numeric" min="0" data-g="cnt" data-k="${k}"></td><td data-calc="${k}" data-l="計算"></td>`;
     h+=`<td class="ord" data-l="発注数"><input type="number" inputmode="numeric" min="0" step="${r.it.u}" data-g="ov" data-k="${k}"><button class="rs" type="button" data-g="ov" data-k="${k}" hidden>↺</button></td></tr>`;}
@@ -1150,7 +1174,7 @@ function buildLinen(){
 function lnPersist(X,printed){const c=lnCalc(X),rec=linRec(X);rec.ord={};
   for(const r of c.rows)if(r.ord!=null)rec.ord[r.it.k]=r.ord;
   if(printed){rec.printed=Date.now();
-    rec.snap={at:rec.printed,deliv:c.deliv,typ:{...c.typ},rows:c.rows.map(r=>({k:r.it.k,nm:r.it.nm,u:r.it.u,need:r.need,come:r.come==null?null:r.come,cnt:r.cnt==null?null:r.cnt,ord:r.ord==null?null:r.ord}))};
+    rec.snap={at:rec.printed,deliv:c.deliv,days:[c.d1,c.d2].map(d=>({T:d.T,clean:{...d.clean},stay:{...d.stay}})),rows:c.rows.map(r=>({k:r.it.k,nm:r.it.nm,u:r.it.u,n1:r.n1,n2:r.n2,spare:r.spare,need:r.need,come:r.come==null?null:r.come,cnt:r.cnt==null?null:r.cnt,ord:r.ord==null?null:r.ord}))};
     lnHistSel=X;}
   saveX();}
 // ---- 発注履歴（右の欄）
@@ -1174,15 +1198,19 @@ function updLinen(all,persist){ // 入力中の欄はさわらずに数字だけ
   const setIn=(g,k,v,cls)=>{const el=document.querySelector(`#p-linen input[data-g="${g}"][data-k="${k}"]`);if(!el)return;
     if(all||document.activeElement!==el)el.value=v==null?"":v;el.className=cls||"";
     const b=document.querySelector(`#p-linen button.rs[data-g="${g}"][data-k="${k}"]`);if(b)b.hidden=cls!=="ov";};
-  for(const t of LN_ORDER){const e=document.querySelector(`#lnTypes [data-typ="${t}"]`);if(e)e.textContent=c.typ[t];}
-  document.getElementById("lnTypSum").textContent=LN_ORDER.reduce((a,t)=>a+c.typ[t],0);
+  const sum=o=>LN_ORDER.reduce((a,t)=>a+o[t],0);
+  [c.d1,c.d2].forEach((d,i)=>{
+    for(const t of LN_ORDER){const e=document.querySelector(`#lnTypes [data-typ="${t}"][data-d="${i+1}"]`);if(e)e.textContent=d.ok?d.clean[t]:"–";}
+    document.getElementById("lnTypSum"+(i+1)).textContent=d.ok?sum(d.clean):"–";
+    document.getElementById("lnStay"+(i+1)).textContent=d.ok?sum(d.stay):"–";});
   for(const r of c.rows){const k=r.it.k;
-    const nd=document.querySelector(`#p-linen [data-need="${k}"]`);if(nd)nd.textContent=r.need==null?"":fmtN(r.need);
+    const nd=document.querySelector(`#p-linen [data-need="${k}"]`);
+    if(nd)nd.innerHTML=r.need==null?"":`${r.need}<small class="sub">${r.n1}＋${r.n2}${r.spare!=null?"＋予備"+r.spare:""}</small>`;
     if(r.it.fix==null){
       setIn("come",k,r.come,r.comeAuto?"auto":"");
       setIn("cnt",k,r.cnt,"");
       const cc=document.querySelector(`#p-linen [data-calc="${k}"]`);
-      if(cc)cc.innerHTML=r.calc==null?'<span class="bad">在庫未入力</span>':r.calc;
+      if(cc)cc.innerHTML=!c.ok?'<span class="bad">データなし</span>':r.calc==null?'<span class="bad">在庫未入力</span>':r.calc;
     }
     setIn("ov",k,r.ord,r.ov?"ov":"");}
   document.querySelectorAll("#p-linen [data-wipe]").forEach(b=>b.classList.toggle("on",+b.dataset.wipe===c.wipe));
@@ -1590,7 +1618,7 @@ function applyTms(t){
   t.v=v;save();render();renderTabs();showTms(t,true);
 }
 // バージョン（変えたら CHANGELOG.md にも書く）。拡張のバージョンは content.js が入れる
-const APP_VER="3.19";
+const APP_VER="3.20";
 (function(){const ev=document.documentElement.dataset.tmsExtVer||(document.documentElement.dataset.tmsExt?"2.2以前":"");
   document.getElementById("ver").textContent=`メイク表 v${APP_VER}　・　TMS拡張 ${ev?"v"+ev:"なし"}`;})();
 if(jumpAtStart)gotoDate(autoDay()); // 部屋のボタンを作ったあとで
@@ -1612,13 +1640,13 @@ const isRemotePage0=/^#remote=/.test(location.hash); // パソコンが遠隔で
 let tmsBusy=false,tmsTimer=null;
 const TMS_FAIL="TMSから読み込めませんでした。\nChromeでTMSにログインしてから、もう一度右上の「データ更新」を押してください。";
 // 読む日数：いつもは今日（夜勤の日）の一覧から5日。その日の最初の1回だけ60日（OUT数の60日分）。
-// 今見ている日（連泊表の日付・リネンの納品日）がその先なら、そこまで読む
+// 今見ている日（連泊表の日付・リネンは納品日の次の日の分まで）がその先なら、そこまで読む
 let tmsMode="make";
 function tmsPlan(){const bt=bizToday(),k=X2.tab;
   const k60=day60();
   let days=(X2.tms60===k60||(X2.tms&&X2.tms.f60===k60))?5:60,need=bt; // need＝読まないといけない一覧の日
   if(k==="make"&&dateVal)need=addD(dateVal,-1);
-  if(k==="linen")need=addD(lnDateVal||lnDefaultDate(),1);
+  if(k==="linen")need=addD(lnDateVal||lnDefaultDate(),2); // X+3日のOUT・連泊を見るので X+2日の一覧まで
   const span=Math.round((new Date(need)-new Date(bt))/864e5)+1;
   if(span>days)days=Math.min(62,span);
   return {mode:k,start:bt,days};}
