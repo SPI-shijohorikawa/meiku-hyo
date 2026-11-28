@@ -1373,7 +1373,10 @@ document.querySelector("nav.tabs").addEventListener("keydown",e=>{ // ←→・H
   const i=TABS.indexOf(X2.tab),n=TABS.length;
   const j={ArrowRight:(i+1)%n,ArrowLeft:(i+n-1)%n,Home:0,End:n-1}[e.key];if(j==null)return;
   e.preventDefault();showTab(TABS[j]);document.getElementById("t-"+TABS[j]).focus();});
-document.getElementById("btnPrintOrder").addEventListener("click",()=>{
+document.getElementById("btnPrintOrder").addEventListener("click",async()=>{
+  // 古いデータで発注しないように、印刷の前に必ずデータ更新。読めなかったら印刷しない
+  if(tmsBusy)return;
+  if(!(await tmsStart(true))){alert("データを更新できなかったので、印刷しません。\nTMSにログインしているか（スマホのときはホテルのパソコンがついているか）確かめて、もう一度「発注書を印刷」を押してください。");return;}
   if(!lnDateVal)lnDateVal=lnDefaultDate();
   lnPersist(lnDateVal,true);buildLinen();doPrint("order");}); // 印刷したときの発注数を保存（次の日の「届く数」になる）。発注書は発注履歴にも残る
 document.getElementById("lnHist").addEventListener("change",e=>{if(e.target.id==="lnHistSel"){lnHistSel=e.target.value;renderLnHist();}});
@@ -1618,7 +1621,7 @@ function applyTms(t){
   t.v=v;save();render();renderTabs();showTms(t,true);
 }
 // バージョン（変えたら CHANGELOG.md にも書く）。拡張のバージョンは content.js が入れる
-const APP_VER="3.22";
+const APP_VER="3.23";
 (function(){const ev=document.documentElement.dataset.tmsExtVer||(document.documentElement.dataset.tmsExt?"2.2以前":"");
   document.getElementById("ver").textContent=`メイク表 v${APP_VER}　・　TMS拡張 ${ev?"v"+ev:"なし"}`;})();
 if(jumpAtStart)gotoDate(autoDay()); // 部屋のボタンを作ったあとで
@@ -1661,7 +1664,7 @@ function busyShow(on,txt){
 function tmsBtn(busy,txt){if(!isRemotePage0)busyShow(!!busy,txt?(/^\d+\/\d+$/.test(txt)?`${txt.split("/")[0]} / ${txt.split("/")[1]} 日`:txt):"TMSにつないでいます…");bt.classList.toggle("busy",!!busy);bt.innerHTML=TMS_ICON+`<span class="n">${txt||(busy?"読込中":"データ更新")}</span>`;}
 function tmsDone(){tmsBusy=false;clearTimeout(tmsTimer);bt.disabled=false;tmsBtn(false);}
 tmsBtn(false);
-function tmsArm(){clearTimeout(tmsTimer);tmsTimer=setTimeout(()=>{if(!tmsBusy)return;tmsDone();if(remoteWait){const w=remoteWait;remoteWait=null;w({ok:false,error:"timeout"});}else alert(TMS_FAIL);},90000);} // 90秒なにも来なければ失敗
+function tmsArm(){clearTimeout(tmsTimer);tmsTimer=setTimeout(()=>{if(!tmsBusy)return;tmsDone();if(remoteWait){const w=remoteWait;remoteWait=null;w({ok:false,error:"timeout"});}else{if(!tmsQuiet)alert(TMS_FAIL);tmsFinish(false);}},90000);} // 90秒なにも来なければ失敗
 window.addEventListener("message",e=>{
   if(e.source!==window||!e.data)return;
   if(e.data.type==="MAKEHYO_TMS_PROG"){if(tmsBusy){tmsBtn(true,`${e.data.i}/${e.data.n}`);tmsArm();}return;}
@@ -1671,17 +1674,21 @@ window.addEventListener("message",e=>{
   if(remoteWait){const w=remoteWait;remoteWait=null;if(r.ok){r.data.mode="remote";applyTms(r.data);}w(r);return;} // スマホからの依頼で読んだ
   if(r.ok){r.data.mode=tmsMode;applyTms(r.data);if(tmsMode==="auto")autoDone();}
   else if(tmsMode==="auto")tmsNote(TMS_FAIL);
-  else alert(TMS_FAIL);
+  else if(!tmsQuiet)alert(TMS_FAIL);
+  tmsFinish(!!r.ok);
 });
-bt.addEventListener("click",()=>{
-  if(tmsBusy)return;
-  if(!document.documentElement.dataset.tmsExt){remoteReq();return;} // 拡張機能がない（スマホなど）：パソコンに頼む
+// データ更新を始める。終わったら true（読めた）／false を返す。quiet＝失敗しても alert を出さない（呼んだ側が出す）
+let tmsCb=null,tmsQuiet=false;
+function tmsStart(quiet){return new Promise(res=>{
+  if(tmsBusy){res(false);return;}
+  if(!document.documentElement.dataset.tmsExt){remoteReq().then(ok=>res(!!ok));return;} // 拡張機能がない（スマホなど）：パソコンに頼む
   const p=tmsPlan(),ev=document.documentElement.dataset.tmsExtVer||"0"; // "2.10" を 2.1 と読まないよう、版は verGt で比べる
-  if(p.days>40&&verGt("2.6",ev)){alert("拡張機能が古いので、60日分は読めません。\nchrome://extensions で「メイク表 TMS取込」の「再読み込み」を押してください（v2.6以上）。");return;}
-  tmsMode=p.mode;tmsBusy=true;bt.disabled=true;tmsBtn(true);
+  if(p.days>40&&verGt("2.6",ev)){alert("拡張機能が古いので、60日分は読めません。\nchrome://extensions で「メイク表 TMS取込」の「再読み込み」を押してください（v2.6以上）。");res(false);return;}
+  tmsCb=res;tmsQuiet=!!quiet;tmsMode=p.mode;tmsBusy=true;bt.disabled=true;tmsBtn(true);
   window.postMessage({type:"MAKEHYO_TMS_REQ",days:p.days,start:p.start},"*");
-  tmsArm();
-});
+  tmsArm();});}
+const tmsFinish=ok=>{const c=tmsCb;tmsCb=null;if(c)c(ok);};
+bt.addEventListener("click",()=>{tmsStart();});
 window.addEventListener("hashchange",importTms);
 
 // =====================================================================
@@ -1704,16 +1711,16 @@ async function remoteReq(auto){
   tmsBusy=true;bt.disabled=true;tmsBtn(true,"パソコンに依頼中");
   const end=m=>{tmsBusy=false;bt.disabled=false;tmsBtn(false);if(m){if(auto)tmsNote(m);else alert(m);}}; // 自動のときは画面の上に出すだけ
   try{await reqPut(d=>({ask:{id,at:Date.now(),plan:{days:p.days,start:p.start}},res:d.res||null}));}
-  catch(e){end(String(e.message)==="bad request"?"クラウドの設定が古いので、パソコンに頼めません。\ncloud/设置步骤.md の「手机远程」の手順で Apps Script を新しくしてください。":"クラウドにつながりません。ネットにつながる所でもう一度押してください。");return;}
+  catch(e){end(String(e.message)==="bad request"?"クラウドの設定が古いので、パソコンに頼めません。\ncloud/设置步骤.md の「手机远程」の手順で Apps Script を新しくしてください。":"クラウドにつながりません。ネットにつながる所でもう一度押してください。");return false;}
   const t0=Date.now();let picked=false;
   for(;;){await sleep(4000);
     let r=null;try{const d=(await reqGet()).data||{};r=d.res&&d.res.id===id?d.res:null;}catch(e){}
     if(r&&r.st==="busy"){if(!picked){picked=true;tmsBtn(true,"パソコンで読込中");}}
-    else if(r&&r.st==="done"){tmsBtn(true,"同期中");await cloudSettle();end();if(auto)autoDone();else remoteApplied();return;}
-    else if(r&&r.st==="login"){end("パソコンのTMSがログアウトしています。\nパソコンのChromeでTMSにログインしてから、もう一度押してください。");return;}
-    else if(r){end("パソコンでTMSを読めませんでした。もう一度押してください。"+(r.msg?"\n（"+r.msg+"）":""));return;}
-    if(!picked&&Date.now()-t0>120000){end("パソコンが応答しません。\nホテルのパソコンの電源が入っていて、Chromeが開いているか確かめてください。");return;}
-    if(Date.now()-t0>480000){end("時間がかかりすぎています。パソコンで確かめてください。");return;}}}
+    else if(r&&r.st==="done"){tmsBtn(true,"同期中");await cloudSettle();end();if(auto)autoDone();else remoteApplied();return true;}
+    else if(r&&r.st==="login"){end("パソコンのTMSがログアウトしています。\nパソコンのChromeでTMSにログインしてから、もう一度押してください。");return false;}
+    else if(r){end("パソコンでTMSを読めませんでした。もう一度押してください。"+(r.msg?"\n（"+r.msg+"）":""));return false;}
+    if(!picked&&Date.now()-t0>120000){end("パソコンが応答しません。\nホテルのパソコンの電源が入っていて、Chromeが開いているか確かめてください。");return false;}
+    if(Date.now()-t0>480000){end("時間がかかりすぎています。パソコンで確かめてください。");return false;}}}
 // 上の黄色い欄に1行だけ出す（自動の更新でうまくいかなかったとき。alert で止めない）
 function tmsNote(m){const el=document.getElementById("tmsr");
   el.innerHTML=`<button class="x" type="button">閉じる</button><span style="color:var(--danger)">${esc(m).replace(/\n/g,"<br>")}</span>`;
