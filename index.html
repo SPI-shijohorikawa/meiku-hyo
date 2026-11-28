@@ -1032,7 +1032,7 @@ function saveTmsDays(t){
   const map={};for(const k in cnt)map[k]=Object.keys(cnt[k]).sort((a,b)=>cnt[k][b]-cnt[k][a])[0];
   X2.tms={at:Date.now(),base:bt,days,map,f60:(X2.tms&&X2.tms.f60)||""};
   if(t.days.length>=60&&t.days.filter(x=>x.ok).length>=55)X2.tms.f60=day60(); // 60日読んだ日（午後3時区切り。ほかの端末にも同期）
-  if(t.mode==="linen")lnDateVal=t.d;else if(t.mode!=="out")lnDateVal="";
+  if(t.mode!=="out"&&t.mode!=="linen")lnDateVal=""; // リネン発注のタブで読んだときは、見ている発注日をそのまま（読むのは今日からなので t.d に変えない）
   // リネン発注の古い記録を消す（60日より前）。連泊清掃の記録（fullc・hist）はあとで見るので消さない
   const old=addD(today(),-60);
   for(const d in X2.lin)if(d<old&&!X2.lin[d].snap)delete X2.lin[d]; // 印刷した発注書（snap）は消さない
@@ -1376,9 +1376,10 @@ document.querySelector("nav.tabs").addEventListener("keydown",e=>{ // ←→・H
 document.getElementById("btnPrintOrder").addEventListener("click",async()=>{
   // 古いデータで発注しないように、印刷の前に必ずデータ更新。読めなかったら印刷しない
   if(tmsBusy)return;
-  if(!(await tmsStart(true))){alert("データを更新できなかったので、印刷しません。\nTMSにログインしているか（スマホのときはホテルのパソコンがついているか）確かめて、もう一度「発注書を印刷」を押してください。");return;}
-  if(!lnDateVal)lnDateVal=lnDefaultDate();
-  lnPersist(lnDateVal,true);buildLinen();doPrint("order");}); // 印刷したときの発注数を保存（次の日の「届く数」になる）。発注書は発注履歴にも残る
+  const X=lnDateVal||lnDefaultDate(); // 押したときの発注日。更新のあともこの日の発注書を印刷する
+  const ok=await tmsStart(true);lnDateVal=X;buildLinen();
+  if(!ok){alert("データを更新できなかったので、印刷しません。\nTMSにログインしているか（スマホのときはホテルのパソコンがついているか）確かめて、もう一度「発注書を印刷」を押してください。");return;}
+  lnPersist(X,true);buildLinen();doPrint("order");}); // 印刷したときの発注数を保存（次の日の「届く数」になる）。発注書は発注履歴にも残る
 document.getElementById("lnHist").addEventListener("change",e=>{if(e.target.id==="lnHistSel"){lnHistSel=e.target.value;renderLnHist();}});
 document.getElementById("lnHist").addEventListener("click",e=>{if(e.target.id!=="lnHistPrint"||!X2.lin[lnHistSel])return;
   renderOrderPrint(lnHistSel);doPrint("order");renderOrderPrint();}); // 保存した版をそのまま印刷（保存し直さない）
@@ -1621,7 +1622,7 @@ function applyTms(t){
   t.v=v;save();render();renderTabs();showTms(t,true);
 }
 // バージョン（変えたら CHANGELOG.md にも書く）。拡張のバージョンは content.js が入れる
-const APP_VER="3.23";
+const APP_VER="3.24";
 (function(){const ev=document.documentElement.dataset.tmsExtVer||(document.documentElement.dataset.tmsExt?"2.2以前":"");
   document.getElementById("ver").textContent=`メイク表 v${APP_VER}　・　TMS拡張 ${ev?"v"+ev:"なし"}`;})();
 if(jumpAtStart)gotoDate(autoDay()); // 部屋のボタンを作ったあとで
