@@ -4,3 +4,6 @@ docs/
 # 测试时的截图、临时文件
 *.png
 _preview.html
+
+# アイコンは公開する（上の *.png の例外）
+!icons/*.png
