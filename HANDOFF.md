@@ -123,6 +123,7 @@ index に**タブ切替**を付け、次の3つをそれぞれ別タブで追加
 - v3.23：`tmsStart(quiet)` がデータ更新を始めて Promise（読めたら true）を返す（拡張なしは `remoteReq()` も true/false を返す）。「発注書を印刷」は `await tmsStart(true)` が true のときだけ印刷。
 - v3.24：`applyTms` はリネン発注のタブで読んだとき `lnDateVal` を変えない（前は読んだ最初の日 t.d にしていたが、v3.12 から読むのは今日からなので発注日がずれた）。印刷は押したときの発注日 X を覚えておいて、その日を印刷。
 - v3.25：リネン発注を全員に表示（`HIDE_LINEN=false`。?linen はもう関係ない）。
+- v3.26：アイコン `icons/`（公式サイト https://assets.smart-place-inn.jp/img/logo_smartplaceinn.svg の左の図形8つ＝白、背景は焦茶のグラデーション）。index の head に apple-touch-icon・icon・apple-mobile-web-app-title。index.html 以外のファイルを置くのはこれだけ。
 - バージョン：index の `APP_VER`、拡張の manifest `version`。ページの右下に両方を出す（拡張は content.js が `data-tms-ext-ver` で渡す）。変えたら CHANGELOG.md に書く。
 - 読み込みのお知らせは「読み込みました」だけ（直すことがあるときだけ赤の1行）。リネン発注の説明は「X夜 作成 → X+1 ドライバーへ → X+2 納品」の1行。OUT数の黄色（リネンで使う日）と説明文は削除。
 - タブ名と各ページの見出し：連泊表／リネン発注／連泊清掃カレンダー／OUT数（今から1か月分）。印刷の見出し（原本どおりの「メイク表」、OUT数の印刷）はそのまま。
