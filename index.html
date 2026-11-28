@@ -195,6 +195,14 @@ table.lt small.sub{display:block;font-size:11px;color:var(--sub);font-weight:400
 table.lt thead th{line-height:1.25}
 table.lt .rs{font:inherit;font-size:12px;border:1px solid var(--line);background:var(--paper);border-radius:6px;padding:2px 6px;margin-left:4px;cursor:pointer;color:var(--sub)}
 table.lt td.z{color:#c3c8c5}
+/* 在庫の ▲▼（1単位ずつ） */
+.stp{display:inline-flex;align-items:stretch;gap:0}
+.stp input{border-top-right-radius:0;border-bottom-right-radius:0}
+.stpb{display:flex;flex-direction:column}
+.stb{font:inherit;font-size:11px;line-height:1;width:30px;flex:1;min-height:0;padding:0;border:1px solid #d9c98f;border-left:0;background:var(--paper);color:var(--accent);cursor:pointer;-webkit-user-select:none;user-select:none}
+.stb:first-child{border-top-right-radius:6px;border-bottom:0}
+.stb:last-child{border-bottom-right-radius:6px}
+.stb:active{background:var(--accent-bg)}
 #lnTypes td.tv{font-size:17px;font-weight:700;padding-right:10px}
 .lnrule{font-size:12.5px;line-height:1.65}
 .lnrule b{font-size:14px;color:var(--ink)}
@@ -319,7 +327,8 @@ table.om td.miss{color:#c3c8c5}
   #lnTable td[data-need]{grid-column:1/-1;display:flex;align-items:baseline;gap:8px;font-size:16px}
   #lnTable td[data-need]::before{display:inline;margin:0;font-size:12.5px}
   #lnTable td.ord{grid-column:3}
-  #lnTable input{width:4.2em}
+  #lnTable input{width:4.2em;height:44px} /* 指で押しやすく、▲▼（各22px）と同じ高さに */
+  #lnTable .stb{width:34px}
 }
 /* ---------- 印刷用（白黒プリンター前提） ---------- */
 .print{display:none}
@@ -1023,7 +1032,7 @@ function saveTmsDays(t){
   const map={};for(const k in cnt)map[k]=Object.keys(cnt[k]).sort((a,b)=>cnt[k][b]-cnt[k][a])[0];
   X2.tms={at:Date.now(),base:bt,days,map,f60:(X2.tms&&X2.tms.f60)||""};
   if(t.days.length>=60&&t.days.filter(x=>x.ok).length>=55)X2.tms.f60=day60(); // 60日読んだ日（午後3時区切り。ほかの端末にも同期）
-  if(t.mode==="linen")lnDateVal=t.d;else if(t.mode!=="out")lnDateVal="";
+  if(t.mode!=="out"&&t.mode!=="linen")lnDateVal=""; // リネン発注のタブで読んだときは、見ている発注日をそのまま（読むのは今日からなので t.d に変えない）
   // リネン発注の古い記録を消す（60日より前）。連泊清掃の記録（fullc・hist）はあとで見るので消さない
   const old=addD(today(),-60);
   for(const d in X2.lin)if(d<old&&!X2.lin[d].snap)delete X2.lin[d]; // 印刷した発注書（snap）は消さない
@@ -1153,7 +1162,7 @@ function buildLinen(){
   for(const r of c.rows){const k=r.it.k;
     h+=`<tr><td>${r.it.nm}<small class="sub">${r.it.u}枚単位</small></td><td data-need="${k}" data-l="必要数"></td>`;
     if(r.it.fix!=null)h+=`<td class="nil"></td><td class="nil"></td>`; // 固定（拭き上げは40。20にするときは発注数を直す）
-    else h+=`<td data-l="${mdS(X1)}納品"><input type="number" inputmode="numeric" min="0" data-g="come" data-k="${k}"></td><td data-l="在庫"><input type="number" inputmode="numeric" min="0" data-g="cnt" data-k="${k}"></td>`;
+    else h+=`<td data-l="${mdS(X1)}納品"><input type="number" inputmode="numeric" min="0" data-g="come" data-k="${k}"></td><td data-l="在庫"><span class="stp"><input type="number" inputmode="numeric" min="0" data-g="cnt" data-k="${k}"><span class="stpb"><button type="button" class="stb" data-stp="1" data-k="${k}" data-u="${r.it.u}" aria-label="${r.it.nm}の在庫を${r.it.u}枚ふやす">▲</button><button type="button" class="stb" data-stp="-1" data-k="${k}" data-u="${r.it.u}" aria-label="${r.it.nm}の在庫を${r.it.u}枚へらす">▼</button></span></span></td>`;
     h+=`<td class="ord" data-l="発注数"><input type="number" inputmode="numeric" min="0" step="${r.it.u}" data-g="ov" data-k="${k}"><button class="rs" type="button" data-g="ov" data-k="${k}" hidden>↺</button></td></tr>`;}
   h+="</tbody>";
   document.getElementById("lnTable").innerHTML=h;
@@ -1212,7 +1221,11 @@ function updLinen(all,persist){ // 入力中の欄はさわらずに数字だけ
     updLinen(false,true);});
   p.addEventListener("change",e=>{if(e.target.dataset&&e.target.dataset.g)updLinen(true);});
   p.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
-    if(b.classList.contains("rs")){const L=linRec(lnDateVal);if(L[b.dataset.g])delete L[b.dataset.g][b.dataset.k];updLinen(true,true);}});
+    if(b.classList.contains("rs")){const L=linRec(lnDateVal);if(L[b.dataset.g])delete L[b.dataset.g][b.dataset.k];updLinen(true,true);}
+    if(b.dataset.stp){ // 在庫の ▲▼：1単位（その品の「n枚単位」）ずつふやす・へらす
+      const el=p.querySelector(`input[data-g="cnt"][data-k="${b.dataset.k}"]`);if(!el)return;
+      const u=+b.dataset.u||1,v=Math.max(0,Math.round(+el.value)||0);
+      el.value=Math.max(0,v+u*(+b.dataset.stp));el.dispatchEvent(new Event("input",{bubbles:true}));}});
   document.getElementById("lnDate").addEventListener("change",e=>{if(!e.target.value)return;lnDateVal=addD(e.target.value,-1);buildLinen();}); // 画面の日付は発注日。中では作った夜の日で持つ
 })();
 function ymdJa(s){const a=s.split("-");return `　${+a[0]}年　${+a[1]}月　${+a[2]}日`;}
@@ -1360,9 +1373,13 @@ document.querySelector("nav.tabs").addEventListener("keydown",e=>{ // ←→・H
   const i=TABS.indexOf(X2.tab),n=TABS.length;
   const j={ArrowRight:(i+1)%n,ArrowLeft:(i+n-1)%n,Home:0,End:n-1}[e.key];if(j==null)return;
   e.preventDefault();showTab(TABS[j]);document.getElementById("t-"+TABS[j]).focus();});
-document.getElementById("btnPrintOrder").addEventListener("click",()=>{
-  if(!lnDateVal)lnDateVal=lnDefaultDate();
-  lnPersist(lnDateVal,true);buildLinen();doPrint("order");}); // 印刷したときの発注数を保存（次の日の「届く数」になる）。発注書は発注履歴にも残る
+document.getElementById("btnPrintOrder").addEventListener("click",async()=>{
+  // 古いデータで発注しないように、印刷の前に必ずデータ更新。読めなかったら印刷しない
+  if(tmsBusy)return;
+  const X=lnDateVal||lnDefaultDate(); // 押したときの発注日。更新のあともこの日の発注書を印刷する
+  const ok=await tmsStart(true);lnDateVal=X;buildLinen();
+  if(!ok){alert("データを更新できなかったので、印刷しません。\nTMSにログインしているか（スマホのときはホテルのパソコンがついているか）確かめて、もう一度「発注書を印刷」を押してください。");return;}
+  lnPersist(X,true);buildLinen();doPrint("order");}); // 印刷したときの発注数を保存（次の日の「届く数」になる）。発注書は発注履歴にも残る
 document.getElementById("lnHist").addEventListener("change",e=>{if(e.target.id==="lnHistSel"){lnHistSel=e.target.value;renderLnHist();}});
 document.getElementById("lnHist").addEventListener("click",e=>{if(e.target.id!=="lnHistPrint"||!X2.lin[lnHistSel])return;
   renderOrderPrint(lnHistSel);doPrint("order");renderOrderPrint();}); // 保存した版をそのまま印刷（保存し直さない）
@@ -1605,7 +1622,7 @@ function applyTms(t){
   t.v=v;save();render();renderTabs();showTms(t,true);
 }
 // バージョン（変えたら CHANGELOG.md にも書く）。拡張のバージョンは content.js が入れる
-const APP_VER="3.21";
+const APP_VER="3.24";
 (function(){const ev=document.documentElement.dataset.tmsExtVer||(document.documentElement.dataset.tmsExt?"2.2以前":"");
   document.getElementById("ver").textContent=`メイク表 v${APP_VER}　・　TMS拡張 ${ev?"v"+ev:"なし"}`;})();
 if(jumpAtStart)gotoDate(autoDay()); // 部屋のボタンを作ったあとで
@@ -1648,7 +1665,7 @@ function busyShow(on,txt){
 function tmsBtn(busy,txt){if(!isRemotePage0)busyShow(!!busy,txt?(/^\d+\/\d+$/.test(txt)?`${txt.split("/")[0]} / ${txt.split("/")[1]} 日`:txt):"TMSにつないでいます…");bt.classList.toggle("busy",!!busy);bt.innerHTML=TMS_ICON+`<span class="n">${txt||(busy?"読込中":"データ更新")}</span>`;}
 function tmsDone(){tmsBusy=false;clearTimeout(tmsTimer);bt.disabled=false;tmsBtn(false);}
 tmsBtn(false);
-function tmsArm(){clearTimeout(tmsTimer);tmsTimer=setTimeout(()=>{if(!tmsBusy)return;tmsDone();if(remoteWait){const w=remoteWait;remoteWait=null;w({ok:false,error:"timeout"});}else alert(TMS_FAIL);},90000);} // 90秒なにも来なければ失敗
+function tmsArm(){clearTimeout(tmsTimer);tmsTimer=setTimeout(()=>{if(!tmsBusy)return;tmsDone();if(remoteWait){const w=remoteWait;remoteWait=null;w({ok:false,error:"timeout"});}else{if(!tmsQuiet)alert(TMS_FAIL);tmsFinish(false);}},90000);} // 90秒なにも来なければ失敗
 window.addEventListener("message",e=>{
   if(e.source!==window||!e.data)return;
   if(e.data.type==="MAKEHYO_TMS_PROG"){if(tmsBusy){tmsBtn(true,`${e.data.i}/${e.data.n}`);tmsArm();}return;}
@@ -1658,17 +1675,21 @@ window.addEventListener("message",e=>{
   if(remoteWait){const w=remoteWait;remoteWait=null;if(r.ok){r.data.mode="remote";applyTms(r.data);}w(r);return;} // スマホからの依頼で読んだ
   if(r.ok){r.data.mode=tmsMode;applyTms(r.data);if(tmsMode==="auto")autoDone();}
   else if(tmsMode==="auto")tmsNote(TMS_FAIL);
-  else alert(TMS_FAIL);
+  else if(!tmsQuiet)alert(TMS_FAIL);
+  tmsFinish(!!r.ok);
 });
-bt.addEventListener("click",()=>{
-  if(tmsBusy)return;
-  if(!document.documentElement.dataset.tmsExt){remoteReq();return;} // 拡張機能がない（スマホなど）：パソコンに頼む
+// データ更新を始める。終わったら true（読めた）／false を返す。quiet＝失敗しても alert を出さない（呼んだ側が出す）
+let tmsCb=null,tmsQuiet=false;
+function tmsStart(quiet){return new Promise(res=>{
+  if(tmsBusy){res(false);return;}
+  if(!document.documentElement.dataset.tmsExt){remoteReq().then(ok=>res(!!ok));return;} // 拡張機能がない（スマホなど）：パソコンに頼む
   const p=tmsPlan(),ev=document.documentElement.dataset.tmsExtVer||"0"; // "2.10" を 2.1 と読まないよう、版は verGt で比べる
-  if(p.days>40&&verGt("2.6",ev)){alert("拡張機能が古いので、60日分は読めません。\nchrome://extensions で「メイク表 TMS取込」の「再読み込み」を押してください（v2.6以上）。");return;}
-  tmsMode=p.mode;tmsBusy=true;bt.disabled=true;tmsBtn(true);
+  if(p.days>40&&verGt("2.6",ev)){alert("拡張機能が古いので、60日分は読めません。\nchrome://extensions で「メイク表 TMS取込」の「再読み込み」を押してください（v2.6以上）。");res(false);return;}
+  tmsCb=res;tmsQuiet=!!quiet;tmsMode=p.mode;tmsBusy=true;bt.disabled=true;tmsBtn(true);
   window.postMessage({type:"MAKEHYO_TMS_REQ",days:p.days,start:p.start},"*");
-  tmsArm();
-});
+  tmsArm();});}
+const tmsFinish=ok=>{const c=tmsCb;tmsCb=null;if(c)c(ok);};
+bt.addEventListener("click",()=>{tmsStart();});
 window.addEventListener("hashchange",importTms);
 
 // =====================================================================
@@ -1691,16 +1712,16 @@ async function remoteReq(auto){
   tmsBusy=true;bt.disabled=true;tmsBtn(true,"パソコンに依頼中");
   const end=m=>{tmsBusy=false;bt.disabled=false;tmsBtn(false);if(m){if(auto)tmsNote(m);else alert(m);}}; // 自動のときは画面の上に出すだけ
   try{await reqPut(d=>({ask:{id,at:Date.now(),plan:{days:p.days,start:p.start}},res:d.res||null}));}
-  catch(e){end(String(e.message)==="bad request"?"クラウドの設定が古いので、パソコンに頼めません。\ncloud/设置步骤.md の「手机远程」の手順で Apps Script を新しくしてください。":"クラウドにつながりません。ネットにつながる所でもう一度押してください。");return;}
+  catch(e){end(String(e.message)==="bad request"?"クラウドの設定が古いので、パソコンに頼めません。\ncloud/设置步骤.md の「手机远程」の手順で Apps Script を新しくしてください。":"クラウドにつながりません。ネットにつながる所でもう一度押してください。");return false;}
   const t0=Date.now();let picked=false;
   for(;;){await sleep(4000);
     let r=null;try{const d=(await reqGet()).data||{};r=d.res&&d.res.id===id?d.res:null;}catch(e){}
     if(r&&r.st==="busy"){if(!picked){picked=true;tmsBtn(true,"パソコンで読込中");}}
-    else if(r&&r.st==="done"){tmsBtn(true,"同期中");await cloudSettle();end();if(auto)autoDone();else remoteApplied();return;}
-    else if(r&&r.st==="login"){end("パソコンのTMSがログアウトしています。\nパソコンのChromeでTMSにログインしてから、もう一度押してください。");return;}
-    else if(r){end("パソコンでTMSを読めませんでした。もう一度押してください。"+(r.msg?"\n（"+r.msg+"）":""));return;}
-    if(!picked&&Date.now()-t0>120000){end("パソコンが応答しません。\nホテルのパソコンの電源が入っていて、Chromeが開いているか確かめてください。");return;}
-    if(Date.now()-t0>480000){end("時間がかかりすぎています。パソコンで確かめてください。");return;}}}
+    else if(r&&r.st==="done"){tmsBtn(true,"同期中");await cloudSettle();end();if(auto)autoDone();else remoteApplied();return true;}
+    else if(r&&r.st==="login"){end("パソコンのTMSがログアウトしています。\nパソコンのChromeでTMSにログインしてから、もう一度押してください。");return false;}
+    else if(r){end("パソコンでTMSを読めませんでした。もう一度押してください。"+(r.msg?"\n（"+r.msg+"）":""));return false;}
+    if(!picked&&Date.now()-t0>120000){end("パソコンが応答しません。\nホテルのパソコンの電源が入っていて、Chromeが開いているか確かめてください。");return false;}
+    if(Date.now()-t0>480000){end("時間がかかりすぎています。パソコンで確かめてください。");return false;}}}
 // 上の黄色い欄に1行だけ出す（自動の更新でうまくいかなかったとき。alert で止めない）
 function tmsNote(m){const el=document.getElementById("tmsr");
   el.innerHTML=`<button class="x" type="button">閉じる</button><span style="color:var(--danger)">${esc(m).replace(/\n/g,"<br>")}</span>`;
